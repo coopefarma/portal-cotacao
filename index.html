@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Coopefarma - Portal de Cotação</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
+    body { background: #f0f4f8; min-height: 100vh; }
+
+    #tela-login {
+      display: flex; align-items: center; justify-content: center;
+      min-height: 100vh;
+      background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+    }
+    .login-box {
+      background: #fff; border-radius: 12px; padding: 40px 36px;
+      width: 100%; max-width: 400px; box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+    }
+    .login-logo { text-align: center; margin-bottom: 28px; }
+    .login-logo img { height: 60px; object-fit: contain; }
+    .login-logo p { color: #888; font-size: 13px; margin-top: 8px; }
+    .login-box label { font-size: 13px; color: #555; font-weight: 600; display: block; margin-bottom: 5px; }
+    .login-box input {
+      width: 100%; padding: 11px 14px; border: 1.5px solid #ddd;
+      border-radius: 8px; font-size: 14px; margin-bottom: 16px; transition: border 0.2s;
+    }
+    .login-box input:focus { border-color: #8DC63F; outline: none; }
+    .btn-login {
+      width: 100%; padding: 13px; background: #8DC63F; color: #fff;
+      border: none; border-radius: 8px; font-size: 15px; font-weight: 700;
+      cursor: pointer; transition: background 0.2s;
+    }
+    .btn-login:hover { background: #75a832; }
+    .login-erro { color: #c0392b; font-size: 13px; margin-top: 10px; text-align: center; }
+
+    #tela-app { display: none; }
+
+    .topbar {
+      background: #1a1a1a; color: #fff; padding: 0 28px;
+      height: 60px; display: flex; align-items: center; justify-content: space-between;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    }
+    .topbar-logo img { height: 38px; object-fit: contain; }
+    .topbar-user { display: flex; align-items: center; gap: 14px; font-size: 13px; color: #ccc; }
+    .btn-sair {
+      background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2);
+      color: #fff; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 13px;
+    }
+    .btn-sair:hover { background: rgba(255,255,255,0.2); }
+
+    .sidebar {
+      position: fixed; left: 0; top: 60px; bottom: 0; width: 220px;
+      background: #fff; border-right: 1px solid #e0e0e0; padding: 20px 0; z-index: 10;
+    }
+    .sidebar-item {
+      padding: 12px 24px; cursor: pointer; font-size: 14px; color: #555;
+      display: flex; align-items: center; gap: 10px; transition: all 0.2s;
+      border-left: 3px solid transparent;
+    }
+    .sidebar-item:hover { background: #f5fae8; color: #8DC63F; }
+    .sidebar-item.ativo { background: #f5fae8; color: #75a832; font-weight: 700; border-left-color: #8DC63F; }
+    .sidebar-item span { font-size: 18px; }
+    .sidebar-admin { display: none; }
+
+    .conteudo { margin-left: 220px; padding: 28px; min-height: calc(100vh - 60px); }
+    .pagina { display: none; }
+    .pagina.ativa { display: block; }
+    .page-title { font-size: 22px; font-weight: 700; color: #1a1a1a; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 2px solid #e0e0e0; }
+
+    .cards-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 28px; }
+    .card { background: #fff; border-radius: 10px; padding: 20px 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.07); border-left: 4px solid #8DC63F; }
+    .card-label { font-size: 12px; color: #888; text-transform: uppercase; letter-spacing: 1px; }
+    .card-valor { font-size: 28px; font-weight: 800; color: #1a1a1a; margin-top: 6px; }
+
+    .tabela-wrap { background: #fff; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.07); overflow: hidden; }
+    table { width: 100%; border-collapse: collapse; }
+    th { background: #1a1a1a; color: #fff; padding: 12px 16px; text-align: left; font-size: 13px; }
+    td { padding: 11px 16px; font-size: 13px; border-bottom: 1px solid #f0f0f0; color: #333; }
+    tr:hover td { background: #f9fdf0; }
+
+    .badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; }
+    .badge-verde { background: #e6f4ea; color: #2e7d32; }
+    .badge-azul { background: #e8f5e9; color: #388e3c; }
+    .badge-vermelho { background: #fdecea; color: #c0392b; }
+
+    .btn { padding: 9px 18px; border: none; border-radius: 7px; cursor: pointer; font-size: 13px; font-weight: 600; transition: all 0.2s; }
+    .btn-primary { background: #8DC63F; color: #fff; }
+    .btn-primary:hover { background: #75a832; }
+    .btn-success { background: #2e7d32; color: #fff; }
+    .btn-outline { background: #fff; color: #8DC63F; border: 1.5px solid #8DC63F; }
+    .btn-outline:hover { background: #f5fae8; }
+
+    .toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .form-group { display: flex; flex-direction: column; gap: 5px; }
+    .form-group.full { grid-column: 1 / -1; }
+    .form-group label { font-size: 12px; font-weight: 600; color: #555; }
+    .form-group input { padding: 9px 12px; border: 1.5px solid #ddd; border-radius: 7px; font-size: 13px; }
+    .form-group input:focus { border-color: #8DC63F; outline: none; }
+
+    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 100; align-items: center; justify-content: center; }
+    .modal-overlay.aberto { display: flex; }
+    .modal { background: #fff; border-radius: 12px; padding: 28px; width: 100%; max-width: 520px; max-height: 90vh; overflow-y: auto; box-shadow: 0 8px 32px rgba(0,0,0,0.2); }
+    .modal-titulo { font-size: 17px; font-weight: 700; color: #1a1a1a; margin-bottom: 20px; }
+    .modal-footer { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
+
+    .item-linha { display: grid; grid-template-columns: 1fr 80px 110px auto; gap: 8px; align-items: center; margin-bottom: 8px; }
+    .item-linha input { padding: 8px 10px; border: 1.5px solid #ddd; border-radius: 6px; font-size: 13px; }
+    .item-linha input:focus { border-color: #8DC63F; outline: none; }
+
+    .cotacao-detalhe { background: #fff; border-radius: 10px; padding: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.07); }
+    .loading { text-align: center; padding: 40px; color: #888; font-size: 14px; }
+    .vazio { text-align: center; padding: 40px; color: #aaa; font-size: 14px; }
+
+    @media (max-width: 768px) {
+      .sidebar { display: none; }
+      .conteudo { margin-left: 0; padding: 16px; }
+      .form-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<div id="tela-login">
+  <div class="login-box">
+    <div class="login-logo">
+      <img src="https://raw.githubusercontent.com/coopefarma/portal-cotacao/main/Coopefarma_Marca_1.jpg" alt="Coopefarma" />
+      <p>Portal de Cotação de Compras</p>
+    </div>
+    <label>E-mail</label>
+    <input type="email" id="login-email" placeholder="seu@email.com" />
+    <label>Senha</label>
+    <input type="password" id="login-senha" placeholder="••••••••" onkeydown="if(event.key==='Enter') fazerLogin()" />
+    <button class="btn-login" onclick="fazerLogin()">Entrar</button>
+    <div class="login-erro" id="login-erro"></div>
+  </div>
+</div>
+
+<div id="tela-app">
+  <div class="topbar">
+    <div class="topbar-logo">
+      <img src="https://raw.githubusercontent.com/coopefarma/portal-cotacao/main/Coopefarma_Marca_1.jpg" alt="Coopefarma" />
+    </div>
+    <div class="topbar-user">
+      <span id="nome-usuario"></span>
+      <button class="btn-sair" onclick="sair()">Sair</button>
+    </div>
+  </div>
+
+  <div class="sidebar">
+    <div class="sidebar-item ativo" onclick="irPara('dashboard')"><span>🏠</span> Dashboard</div>
+    <div class="sidebar-item" onclick="irPara('cotacoes')"><span>📋</span> Minhas Cotações</div>
+    <div class="sidebar-item" onclick="irPara('nova-cotacao')"><span>➕</span> Nova Cotação</div>
+    <div class="sidebar-item sidebar-admin" onclick="irPara('farmacias')"><span>🏪</span> Farmácias</div>
+    <div class="sidebar-item sidebar-admin" onclick="irPara('todas-cotacoes')"><span>📊</span> Todas Cotações</div>
+  </div>
+
+  <div class="conteudo">
+    <div class="pagina ativa" id="pg-dashboard">
+      <div class="page-title">Dashboard</div>
+      <div class="cards-grid">
+        <div class="card"><div class="card-label">Cotações Abertas</div><div class="card-valor" id="card-abertas">0</div></div>
+        <div class="card" style="border-left-color:#2e7d32"><div class="card-label">Cotações Finalizadas</div><div class="card-valor" id="card-finalizadas">0</div></div>
+        <div class="card" style="border-left-color:#e67e22"><div class="card-label">Total de Itens Cotados</div><div class="card-valor" id="card-itens">0</div></div>
+      </div>
+      <div class="tabela-wrap">
+        <table><thead><tr><th>Cotação</th><th>Data</th><th>Itens</th><th>Status</th><th>Ação</th></tr></thead>
+        <tbody id="tabela-dashboard"></tbody></table>
+      </div>
+    </div>
+
+    <div class="pagina" id="pg-cotacoes">
+      <div class="toolbar">
+        <div class="page-title" style="border:none;margin:0;padding:0">Minhas Cotações</div>
+        <button class="btn btn-primary" onclick="irPara('nova-cotacao')">+ Nova Cotação</button>
+      </div>
+      <div class="tabela-wrap">
+        <table><thead><tr><th>Título</th><th>Data</th><th>Itens</th><th>Status</th><th>Ações</th></tr></thead>
+        <tbody id="tabela-cotacoes"></tbody></table>
+      </div>
+    </div>
+
+    <div class="pagina" id="pg-nova-cotacao">
+      <div class="page-title">Nova Cotação</div>
+      <div class="tabela-wrap" style="padding:24px">
+        <div class="form-grid" style="margin-bottom:20px">
+          <div class="form-group full">
+            <label>Título da Cotação</label>
+            <input type="text" id="nc-titulo" placeholder="Ex: Compras semana 1 - Maio" />
+          </div>
+        </div>
+        <div style="margin-bottom:12px;font-weight:700;color:#1a1a1a;font-size:14px">Itens para Cotar</div>
+        <div style="display:grid;grid-template-columns:1fr 80px 110px 36px;gap:8px;margin-bottom:8px">
+          <div style="font-size:12px;font-weight:600;color:#888">PRODUTO</div>
+          <div style="font-size:12px;font-weight:600;color:#888">QTD</div>
+          <div style="font-size:12px;font-weight:600;color:#888">ÚLTIMO PREÇO</div>
+          <div></div>
+        </div>
+        <div id="nc-itens"></div>
+        <button class="btn btn-outline" style="margin-top:10px" onclick="adicionarItem()">+ Adicionar Item</button>
+        <div style="margin-top:24px;display:flex;gap:10px">
+          <button class="btn btn-primary" onclick="salvarCotacao()">Salvar Cotação</button>
+          <button class="btn btn-outline" onclick="irPara('cotacoes')">Cancelar</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="pagina" id="pg-detalhe">
+      <div class="toolbar">
+        <div class="page-title" style="border:none;margin:0;padding:0" id="detalhe-titulo">Cotação</div>
+        <button class="btn btn-outline" onclick="irPara('cotacoes')">← Voltar</button>
+      </div>
+      <div class="cotacao-detalhe" id="detalhe-conteudo"><div class="loading">Carregando...</div></div>
+    </div>
+
+    <div class="pagina" id="pg-farmacias">
+      <div class="toolbar">
+        <div class="page-title" style="border:none;margin:0;padding:0">Farmácias Cadastradas</div>
+        <button class="btn btn-primary" onclick="abrirModalFarmacia()">+ Cadastrar Farmácia</button>
+      </div>
+      <div class="tabela-wrap">
+        <table><thead><tr><th>Nome</th><th>CNPJ</th><th>E-mail</th><th>Cidade</th><th>Status</th><th>Ações</th></tr></thead>
+        <tbody id="tabela-farmacias"></tbody></table>
+      </div>
+    </div>
+
+    <div class="pagina" id="pg-todas-cotacoes">
+      <div class="page-title">Todas as Cotações da Rede</div>
+      <div class="tabela-wrap">
+        <table><thead><tr><th>Farmácia</th><th>Título</th><th>Data</th><th>Itens</th><th>Status</th></tr></thead>
+        <tbody id="tabela-todas"></tbody></table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-farmacia">
+  <div class="modal">
+    <div class="modal-titulo">Cadastrar Farmácia</div>
+    <div class="form-grid">
+      <div class="form-group full"><label>Nome da Farmácia *</label><input type="text" id="f-nome" placeholder="Farmácia São João" /></div>
+      <div class="form-group"><label>CNPJ *</label><input type="text" id="f-cnpj" placeholder="00.000.000/0000-00" /></div>
+      <div class="form-group"><label>E-mail de Acesso *</label><input type="email" id="f-email" placeholder="farmacia@email.com" /></div>
+      <div class="form-group"><label>Senha Inicial *</label><input type="password" id="f-senha" placeholder="Mínimo 6 caracteres" /></div>
+      <div class="form-group"><label>Telefone</label><input type="text" id="f-telefone" placeholder="(84) 99999-9999" /></div>
+      <div class="form-group"><label>Cidade</label><input type="text" id="f-cidade" placeholder="Natal" /></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="fecharModal('modal-farmacia')">Cancelar</button>
+      <button class="btn btn-primary" onclick="salvarFarmacia()">Cadastrar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const SUPABASE_URL = 'https://uofcbqqbubvvltnzvhsx.supabase.co';
+  const SUPABASE_KEY = 'sb_publishable_SQ0x7RDU9B0u5lqvn2pr1Q_4NwoJMY9';
+  const { createClient } = supabase;
+  const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+  const ADMIN_EMAIL = 'drogariaflorania@yahoo.com.br';
+  let usuarioAtual = null, farmaciaAtual = null, isAdmin = false;
+
+  async function fazerLogin() {
+    const email = document.getElementById('login-email').value.trim();
+    const senha = document.getElementById('login-senha').value;
+    document.getElementById('login-erro').textContent = '';
+    if (!email || !senha) { document.getElementById('login-erro').textContent = 'Preencha e-mail e senha.'; return; }
+    const { data, error } = await sb.auth.signInWithPassword({ email, password: senha });
+    if (error) { document.getElementById('login-erro').textContent = 'E-mail ou senha incorretos.'; return; }
+    usuarioAtual = data.user;
+    isAdmin = (usuarioAtual.email === ADMIN_EMAIL);
+    await carregarFarmacia();
+    iniciarApp();
+  }
+
+  async function carregarFarmacia() {
+    if (isAdmin) { farmaciaAtual = { nome: 'Coopefarma (Admin)' }; return; }
+    const { data } = await sb.from('farmacias').select('*').eq('email', usuarioAtual.email).single();
+    farmaciaAtual = data;
+  }
+
+  function iniciarApp() {
+    document.getElementById('tela-login').style.display = 'none';
+    document.getElementById('tela-app').style.display = 'block';
+    document.getElementById('nome-usuario').textContent = farmaciaAtual?.nome || usuarioAtual.email;
+    if (isAdmin) document.querySelectorAll('.sidebar-admin').forEach(el => el.style.display = 'flex');
+    carregarDashboard();
+  }
+
+  async function sair() { await sb.auth.signOut(); location.reload(); }
+
+  function irPara(pagina) {
+    document.querySelectorAll('.pagina').forEach(p => p.classList.remove('ativa'));
+    document.querySelectorAll('.sidebar-item').forEach(s => s.classList.remove('ativo'));
+    const mapa = { dashboard:'pg-dashboard', cotacoes:'pg-cotacoes', 'nova-cotacao':'pg-nova-cotacao', detalhe:'pg-detalhe', farmacias:'pg-farmacias', 'todas-cotacoes':'pg-todas-cotacoes' };
+    document.getElementById(mapa[pagina])?.classList.add('ativa');
+    if (pagina==='dashboard') carregarDashboard();
+    if (pagina==='cotacoes') carregarCotacoes();
+    if (pagina==='nova-cotacao') iniciarNovaCotacao();
+    if (pagina==='farmacias') carregarFarmacias();
+    if (pagina==='todas-cotacoes') carregarTodasCotacoes();
+  }
+
+  async function carregarDashboard() {
+    let query = sb.from('cotacoes').select('*, cotacao_itens(count)');
+    if (!isAdmin && farmaciaAtual?.id) query = query.eq('farmacia_id', farmaciaAtual.id);
+    const { data: c } = await query.order('created_at', { ascending: false }).limit(10);
+    if (!c) return;
+    document.getElementById('card-abertas').textContent = c.filter(x=>x.status==='aberta').length;
+    document.getElementById('card-finalizadas').textContent = c.filter(x=>x.status==='finalizada').length;
+    document.getElementById('card-itens').textContent = c.reduce((a,x)=>a+(x.cotacao_itens?.[0]?.count||0),0);
+    document.getElementById('tabela-dashboard').innerHTML = c.length===0
+      ? '<tr><td colspan="5" class="vazio">Nenhuma cotação ainda.</td></tr>'
+      : c.map(x=>`<tr><td><b>${x.titulo||'Sem título'}</b></td><td>${new Date(x.created_at).toLocaleDateString('pt-BR')}</td><td>${x.cotacao_itens?.[0]?.count||0}</td><td><span class="badge ${x.status==='aberta'?'badge-azul':'badge-verde'}">${x.status}</span></td><td><button class="btn btn-outline" style="padding:5px 12px;font-size:12px" onclick="verDetalhe('${x.id}','${(x.titulo||'').replace(/'/g,"\\'")}')">Ver</button></td></tr>`).join('');
+  }
+
+  async function carregarCotacoes() {
+    let query = sb.from('cotacoes').select('*, cotacao_itens(count)');
+    if (!isAdmin && farmaciaAtual?.id) query = query.eq('farmacia_id', farmaciaAtual.id);
+    const { data } = await query.order('created_at', { ascending: false });
+    document.getElementById('tabela-cotacoes').innerHTML = !data||data.length===0
+      ? '<tr><td colspan="5" class="vazio">Nenhuma cotação encontrada.</td></tr>'
+      : data.map(c=>`<tr><td><b>${c.titulo||'Sem título'}</b></td><td>${new Date(c.created_at).toLocaleDateString('pt-BR')}</td><td>${c.cotacao_itens?.[0]?.count||0} itens</td><td><span class="badge ${c.status==='aberta'?'badge-azul':'badge-verde'}">${c.status}</span></td><td style="display:flex;gap:6px"><button class="btn btn-outline" style="padding:5px 12px;font-size:12px" onclick="verDetalhe('${c.id}','${(c.titulo||'').replace(/'/g,"\\'")}')">Ver</button>${c.status==='aberta'?`<button class="btn btn-success" style="padding:5px 12px;font-size:12px" onclick="finalizarCotacao('${c.id}')">Finalizar</button>`:''}</td></tr>`).join('');
+  }
+
+  let contadorItem = 0;
+  function iniciarNovaCotacao() {
+    document.getElementById('nc-titulo').value = '';
+    document.getElementById('nc-itens').innerHTML = '';
+    contadorItem = 0;
+    adicionarItem(); adicionarItem(); adicionarItem();
+  }
+
+  function adicionarItem() {
+    contadorItem++;
+    const id = contadorItem;
+    const div = document.createElement('div');
+    div.className = 'item-linha'; div.id = 'item-'+id;
+    div.innerHTML = `<input type="text" placeholder="Nome do produto" id="prod-${id}"/><input type="number" placeholder="Qtd" id="qtd-${id}"/><input type="number" placeholder="Último preço" id="preco-${id}" step="0.01"/><button onclick="document.getElementById('item-${id}').remove()" style="background:#fdecea;border:none;color:#c0392b;padding:8px 10px;border-radius:6px;cursor:pointer;font-size:14px">✕</button>`;
+    document.getElementById('nc-itens').appendChild(div);
+  }
+
+  async function salvarCotacao() {
+    const titulo = document.getElementById('nc-titulo').value.trim();
+    if (!titulo) { alert('Informe um título para a cotação.'); return; }
+    if (!farmaciaAtual?.id) { alert('Farmácia não identificada.'); return; }
+    const itens = [];
+    document.querySelectorAll('#nc-itens .item-linha').forEach(linha => {
+      const id = linha.id.replace('item-','');
+      const produto = document.getElementById('prod-'+id)?.value.trim();
+      const quantidade = parseFloat(document.getElementById('qtd-'+id)?.value)||null;
+      const ultimo_preco = parseFloat(document.getElementById('preco-'+id)?.value)||null;
+      if (produto) itens.push({produto,quantidade,ultimo_preco});
+    });
+    if (itens.length===0) { alert('Adicione pelo menos um item.'); return; }
+    const { data: cot, error } = await sb.from('cotacoes').insert({farmacia_id:farmaciaAtual.id,titulo,status:'aberta'}).select().single();
+    if (error) { alert('Erro ao salvar: '+error.message); return; }
+    await sb.from('cotacao_itens').insert(itens.map(i=>({...i,cotacao_id:cot.id})));
+    alert('Cotação salva com sucesso!');
+    irPara('cotacoes');
+  }
+
+  async function verDetalhe(id, titulo) {
+    document.getElementById('detalhe-titulo').textContent = titulo||'Cotação';
+    document.getElementById('detalhe-conteudo').innerHTML = '<div class="loading">Carregando...</div>';
+    irPara('detalhe');
+    const { data: itens } = await sb.from('cotacao_itens').select('*').eq('cotacao_id',id);
+    const { data: respostas } = await sb.from('cotacao_respostas').select('*').eq('cotacao_id',id);
+    if (!itens||itens.length===0) { document.getElementById('detalhe-conteudo').innerHTML='<div class="vazio">Nenhum item encontrado.</div>'; return; }
+    const fornecedores = [...new Set((respostas||[]).map(r=>r.fornecedor))];
+    let html = `<div style="overflow-x:auto"><table style="min-width:600px"><thead><tr><th>Produto</th><th>Qtd</th><th>Último Preço</th>${fornecedores.map(f=>`<th>${f}</th>`).join('')}<th style="background:#2e7d32">Menor Preço</th></tr></thead><tbody>`;
+    itens.forEach(item => {
+      const pf = fornecedores.map(f=>{const r=(respostas||[]).find(r=>r.item_id===item.id&&r.fornecedor===f);return r?r.preco:null;});
+      const validos = pf.filter(p=>p!==null&&p>0);
+      const menor = validos.length>0?Math.min(...validos):null;
+      html+=`<tr><td><b>${item.produto}</b></td><td style="text-align:center">${item.quantidade||'-'}</td><td style="text-align:center">${item.ultimo_preco?'R$ '+Number(item.ultimo_preco).toFixed(2).replace('.',','):'-'}</td>${pf.map(p=>{const im=p!==null&&p===menor;return`<td style="text-align:center;${im?'background:#e6f4ea;font-weight:700;color:#2e7d32':''}">${p!==null?'R$ '+Number(p).toFixed(2).replace('.',','):'-'}</td>`;}).join('')}<td style="text-align:center;background:#e6f4ea;font-weight:700;color:#2e7d32">${menor!==null?'R$ '+Number(menor).toFixed(2).replace('.',','):'-'}</td></tr>`;
+    });
+    html+='</tbody></table></div>';
+    if (fornecedores.length===0) html+='<div style="margin-top:16px;padding:16px;background:#fff3cd;border-radius:8px;font-size:13px;color:#856404">⚠️ Nenhuma resposta de fornecedor ainda.</div>';
+    document.getElementById('detalhe-conteudo').innerHTML=html;
+  }
+
+  async function finalizarCotacao(id) {
+    if (!confirm('Finalizar esta cotação?')) return;
+    await sb.from('cotacoes').update({status:'finalizada',finalizada_at:new Date()}).eq('id',id);
+    carregarCotacoes();
+  }
+
+  async function carregarFarmacias() {
+    const { data } = await sb.from('farmacias').select('*').order('nome');
+    document.getElementById('tabela-farmacias').innerHTML = !data||data.length===0
+      ? '<tr><td colspan="6" class="vazio">Nenhuma farmácia cadastrada.</td></tr>'
+      : data.map(f=>`<tr><td><b>${f.nome}</b></td><td>${f.cnpj}</td><td>${f.email}</td><td>${f.cidade||'-'}</td><td><span class="badge ${f.ativo?'badge-verde':'badge-vermelho'}">${f.ativo?'Ativa':'Inativa'}</span></td><td><button class="btn btn-outline" style="padding:4px 10px;font-size:12px" onclick="toggleFarmacia('${f.id}',${f.ativo})">${f.ativo?'Desativar':'Ativar'}</button></td></tr>`).join('');
+  }
+
+  function abrirModalFarmacia() {
+    ['f-nome','f-cnpj','f-email','f-senha','f-telefone','f-cidade'].forEach(id=>document.getElementById(id).value='');
+    document.getElementById('modal-farmacia').classList.add('aberto');
+  }
+
+  async function salvarFarmacia() {
+    const nome=document.getElementById('f-nome').value.trim();
+    const cnpj=document.getElementById('f-cnpj').value.trim();
+    const email=document.getElementById('f-email').value.trim();
+    const senha=document.getElementById('f-senha').value;
+    const telefone=document.getElementById('f-telefone').value.trim();
+    const cidade=document.getElementById('f-cidade').value.trim();
+    if (!nome||!cnpj||!email||!senha) { alert('Preencha todos os campos obrigatórios.'); return; }
+    const { error } = await sb.from('farmacias').insert({nome,cnpj,email,telefone,cidade,ativo:true});
+    if (error) { alert('Erro ao cadastrar: '+error.message); return; }
+    fecharModal('modal-farmacia');
+    alert('Farmácia cadastrada!\n\nEnvie o e-mail e senha para a farmácia acessar o portal.');
+    carregarFarmacias();
+  }
+
+  async function toggleFarmacia(id,ativo) {
+    await sb.from('farmacias').update({ativo:!ativo}).eq('id',id);
+    carregarFarmacias();
+  }
+
+  async function carregarTodasCotacoes() {
+    const { data } = await sb.from('cotacoes').select('*, farmacias(nome), cotacao_itens(count)').order('created_at',{ascending:false});
+    document.getElementById('tabela-todas').innerHTML = !data||data.length===0
+      ? '<tr><td colspan="5" class="vazio">Nenhuma cotação encontrada.</td></tr>'
+      : data.map(c=>`<tr><td><b>${c.farmacias?.nome||'-'}</b></td><td>${c.titulo||'Sem título'}</td><td>${new Date(c.created_at).toLocaleDateString('pt-BR')}</td><td>${c.cotacao_itens?.[0]?.count||0} itens</td><td><span class="badge ${c.status==='aberta'?'badge-azul':'badge-verde'}">${c.status}</span></td></tr>`).join('');
+  }
+
+  function fecharModal(id) { document.getElementById(id).classList.remove('aberto'); }
+  document.querySelectorAll('.modal-overlay').forEach(o=>o.addEventListener('click',function(e){if(e.target===this)this.classList.remove('aberto');}));
+
+  (async()=>{
+    const { data: { session } } = await sb.auth.getSession();
+    if (session) {
+      usuarioAtual = session.user;
+      isAdmin = (usuarioAtual.email === ADMIN_EMAIL);
+      await carregarFarmacia();
+      iniciarApp();
+    }
+  })();
+</script>
+</body>
+</html>
