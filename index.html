@@ -1,225 +1,341 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Coopefarma - Portal de Cotação</title>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
-    body { background: #f0f4f8; min-height: 100vh; }
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Coopefarma - Portal de Cotação</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;font-family:'Segoe UI',sans-serif}
+body{background:#f0f4f8;min-height:100vh}
 
-    #tela-login {
-      display: flex; align-items: center; justify-content: center;
-      min-height: 100vh;
-      background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
-    }
-    .login-box {
-      background: #fff; border-radius: 12px; padding: 40px 36px;
-      width: 100%; max-width: 400px; box-shadow: 0 8px 32px rgba(0,0,0,0.3);
-    }
-    .login-logo { text-align: center; margin-bottom: 28px; }
-    .login-logo img { height: 60px; object-fit: contain; }
-    .login-logo p { color: #888; font-size: 13px; margin-top: 8px; }
-    .login-box label { font-size: 13px; color: #555; font-weight: 600; display: block; margin-bottom: 5px; }
-    .login-box input {
-      width: 100%; padding: 11px 14px; border: 1.5px solid #ddd;
-      border-radius: 8px; font-size: 14px; margin-bottom: 16px; transition: border 0.2s;
-    }
-    .login-box input:focus { border-color: #8DC63F; outline: none; }
-    .btn-login {
-      width: 100%; padding: 13px; background: #8DC63F; color: #fff;
-      border: none; border-radius: 8px; font-size: 15px; font-weight: 700;
-      cursor: pointer; transition: background 0.2s;
-    }
-    .btn-login:hover { background: #75a832; }
-    .login-erro { color: #c0392b; font-size: 13px; margin-top: 10px; text-align: center; }
+/* LOGIN */
+#tela-login{display:flex;align-items:center;justify-content:center;min-height:100vh;background:linear-gradient(135deg,#1a1a1a,#2d2d2d)}
+.login-box{background:#fff;border-radius:12px;padding:40px 36px;width:100%;max-width:400px;box-shadow:0 8px 32px rgba(0,0,0,.3)}
+.login-logo{text-align:center;margin-bottom:28px}
+.login-logo img{height:60px;object-fit:contain}
+.login-logo p{color:#888;font-size:13px;margin-top:8px}
+.login-box label{font-size:13px;color:#555;font-weight:600;display:block;margin-bottom:5px}
+.login-box input{width:100%;padding:11px 14px;border:1.5px solid #ddd;border-radius:8px;font-size:14px;margin-bottom:16px;transition:border .2s}
+.login-box input:focus{border-color:#8DC63F;outline:none}
+.btn-login{width:100%;padding:13px;background:#8DC63F;color:#fff;border:none;border-radius:8px;font-size:15px;font-weight:700;cursor:pointer}
+.btn-login:hover{background:#75a832}
+.login-erro{color:#c0392b;font-size:13px;margin-top:10px;text-align:center}
+.login-link{text-align:center;margin-top:12px;font-size:13px;color:#888}
+.login-link a{color:#8DC63F;cursor:pointer;text-decoration:underline}
 
-    #tela-app { display: none; }
+/* APP */
+#tela-app{display:none}
+.topbar{background:#1a1a1a;color:#fff;padding:0 28px;height:60px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 2px 8px rgba(0,0,0,.3)}
+.topbar-logo img{height:38px;object-fit:contain}
+.topbar-user{display:flex;align-items:center;gap:14px;font-size:13px;color:#ccc}
+.btn-sair{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:#fff;padding:6px 14px;border-radius:6px;cursor:pointer;font-size:13px}
+.btn-sair:hover{background:rgba(255,255,255,.2)}
 
-    .topbar {
-      background: #1a1a1a; color: #fff; padding: 0 28px;
-      height: 60px; display: flex; align-items: center; justify-content: space-between;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-    }
-    .topbar-logo img { height: 38px; object-fit: contain; }
-    .topbar-user { display: flex; align-items: center; gap: 14px; font-size: 13px; color: #ccc; }
-    .btn-sair {
-      background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2);
-      color: #fff; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 13px;
-    }
-    .btn-sair:hover { background: rgba(255,255,255,0.2); }
+.sidebar{position:fixed;left:0;top:60px;bottom:0;width:220px;background:#fff;border-right:1px solid #e0e0e0;padding:20px 0;z-index:10;overflow-y:auto}
+.sidebar-item{padding:12px 24px;cursor:pointer;font-size:14px;color:#555;display:flex;align-items:center;gap:10px;transition:all .2s;border-left:3px solid transparent}
+.sidebar-item:hover{background:#f5fae8;color:#8DC63F}
+.sidebar-item.ativo{background:#f5fae8;color:#75a832;font-weight:700;border-left-color:#8DC63F}
+.sidebar-item span{font-size:18px}
+.sidebar-admin{display:none}
+.sidebar-sep{height:1px;background:#f0f0f0;margin:8px 0}
 
-    .sidebar {
-      position: fixed; left: 0; top: 60px; bottom: 0; width: 220px;
-      background: #fff; border-right: 1px solid #e0e0e0; padding: 20px 0; z-index: 10;
-    }
-    .sidebar-item {
-      padding: 12px 24px; cursor: pointer; font-size: 14px; color: #555;
-      display: flex; align-items: center; gap: 10px; transition: all 0.2s;
-      border-left: 3px solid transparent;
-    }
-    .sidebar-item:hover { background: #f5fae8; color: #8DC63F; }
-    .sidebar-item.ativo { background: #f5fae8; color: #75a832; font-weight: 700; border-left-color: #8DC63F; }
-    .sidebar-item span { font-size: 18px; }
-    .sidebar-admin { display: none; }
+.conteudo{margin-left:220px;padding:28px;min-height:calc(100vh - 60px)}
+.pagina{display:none}
+.pagina.ativa{display:block}
+.page-title{font-size:22px;font-weight:700;color:#1a1a1a;margin-bottom:20px;padding-bottom:12px;border-bottom:2px solid #e0e0e0}
 
-    .conteudo { margin-left: 220px; padding: 28px; min-height: calc(100vh - 60px); }
-    .pagina { display: none; }
-    .pagina.ativa { display: block; }
-    .page-title { font-size: 22px; font-weight: 700; color: #1a1a1a; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 2px solid #e0e0e0; }
+/* CARDS */
+.cards-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;margin-bottom:28px}
+.card{background:#fff;border-radius:10px;padding:20px 24px;box-shadow:0 2px 8px rgba(0,0,0,.07);border-left:4px solid #8DC63F}
+.card-label{font-size:11px;color:#888;text-transform:uppercase;letter-spacing:1px}
+.card-valor{font-size:28px;font-weight:800;color:#1a1a1a;margin-top:6px}
 
-    .cards-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 28px; }
-    .card { background: #fff; border-radius: 10px; padding: 20px 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.07); border-left: 4px solid #8DC63F; }
-    .card-label { font-size: 12px; color: #888; text-transform: uppercase; letter-spacing: 1px; }
-    .card-valor { font-size: 28px; font-weight: 800; color: #1a1a1a; margin-top: 6px; }
+/* TABELAS */
+.tabela-wrap{background:#fff;border-radius:10px;box-shadow:0 2px 8px rgba(0,0,0,.07);overflow:hidden}
+table{width:100%;border-collapse:collapse}
+th{background:#1a1a1a;color:#fff;padding:12px 16px;text-align:left;font-size:13px;white-space:nowrap}
+td{padding:10px 16px;font-size:13px;border-bottom:1px solid #f0f0f0;color:#333}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#f9fdf0}
 
-    .tabela-wrap { background: #fff; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.07); overflow: hidden; }
-    table { width: 100%; border-collapse: collapse; }
-    th { background: #1a1a1a; color: #fff; padding: 12px 16px; text-align: left; font-size: 13px; }
-    td { padding: 11px 16px; font-size: 13px; border-bottom: 1px solid #f0f0f0; color: #333; }
-    tr:hover td { background: #f9fdf0; }
+/* BADGES */
+.badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700}
+.badge-verde{background:#e6f4ea;color:#2e7d32}
+.badge-azul{background:#e8f5e9;color:#388e3c}
+.badge-amarelo{background:#fff8e1;color:#f57f17}
+.badge-cinza{background:#f0f0f0;color:#888}
+.badge-vermelho{background:#fdecea;color:#c0392b}
 
-    .badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; }
-    .badge-verde { background: #e6f4ea; color: #2e7d32; }
-    .badge-azul { background: #e8f5e9; color: #388e3c; }
-    .badge-vermelho { background: #fdecea; color: #c0392b; }
+/* BOTÕES */
+.btn{padding:9px 18px;border:none;border-radius:7px;cursor:pointer;font-size:13px;font-weight:600;transition:all .2s;display:inline-flex;align-items:center;gap:6px}
+.btn-primary{background:#8DC63F;color:#fff}
+.btn-primary:hover{background:#75a832}
+.btn-success{background:#2e7d32;color:#fff}
+.btn-success:hover{background:#388e3c}
+.btn-danger{background:#c0392b;color:#fff}
+.btn-danger:hover{background:#e74c3c}
+.btn-outline{background:#fff;color:#8DC63F;border:1.5px solid #8DC63F}
+.btn-outline:hover{background:#f5fae8}
+.btn-dark{background:#1a1a1a;color:#fff}
+.btn-dark:hover{background:#333}
+.btn-whats{background:#25D366;color:#fff}
+.btn-whats:hover{background:#128C7E}
+.btn-sm{padding:5px 12px;font-size:12px}
 
-    .btn { padding: 9px 18px; border: none; border-radius: 7px; cursor: pointer; font-size: 13px; font-weight: 600; transition: all 0.2s; }
-    .btn-primary { background: #8DC63F; color: #fff; }
-    .btn-primary:hover { background: #75a832; }
-    .btn-success { background: #2e7d32; color: #fff; }
-    .btn-outline { background: #fff; color: #8DC63F; border: 1.5px solid #8DC63F; }
-    .btn-outline:hover { background: #f5fae8; }
+.toolbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px}
 
-    .toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+/* FORMS */
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.form-group{display:flex;flex-direction:column;gap:5px}
+.form-group.full{grid-column:1/-1}
+.form-group label{font-size:12px;font-weight:600;color:#555}
+.form-group input,.form-group select,.form-group textarea{padding:9px 12px;border:1.5px solid #ddd;border-radius:7px;font-size:13px;transition:border .2s}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:#8DC63F;outline:none}
 
-    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-    .form-group { display: flex; flex-direction: column; gap: 5px; }
-    .form-group.full { grid-column: 1 / -1; }
-    .form-group label { font-size: 12px; font-weight: 600; color: #555; }
-    .form-group input { padding: 9px 12px; border: 1.5px solid #ddd; border-radius: 7px; font-size: 13px; }
-    .form-group input:focus { border-color: #8DC63F; outline: none; }
+/* MODAL */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:100;align-items:center;justify-content:center}
+.modal-overlay.aberto{display:flex}
+.modal{background:#fff;border-radius:12px;padding:28px;width:100%;max-width:560px;max-height:90vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,.2)}
+.modal-titulo{font-size:17px;font-weight:700;color:#1a1a1a;margin-bottom:20px}
+.modal-footer{display:flex;justify-content:flex-end;gap:10px;margin-top:20px}
 
-    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 100; align-items: center; justify-content: center; }
-    .modal-overlay.aberto { display: flex; }
-    .modal { background: #fff; border-radius: 12px; padding: 28px; width: 100%; max-width: 520px; max-height: 90vh; overflow-y: auto; box-shadow: 0 8px 32px rgba(0,0,0,0.2); }
-    .modal-titulo { font-size: 17px; font-weight: 700; color: #1a1a1a; margin-bottom: 20px; }
-    .modal-footer { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
+/* TERMÔMETRO */
+.termometro{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.termo-item{display:flex;align-items:center;gap:8px;padding:8px 14px;border-radius:8px;font-size:13px;font-weight:600;min-width:160px}
+.termo-enviado{background:#f0f0f0;color:#666}
+.termo-aberto{background:#fff8e1;color:#f57f17}
+.termo-respondido{background:#e6f4ea;color:#2e7d32}
+.termo-dot{width:10px;height:10px;border-radius:50%}
+.dot-enviado{background:#aaa}
+.dot-aberto{background:#f57f17}
+.dot-respondido{background:#2e7d32}
 
-    .item-linha { display: grid; grid-template-columns: 1fr 80px 110px auto; gap: 8px; align-items: center; margin-bottom: 8px; }
-    .item-linha input { padding: 8px 10px; border: 1.5px solid #ddd; border-radius: 6px; font-size: 13px; }
-    .item-linha input:focus { border-color: #8DC63F; outline: none; }
+/* ANÁLISE */
+.analise-tabela{overflow-x:auto}
+.analise-tabela table{min-width:600px}
+.preco-menor{background:#e6f4ea!important;font-weight:700;color:#2e7d32}
+.preco-segundo{background:#fff8e1!important;color:#f57f17}
+.preco-terceiro{background:#fdecea!important;color:#c0392b}
+.vencedor-sel{background:#e8f5e9;border:2px solid #8DC63F;border-radius:6px;padding:3px 8px;font-size:12px;font-weight:700;color:#2e7d32;cursor:pointer}
 
-    .cotacao-detalhe { background: #fff; border-radius: 10px; padding: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.07); }
-    .loading { text-align: center; padding: 40px; color: #888; font-size: 14px; }
-    .vazio { text-align: center; padding: 40px; color: #aaa; font-size: 14px; }
+/* RANKING MODAL */
+.ranking-lista{display:flex;flex-direction:column;gap:8px;margin-top:12px}
+.ranking-item{display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:8px;border:1px solid #e0e0e0}
+.ranking-pos{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;flex-shrink:0}
+.pos-1{background:#FFD700;color:#333}
+.pos-2{background:#C0C0C0;color:#333}
+.pos-3{background:#CD7F32;color:#fff}
+.pos-n{background:#f0f0f0;color:#666}
+.ranking-info{flex:1}
+.ranking-forn{font-weight:700;font-size:14px;color:#1a1a1a}
+.ranking-preco{font-size:13px;color:#555}
+.btn-selecionar{background:#8DC63F;color:#fff;border:none;padding:6px 14px;border-radius:6px;cursor:pointer;font-size:12px;font-weight:700}
+.btn-selecionar:hover{background:#75a832}
+.btn-selecionado{background:#e6f4ea;color:#2e7d32;border:2px solid #8DC63F;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:default}
 
-    @media (max-width: 768px) {
-      .sidebar { display: none; }
-      .conteudo { margin-left: 0; padding: 16px; }
-      .form-grid { grid-template-columns: 1fr; }
-    }
-  </style>
+/* IMPORT AREA */
+.import-area{border:2px dashed #8DC63F;border-radius:10px;padding:32px;text-align:center;cursor:pointer;transition:all .2s;margin-bottom:16px}
+.import-area:hover{background:#f5fae8}
+.import-area p{color:#888;font-size:14px;margin-top:8px}
+.import-icone{font-size:36px}
+
+/* ITEM LINHA */
+.item-linha{display:grid;grid-template-columns:2fr 70px 100px 120px auto;gap:8px;align-items:center;margin-bottom:6px}
+.item-linha input{padding:7px 10px;border:1.5px solid #ddd;border-radius:6px;font-size:13px}
+.item-linha input:focus{border-color:#8DC63F;outline:none}
+
+/* TELA FORNECEDOR */
+#tela-fornecedor{display:none;min-height:100vh;background:#f0f4f8}
+.forn-header{background:#1a1a1a;padding:16px 24px;display:flex;align-items:center}
+.forn-header img{height:40px}
+.forn-box{max-width:700px;margin:24px auto;background:#fff;border-radius:12px;padding:28px;box-shadow:0 4px 16px rgba(0,0,0,.1)}
+.forn-titulo{font-size:18px;font-weight:700;color:#1a1a1a;margin-bottom:6px}
+.forn-sub{font-size:13px;color:#888;margin-bottom:20px}
+.forn-item{display:grid;grid-template-columns:1fr 120px;gap:12px;align-items:center;padding:12px 0;border-bottom:1px solid #f0f0f0}
+.forn-item:last-child{border-bottom:none}
+.forn-produto{font-size:14px;font-weight:600;color:#1a1a1a}
+.forn-obs{font-size:12px;color:#888;margin-top:2px}
+.forn-preco{padding:8px 12px;border:1.5px solid #ddd;border-radius:7px;font-size:14px;text-align:center;width:100%}
+.forn-preco:focus{border-color:#8DC63F;outline:none}
+.forn-info{background:#f5fae8;border-radius:8px;padding:12px 16px;font-size:13px;color:#555;margin-bottom:20px}
+
+.loading{text-align:center;padding:40px;color:#888;font-size:14px}
+.vazio{text-align:center;padding:40px;color:#aaa;font-size:14px}
+
+@media(max-width:768px){
+  .sidebar{display:none}
+  .conteudo{margin-left:0;padding:16px}
+  .form-grid{grid-template-columns:1fr}
+  .item-linha{grid-template-columns:1fr 60px}
+}
+</style>
 </head>
 <body>
 
-<div id="tela-login">
-  <div class="login-box">
-    <div class="login-logo">
-      <img src="https://raw.githubusercontent.com/coopefarma/portal-cotacao/main/Coopefarma_Marca_1.jpg" alt="Coopefarma" />
-      <p>Portal de Cotação de Compras</p>
-    </div>
-    <label>E-mail</label>
-    <input type="email" id="login-email" placeholder="seu@email.com" />
-    <label>Senha</label>
-    <input type="password" id="login-senha" placeholder="••••••••" onkeydown="if(event.key==='Enter') fazerLogin()" />
-    <button class="btn-login" onclick="fazerLogin()">Entrar</button>
-    <div class="login-erro" id="login-erro"></div>
+<!-- ═══════════════ TELA FORNECEDOR (pública) ═══════════════ -->
+<div id="tela-fornecedor">
+  <div class="forn-header">
+    <img src="https://raw.githubusercontent.com/coopefarma/portal-cotacao/main/Coopefarma_Marca_1.jpg" alt="Coopefarma"/>
+  </div>
+  <div class="forn-box">
+    <div id="forn-conteudo"><div class="loading">Carregando cotação...</div></div>
   </div>
 </div>
 
+<!-- ═══════════════ TELA LOGIN ═══════════════ -->
+<div id="tela-login">
+  <div class="login-box">
+    <div class="login-logo">
+      <img src="https://raw.githubusercontent.com/coopefarma/portal-cotacao/main/Coopefarma_Marca_1.jpg" alt="Coopefarma"/>
+      <p>Portal de Cotação de Compras</p>
+    </div>
+    <label>E-mail</label>
+    <input type="email" id="login-email" placeholder="seu@email.com"/>
+    <label>Senha</label>
+    <input type="password" id="login-senha" placeholder="••••••••" onkeydown="if(event.key==='Enter')fazerLogin()"/>
+    <button class="btn-login" onclick="fazerLogin()">Entrar</button>
+    <div class="login-erro" id="login-erro"></div>
+    <div class="login-link"><a onclick="mostrarRecuperacao()">Esqueci minha senha</a></div>
+  </div>
+</div>
+
+<!-- ═══════════════ APP ═══════════════ -->
 <div id="tela-app">
   <div class="topbar">
-    <div class="topbar-logo">
-      <img src="https://raw.githubusercontent.com/coopefarma/portal-cotacao/main/Coopefarma_Marca_1.jpg" alt="Coopefarma" />
-    </div>
-    <div class="topbar-user">
-      <span id="nome-usuario"></span>
-      <button class="btn-sair" onclick="sair()">Sair</button>
-    </div>
+    <div class="topbar-logo"><img src="https://raw.githubusercontent.com/coopefarma/portal-cotacao/main/Coopefarma_Marca_1.jpg" alt="Coopefarma"/></div>
+    <div class="topbar-user"><span id="nome-usuario"></span><button class="btn-sair" onclick="sair()">Sair</button></div>
   </div>
 
   <div class="sidebar">
     <div class="sidebar-item ativo" onclick="irPara('dashboard')"><span>🏠</span> Dashboard</div>
     <div class="sidebar-item" onclick="irPara('cotacoes')"><span>📋</span> Minhas Cotações</div>
     <div class="sidebar-item" onclick="irPara('nova-cotacao')"><span>➕</span> Nova Cotação</div>
+    <div class="sidebar-sep"></div>
     <div class="sidebar-item sidebar-admin" onclick="irPara('farmacias')"><span>🏪</span> Farmácias</div>
+    <div class="sidebar-item sidebar-admin" onclick="irPara('fornecedores')"><span>🚚</span> Fornecedores</div>
     <div class="sidebar-item sidebar-admin" onclick="irPara('todas-cotacoes')"><span>📊</span> Todas Cotações</div>
+    <div class="sidebar-sep sidebar-admin"></div>
+    <div class="sidebar-item" onclick="irPara('perfil')"><span>👤</span> Meu Perfil</div>
   </div>
 
   <div class="conteudo">
+
+    <!-- DASHBOARD -->
     <div class="pagina ativa" id="pg-dashboard">
       <div class="page-title">Dashboard</div>
       <div class="cards-grid">
         <div class="card"><div class="card-label">Cotações Abertas</div><div class="card-valor" id="card-abertas">0</div></div>
-        <div class="card" style="border-left-color:#2e7d32"><div class="card-label">Cotações Finalizadas</div><div class="card-valor" id="card-finalizadas">0</div></div>
-        <div class="card" style="border-left-color:#e67e22"><div class="card-label">Total de Itens Cotados</div><div class="card-valor" id="card-itens">0</div></div>
+        <div class="card" style="border-left-color:#2e7d32"><div class="card-label">Finalizadas</div><div class="card-valor" id="card-finalizadas">0</div></div>
+        <div class="card" style="border-left-color:#e67e22"><div class="card-label">Itens Cotados</div><div class="card-valor" id="card-itens">0</div></div>
+        <div class="card" style="border-left-color:#8e44ad"><div class="card-label">Fornecedores</div><div class="card-valor" id="card-fornecedores">0</div></div>
       </div>
       <div class="tabela-wrap">
-        <table><thead><tr><th>Cotação</th><th>Data</th><th>Itens</th><th>Status</th><th>Ação</th></tr></thead>
+        <table><thead><tr><th>Cotação</th><th>Data</th><th>Itens</th><th>Respostas</th><th>Status</th><th>Ação</th></tr></thead>
         <tbody id="tabela-dashboard"></tbody></table>
       </div>
     </div>
 
+    <!-- MINHAS COTAÇÕES -->
     <div class="pagina" id="pg-cotacoes">
       <div class="toolbar">
         <div class="page-title" style="border:none;margin:0;padding:0">Minhas Cotações</div>
-        <button class="btn btn-primary" onclick="irPara('nova-cotacao')">+ Nova Cotação</button>
+        <button class="btn btn-primary" onclick="irPara('nova-cotacao')">➕ Nova Cotação</button>
       </div>
       <div class="tabela-wrap">
-        <table><thead><tr><th>Título</th><th>Data</th><th>Itens</th><th>Status</th><th>Ações</th></tr></thead>
+        <table><thead><tr><th>Título</th><th>Data</th><th>Itens</th><th>Respostas</th><th>Status</th><th>Ações</th></tr></thead>
         <tbody id="tabela-cotacoes"></tbody></table>
       </div>
     </div>
 
+    <!-- NOVA COTAÇÃO -->
     <div class="pagina" id="pg-nova-cotacao">
       <div class="page-title">Nova Cotação</div>
-      <div class="tabela-wrap" style="padding:24px">
+      <div class="tabela-wrap" style="padding:24px;margin-bottom:20px">
         <div class="form-grid" style="margin-bottom:20px">
           <div class="form-group full">
-            <label>Título da Cotação</label>
-            <input type="text" id="nc-titulo" placeholder="Ex: Compras semana 1 - Maio" />
+            <label>Título da Cotação *</label>
+            <input type="text" id="nc-titulo" placeholder="Ex: Compras semana 1 - Maio"/>
           </div>
         </div>
-        <div style="margin-bottom:12px;font-weight:700;color:#1a1a1a;font-size:14px">Itens para Cotar</div>
-        <div style="display:grid;grid-template-columns:1fr 80px 110px 36px;gap:8px;margin-bottom:8px">
-          <div style="font-size:12px;font-weight:600;color:#888">PRODUTO</div>
-          <div style="font-size:12px;font-weight:600;color:#888">QTD</div>
-          <div style="font-size:12px;font-weight:600;color:#888">ÚLTIMO PREÇO</div>
+
+        <!-- IMPORTAR EXCEL -->
+        <div style="margin-bottom:16px">
+          <div style="font-weight:700;color:#1a1a1a;font-size:14px;margin-bottom:10px">📂 Importar planilha Excel</div>
+          <div class="import-area" onclick="document.getElementById('input-excel').click()" id="import-area">
+            <div class="import-icone">📊</div>
+            <div style="font-weight:700;color:#555;margin-top:8px">Clique para importar Excel</div>
+            <p>Colunas: Produto | Quantidade | Último Preço | Observação</p>
+          </div>
+          <input type="file" id="input-excel" accept=".xlsx,.xls,.csv" style="display:none" onchange="importarExcel(this)"/>
+        </div>
+
+        <div style="font-weight:700;color:#1a1a1a;font-size:14px;margin-bottom:8px">Itens da Cotação</div>
+        <div style="display:grid;grid-template-columns:2fr 70px 100px 120px auto;gap:8px;margin-bottom:6px">
+          <div style="font-size:11px;font-weight:600;color:#888">PRODUTO *</div>
+          <div style="font-size:11px;font-weight:600;color:#888">QTD</div>
+          <div style="font-size:11px;font-weight:600;color:#888">ÚLT. PREÇO</div>
+          <div style="font-size:11px;font-weight:600;color:#888">OBSERVAÇÃO</div>
           <div></div>
         </div>
         <div id="nc-itens"></div>
-        <button class="btn btn-outline" style="margin-top:10px" onclick="adicionarItem()">+ Adicionar Item</button>
-        <div style="margin-top:24px;display:flex;gap:10px">
-          <button class="btn btn-primary" onclick="salvarCotacao()">Salvar Cotação</button>
+        <button class="btn btn-outline btn-sm" style="margin-top:8px" onclick="adicionarItemNC()">+ Adicionar linha</button>
+
+        <div style="margin-top:24px;display:flex;gap:10px;flex-wrap:wrap">
+          <button class="btn btn-primary" onclick="salvarCotacao()">💾 Salvar Cotação</button>
           <button class="btn btn-outline" onclick="irPara('cotacoes')">Cancelar</button>
         </div>
       </div>
     </div>
 
+    <!-- DETALHE / ANÁLISE DA COTAÇÃO -->
     <div class="pagina" id="pg-detalhe">
       <div class="toolbar">
         <div class="page-title" style="border:none;margin:0;padding:0" id="detalhe-titulo">Cotação</div>
-        <button class="btn btn-outline" onclick="irPara('cotacoes')">← Voltar</button>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn btn-outline btn-sm" onclick="irPara('cotacoes')">← Voltar</button>
+          <button class="btn btn-success btn-sm" id="btn-finalizar-det" onclick="finalizarCotacaoAtual()">✅ Finalizar</button>
+        </div>
       </div>
-      <div class="cotacao-detalhe" id="detalhe-conteudo"><div class="loading">Carregando...</div></div>
+
+      <!-- TERMÔMETRO -->
+      <div class="tabela-wrap" style="padding:20px;margin-bottom:20px">
+        <div style="font-weight:700;color:#1a1a1a;margin-bottom:12px">📡 Status dos Fornecedores</div>
+        <div class="termometro" id="termometro"></div>
+        <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap">
+          <button class="btn btn-dark btn-sm" onclick="dispararWhatsApp()">📲 Disparar WhatsApp</button>
+          <button class="btn btn-primary btn-sm" onclick="carregarDetalhe(cotacaoAtualId)">🔄 Atualizar Respostas</button>
+        </div>
+      </div>
+
+      <!-- ANÁLISE DE PREÇOS -->
+      <div class="tabela-wrap" style="padding:20px">
+        <div style="font-weight:700;color:#1a1a1a;margin-bottom:12px">💰 Análise de Preços</div>
+        <div class="analise-tabela" id="analise-conteudo"><div class="loading">Carregando...</div></div>
+        <div style="margin-top:20px;display:flex;gap:10px;flex-wrap:wrap" id="analise-acoes" style="display:none">
+          <button class="btn btn-primary" onclick="gerarPedidos()">🛒 Gerar Pedidos</button>
+        </div>
+      </div>
     </div>
 
+    <!-- FORNECEDORES -->
+    <div class="pagina" id="pg-fornecedores">
+      <div class="toolbar">
+        <div class="page-title" style="border:none;margin:0;padding:0">Fornecedores Cadastrados</div>
+        <button class="btn btn-primary" onclick="abrirModalFornecedor()">➕ Cadastrar Fornecedor</button>
+      </div>
+      <div class="tabela-wrap">
+        <table><thead><tr><th>Nome</th><th>Distribuidora</th><th>WhatsApp</th><th>Status</th><th>Ações</th></tr></thead>
+        <tbody id="tabela-fornecedores"></tbody></table>
+      </div>
+    </div>
+
+    <!-- FARMÁCIAS -->
     <div class="pagina" id="pg-farmacias">
       <div class="toolbar">
         <div class="page-title" style="border:none;margin:0;padding:0">Farmácias Cadastradas</div>
-        <button class="btn btn-primary" onclick="abrirModalFarmacia()">+ Cadastrar Farmácia</button>
+        <button class="btn btn-primary" onclick="abrirModalFarmacia()">➕ Cadastrar Farmácia</button>
       </div>
       <div class="tabela-wrap">
         <table><thead><tr><th>Nome</th><th>CNPJ</th><th>E-mail</th><th>Cidade</th><th>Status</th><th>Ações</th></tr></thead>
@@ -227,6 +343,7 @@
       </div>
     </div>
 
+    <!-- TODAS COTAÇÕES -->
     <div class="pagina" id="pg-todas-cotacoes">
       <div class="page-title">Todas as Cotações da Rede</div>
       <div class="tabela-wrap">
@@ -234,19 +351,68 @@
         <tbody id="tabela-todas"></tbody></table>
       </div>
     </div>
+
+    <!-- PERFIL -->
+    <div class="pagina" id="pg-perfil">
+      <div class="page-title">Meu Perfil</div>
+      <div class="tabela-wrap" style="padding:24px;max-width:500px">
+        <div class="form-group" style="margin-bottom:16px">
+          <label>Nome da Farmácia</label>
+          <input type="text" id="perfil-nome"/>
+        </div>
+        <div class="form-group" style="margin-bottom:16px">
+          <label>Cidade</label>
+          <input type="text" id="perfil-cidade"/>
+        </div>
+        <div class="form-group" style="margin-bottom:16px">
+          <label>Telefone</label>
+          <input type="text" id="perfil-telefone"/>
+        </div>
+        <div style="margin-top:8px;font-weight:700;color:#1a1a1a;font-size:14px;margin-bottom:12px">🔒 Alterar Senha</div>
+        <div class="form-group" style="margin-bottom:16px">
+          <label>Nova Senha</label>
+          <input type="password" id="perfil-senha" placeholder="Deixe em branco para não alterar"/>
+        </div>
+        <div class="form-group" style="margin-bottom:20px">
+          <label>Confirmar Nova Senha</label>
+          <input type="password" id="perfil-senha2" placeholder="Repita a nova senha"/>
+        </div>
+        <button class="btn btn-primary" onclick="salvarPerfil()">💾 Salvar Alterações</button>
+      </div>
+    </div>
+
   </div>
 </div>
 
+<!-- ═══ MODAIS ═══ -->
+
+<!-- MODAL FORNECEDOR -->
+<div class="modal-overlay" id="modal-fornecedor">
+  <div class="modal">
+    <div class="modal-titulo">Cadastrar Fornecedor</div>
+    <div class="form-grid">
+      <div class="form-group"><label>Nome do Representante *</label><input type="text" id="fo-nome" placeholder="João Silva"/></div>
+      <div class="form-group"><label>Distribuidora *</label><input type="text" id="fo-dist" placeholder="Distribuidora ABC"/></div>
+      <div class="form-group full"><label>WhatsApp * (com DDD, só números)</label><input type="text" id="fo-whats" placeholder="84999999999"/></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="fecharModal('modal-fornecedor')">Cancelar</button>
+      <button class="btn btn-primary" onclick="salvarFornecedor()">Cadastrar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL FARMÁCIA -->
 <div class="modal-overlay" id="modal-farmacia">
   <div class="modal">
     <div class="modal-titulo">Cadastrar Farmácia</div>
     <div class="form-grid">
-      <div class="form-group full"><label>Nome da Farmácia *</label><input type="text" id="f-nome" placeholder="Farmácia São João" /></div>
-      <div class="form-group"><label>CNPJ *</label><input type="text" id="f-cnpj" placeholder="00.000.000/0000-00" /></div>
-      <div class="form-group"><label>E-mail de Acesso *</label><input type="email" id="f-email" placeholder="farmacia@email.com" /></div>
-      <div class="form-group"><label>Senha Inicial *</label><input type="password" id="f-senha" placeholder="Mínimo 6 caracteres" /></div>
-      <div class="form-group"><label>Telefone</label><input type="text" id="f-telefone" placeholder="(84) 99999-9999" /></div>
-      <div class="form-group"><label>Cidade</label><input type="text" id="f-cidade" placeholder="Natal" /></div>
+      <div class="form-group full"><label>Nome da Farmácia *</label><input type="text" id="f-nome" placeholder="Farmácia São João"/></div>
+      <div class="form-group"><label>CNPJ *</label><input type="text" id="f-cnpj" placeholder="00.000.000/0000-00"/></div>
+      <div class="form-group"><label>E-mail de Acesso *</label><input type="email" id="f-email" placeholder="farmacia@email.com"/></div>
+      <div class="form-group"><label>Senha Inicial *</label><input type="password" id="f-senha" placeholder="Mínimo 6 caracteres"/></div>
+      <div class="form-group"><label>Telefone</label><input type="text" id="f-telefone" placeholder="(84) 99999-9999"/></div>
+      <div class="form-group"><label>Cidade</label><input type="text" id="f-cidade" placeholder="Natal"/></div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-outline" onclick="fecharModal('modal-farmacia')">Cancelar</button>
@@ -255,191 +421,821 @@
   </div>
 </div>
 
-<script>
-  const SUPABASE_URL = 'https://uofcbqqbubvvltnzvhsx.supabase.co';
-  const SUPABASE_KEY = 'sb_publishable_SQ0x7RDU9B0u5lqvn2pr1Q_4NwoJMY9';
-  const { createClient } = supabase;
-  const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
-  const ADMIN_EMAIL = 'drogariaflorania@yahoo.com.br';
-  let usuarioAtual = null, farmaciaAtual = null, isAdmin = false;
+<!-- MODAL EDITAR FARMÁCIA -->
+<div class="modal-overlay" id="modal-editar-farmacia">
+  <div class="modal">
+    <div class="modal-titulo">Editar Farmácia</div>
+    <input type="hidden" id="ef-id"/>
+    <div class="form-grid">
+      <div class="form-group full"><label>Nome da Farmácia *</label><input type="text" id="ef-nome"/></div>
+      <div class="form-group"><label>CNPJ *</label><input type="text" id="ef-cnpj"/></div>
+      <div class="form-group"><label>E-mail *</label><input type="email" id="ef-email"/></div>
+      <div class="form-group"><label>Telefone</label><input type="text" id="ef-telefone"/></div>
+      <div class="form-group"><label>Cidade</label><input type="text" id="ef-cidade"/></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="fecharModal('modal-editar-farmacia')">Cancelar</button>
+      <button class="btn btn-primary" onclick="salvarEdicaoFarmacia()">Salvar</button>
+    </div>
+  </div>
+</div>
 
-  async function fazerLogin() {
-    const email = document.getElementById('login-email').value.trim();
-    const senha = document.getElementById('login-senha').value;
-    document.getElementById('login-erro').textContent = '';
-    if (!email || !senha) { document.getElementById('login-erro').textContent = 'Preencha e-mail e senha.'; return; }
-    const { data, error } = await sb.auth.signInWithPassword({ email, password: senha });
-    if (error) { document.getElementById('login-erro').textContent = 'E-mail ou senha incorretos.'; return; }
-    usuarioAtual = data.user;
-    isAdmin = (usuarioAtual.email === ADMIN_EMAIL);
+<!-- MODAL SELECIONAR FORNECEDORES PARA DISPARAR -->
+<div class="modal-overlay" id="modal-disparar">
+  <div class="modal">
+    <div class="modal-titulo">📲 Selecionar Fornecedores para Disparar</div>
+    <div style="font-size:13px;color:#888;margin-bottom:14px">Selecione os fornecedores que receberão o link da cotação via WhatsApp:</div>
+    <div style="display:flex;justify-content:space-between;margin-bottom:10px">
+      <label style="font-size:13px;cursor:pointer"><input type="checkbox" id="chk-todos-forn" onchange="marcarTodosForn(this.checked)" style="margin-right:6px">Marcar todos</label>
+    </div>
+    <div id="lista-fornecedores-disparar" style="max-height:300px;overflow-y:auto;display:flex;flex-direction:column;gap:6px"></div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="fecharModal('modal-disparar')">Cancelar</button>
+      <button class="btn btn-whats" onclick="confirmarDisparoWhatsApp()">📲 Abrir WhatsApp</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL RANKING DO ITEM -->
+<div class="modal-overlay" id="modal-ranking">
+  <div class="modal">
+    <div class="modal-titulo" id="ranking-titulo">Ranking do Item</div>
+    <div style="font-size:13px;color:#888;margin-bottom:8px">Clique em "Selecionar" para trocar o fornecedor vencedor deste item:</div>
+    <div class="ranking-lista" id="ranking-lista"></div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="fecharModal('modal-ranking')">Fechar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL PEDIDOS -->
+<div class="modal-overlay" id="modal-pedidos">
+  <div class="modal" style="max-width:700px">
+    <div class="modal-titulo">🛒 Pedidos por Fornecedor</div>
+    <div id="pedidos-conteudo"></div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="fecharModal('modal-pedidos')">Fechar</button>
+      <button class="btn btn-primary" onclick="imprimirPedidos()">🖨️ Imprimir</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL RECUPERAÇÃO DE SENHA -->
+<div class="modal-overlay" id="modal-recuperacao">
+  <div class="modal" style="max-width:400px">
+    <div class="modal-titulo">🔒 Recuperar Senha</div>
+    <div class="form-group" style="margin-bottom:16px">
+      <label>E-mail cadastrado</label>
+      <input type="email" id="rec-email" placeholder="seu@email.com"/>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="fecharModal('modal-recuperacao')">Cancelar</button>
+      <button class="btn btn-primary" onclick="enviarRecuperacao()">Enviar Link</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const SUPABASE_URL='https://uofcbqqbubvvltnzvhsx.supabase.co';
+const SUPABASE_KEY='sb_publishable_SQ0x7RDU9B0u5lqvn2pr1Q_4NwoJMY9';
+const {createClient}=supabase;
+const sb=createClient(SUPABASE_URL,SUPABASE_KEY);
+const ADMIN_EMAIL='drogariaflorania@yahoo.com.br';
+const LOGO_URL='https://raw.githubusercontent.com/coopefarma/portal-cotacao/main/Coopefarma_Marca_1.jpg';
+const PORTAL_URL='https://portal-cotacao.vercel.app';
+
+let usuarioAtual=null,farmaciaAtual=null,isAdmin=false,cotacaoAtualId=null;
+let vencedoresOverride={}; // itemId -> fornecedor escolhido manualmente
+let itensCache=[], respostasCache=[], linksCache=[];
+
+// ════════════════════════════════════════
+// DETECTAR TELA DE FORNECEDOR
+// ════════════════════════════════════════
+(async()=>{
+  const params=new URLSearchParams(window.location.search);
+  const token=params.get('token');
+  if(token){
+    document.getElementById('tela-login').style.display='none';
+    document.getElementById('tela-fornecedor').style.display='block';
+    await carregarTelaFornecedor(token);
+    return;
+  }
+  const {data:{session}}=await sb.auth.getSession();
+  if(session){
+    usuarioAtual=session.user;
+    isAdmin=(usuarioAtual.email===ADMIN_EMAIL);
     await carregarFarmacia();
     iniciarApp();
   }
+})();
 
-  async function carregarFarmacia() {
-    if (isAdmin) { farmaciaAtual = { nome: 'Coopefarma (Admin)' }; return; }
-    const { data } = await sb.from('farmacias').select('*').eq('email', usuarioAtual.email).single();
-    farmaciaAtual = data;
+// ════════════════════════════════════════
+// TELA PÚBLICA DO FORNECEDOR
+// ════════════════════════════════════════
+async function carregarTelaFornecedor(token){
+  const div=document.getElementById('forn-conteudo');
+  const {data:link,error}=await sb.from('cotacao_links').select('*,cotacoes(*),fornecedores(*)').eq('token',token).single();
+  if(error||!link){div.innerHTML='<div class="vazio">❌ Link inválido ou expirado.</div>';return;}
+
+  // Marca como aberto
+  if(link.status==='enviado'){
+    await sb.from('cotacao_links').update({status:'aberto',aberto_em:new Date()}).eq('token',token);
   }
 
-  function iniciarApp() {
-    document.getElementById('tela-login').style.display = 'none';
-    document.getElementById('tela-app').style.display = 'block';
-    document.getElementById('nome-usuario').textContent = farmaciaAtual?.nome || usuarioAtual.email;
-    if (isAdmin) document.querySelectorAll('.sidebar-admin').forEach(el => el.style.display = 'flex');
-    carregarDashboard();
+  // Verifica se já respondeu
+  if(link.status==='respondido'){
+    div.innerHTML=`<div style="text-align:center;padding:40px"><div style="font-size:48px">✅</div><div style="font-size:18px;font-weight:700;margin-top:16px;color:#2e7d32">Cotação já respondida!</div><p style="color:#888;margin-top:8px">Obrigado pela sua participação.</p></div>`;
+    return;
   }
 
-  async function sair() { await sb.auth.signOut(); location.reload(); }
+  const {data:itens}=await sb.from('cotacao_itens').select('*').eq('cotacao_id',link.cotacao_id);
+  if(!itens||itens.length===0){div.innerHTML='<div class="vazio">Nenhum item encontrado.</div>';return;}
 
-  function irPara(pagina) {
-    document.querySelectorAll('.pagina').forEach(p => p.classList.remove('ativa'));
-    document.querySelectorAll('.sidebar-item').forEach(s => s.classList.remove('ativo'));
-    const mapa = { dashboard:'pg-dashboard', cotacoes:'pg-cotacoes', 'nova-cotacao':'pg-nova-cotacao', detalhe:'pg-detalhe', farmacias:'pg-farmacias', 'todas-cotacoes':'pg-todas-cotacoes' };
-    document.getElementById(mapa[pagina])?.classList.add('ativa');
-    if (pagina==='dashboard') carregarDashboard();
-    if (pagina==='cotacoes') carregarCotacoes();
-    if (pagina==='nova-cotacao') iniciarNovaCotacao();
-    if (pagina==='farmacias') carregarFarmacias();
-    if (pagina==='todas-cotacoes') carregarTodasCotacoes();
-  }
+  let html=`
+    <div class="forn-titulo">Cotação: ${link.cotacoes?.titulo||'Sem título'}</div>
+    <div class="forn-sub">Fornecedor: <b>${link.fornecedores?.nome||''}</b> — ${link.fornecedores?.distribuidora||''}</div>
+    <div class="forn-info">💡 Preencha os preços unitários dos produtos que você tem disponível. Deixe em branco os que não tiver.</div>
+    <div id="forn-itens">
+  `;
+  itens.forEach(item=>{
+    html+=`<div class="forn-item">
+      <div>
+        <div class="forn-produto">${item.produto}</div>
+        ${item.quantidade?`<div class="forn-obs">Qtd: ${item.quantidade}</div>`:''}
+        ${item.ultimo_preco?`<div class="forn-obs">Último preço: R$ ${Number(item.ultimo_preco).toFixed(2).replace('.',',')}</div>`:''}
+        ${item.observacao?`<div class="forn-obs">Obs: ${item.observacao}</div>`:''}
+      </div>
+      <input type="number" class="forn-preco" id="fpreco-${item.id}" placeholder="R$ 0,00" step="0.01" min="0"/>
+    </div>`;
+  });
+  html+=`</div>
+    <div style="margin-top:24px">
+      <div class="form-group" style="margin-bottom:16px">
+        <label style="font-size:13px;font-weight:600;color:#555">Observações (opcional)</label>
+        <textarea id="forn-obs-geral" rows="3" style="padding:9px 12px;border:1.5px solid #ddd;border-radius:7px;font-size:13px;resize:vertical;width:100%" placeholder="Condições de pagamento, prazo de entrega, etc."></textarea>
+      </div>
+      <button onclick="enviarRespostaFornecedor('${token}','${link.cotacao_id}','${link.fornecedor_id}',${JSON.stringify(itens).replace(/'/g,"\\'")})" 
+        style="width:100%;padding:14px;background:#8DC63F;color:#fff;border:none;border-radius:8px;font-size:16px;font-weight:700;cursor:pointer">
+        ✅ Enviar Minha Cotação
+      </button>
+    </div>
+  `;
+  div.innerHTML=html;
+}
 
-  async function carregarDashboard() {
-    let query = sb.from('cotacoes').select('*, cotacao_itens(count)');
-    if (!isAdmin && farmaciaAtual?.id) query = query.eq('farmacia_id', farmaciaAtual.id);
-    const { data: c } = await query.order('created_at', { ascending: false }).limit(10);
-    if (!c) return;
-    document.getElementById('card-abertas').textContent = c.filter(x=>x.status==='aberta').length;
-    document.getElementById('card-finalizadas').textContent = c.filter(x=>x.status==='finalizada').length;
-    document.getElementById('card-itens').textContent = c.reduce((a,x)=>a+(x.cotacao_itens?.[0]?.count||0),0);
-    document.getElementById('tabela-dashboard').innerHTML = c.length===0
-      ? '<tr><td colspan="5" class="vazio">Nenhuma cotação ainda.</td></tr>'
-      : c.map(x=>`<tr><td><b>${x.titulo||'Sem título'}</b></td><td>${new Date(x.created_at).toLocaleDateString('pt-BR')}</td><td>${x.cotacao_itens?.[0]?.count||0}</td><td><span class="badge ${x.status==='aberta'?'badge-azul':'badge-verde'}">${x.status}</span></td><td><button class="btn btn-outline" style="padding:5px 12px;font-size:12px" onclick="verDetalhe('${x.id}','${(x.titulo||'').replace(/'/g,"\\'")}')">Ver</button></td></tr>`).join('');
-  }
+async function enviarRespostaFornecedor(token,cotacaoId,fornecedorId,itens){
+  const btn=event.target;
+  btn.disabled=true;
+  btn.textContent='Enviando...';
 
-  async function carregarCotacoes() {
-    let query = sb.from('cotacoes').select('*, cotacao_itens(count)');
-    if (!isAdmin && farmaciaAtual?.id) query = query.eq('farmacia_id', farmaciaAtual.id);
-    const { data } = await query.order('created_at', { ascending: false });
-    document.getElementById('tabela-cotacoes').innerHTML = !data||data.length===0
-      ? '<tr><td colspan="5" class="vazio">Nenhuma cotação encontrada.</td></tr>'
-      : data.map(c=>`<tr><td><b>${c.titulo||'Sem título'}</b></td><td>${new Date(c.created_at).toLocaleDateString('pt-BR')}</td><td>${c.cotacao_itens?.[0]?.count||0} itens</td><td><span class="badge ${c.status==='aberta'?'badge-azul':'badge-verde'}">${c.status}</span></td><td style="display:flex;gap:6px"><button class="btn btn-outline" style="padding:5px 12px;font-size:12px" onclick="verDetalhe('${c.id}','${(c.titulo||'').replace(/'/g,"\\'")}')">Ver</button>${c.status==='aberta'?`<button class="btn btn-success" style="padding:5px 12px;font-size:12px" onclick="finalizarCotacao('${c.id}')">Finalizar</button>`:''}</td></tr>`).join('');
-  }
-
-  let contadorItem = 0;
-  function iniciarNovaCotacao() {
-    document.getElementById('nc-titulo').value = '';
-    document.getElementById('nc-itens').innerHTML = '';
-    contadorItem = 0;
-    adicionarItem(); adicionarItem(); adicionarItem();
-  }
-
-  function adicionarItem() {
-    contadorItem++;
-    const id = contadorItem;
-    const div = document.createElement('div');
-    div.className = 'item-linha'; div.id = 'item-'+id;
-    div.innerHTML = `<input type="text" placeholder="Nome do produto" id="prod-${id}"/><input type="number" placeholder="Qtd" id="qtd-${id}"/><input type="number" placeholder="Último preço" id="preco-${id}" step="0.01"/><button onclick="document.getElementById('item-${id}').remove()" style="background:#fdecea;border:none;color:#c0392b;padding:8px 10px;border-radius:6px;cursor:pointer;font-size:14px">✕</button>`;
-    document.getElementById('nc-itens').appendChild(div);
-  }
-
-  async function salvarCotacao() {
-    const titulo = document.getElementById('nc-titulo').value.trim();
-    if (!titulo) { alert('Informe um título para a cotação.'); return; }
-    if (!farmaciaAtual?.id) { alert('Farmácia não identificada.'); return; }
-    const itens = [];
-    document.querySelectorAll('#nc-itens .item-linha').forEach(linha => {
-      const id = linha.id.replace('item-','');
-      const produto = document.getElementById('prod-'+id)?.value.trim();
-      const quantidade = parseFloat(document.getElementById('qtd-'+id)?.value)||null;
-      const ultimo_preco = parseFloat(document.getElementById('preco-'+id)?.value)||null;
-      if (produto) itens.push({produto,quantidade,ultimo_preco});
-    });
-    if (itens.length===0) { alert('Adicione pelo menos um item.'); return; }
-    const { data: cot, error } = await sb.from('cotacoes').insert({farmacia_id:farmaciaAtual.id,titulo,status:'aberta'}).select().single();
-    if (error) { alert('Erro ao salvar: '+error.message); return; }
-    await sb.from('cotacao_itens').insert(itens.map(i=>({...i,cotacao_id:cot.id})));
-    alert('Cotação salva com sucesso!');
-    irPara('cotacoes');
-  }
-
-  async function verDetalhe(id, titulo) {
-    document.getElementById('detalhe-titulo').textContent = titulo||'Cotação';
-    document.getElementById('detalhe-conteudo').innerHTML = '<div class="loading">Carregando...</div>';
-    irPara('detalhe');
-    const { data: itens } = await sb.from('cotacao_itens').select('*').eq('cotacao_id',id);
-    const { data: respostas } = await sb.from('cotacao_respostas').select('*').eq('cotacao_id',id);
-    if (!itens||itens.length===0) { document.getElementById('detalhe-conteudo').innerHTML='<div class="vazio">Nenhum item encontrado.</div>'; return; }
-    const fornecedores = [...new Set((respostas||[]).map(r=>r.fornecedor))];
-    let html = `<div style="overflow-x:auto"><table style="min-width:600px"><thead><tr><th>Produto</th><th>Qtd</th><th>Último Preço</th>${fornecedores.map(f=>`<th>${f}</th>`).join('')}<th style="background:#2e7d32">Menor Preço</th></tr></thead><tbody>`;
-    itens.forEach(item => {
-      const pf = fornecedores.map(f=>{const r=(respostas||[]).find(r=>r.item_id===item.id&&r.fornecedor===f);return r?r.preco:null;});
-      const validos = pf.filter(p=>p!==null&&p>0);
-      const menor = validos.length>0?Math.min(...validos):null;
-      html+=`<tr><td><b>${item.produto}</b></td><td style="text-align:center">${item.quantidade||'-'}</td><td style="text-align:center">${item.ultimo_preco?'R$ '+Number(item.ultimo_preco).toFixed(2).replace('.',','):'-'}</td>${pf.map(p=>{const im=p!==null&&p===menor;return`<td style="text-align:center;${im?'background:#e6f4ea;font-weight:700;color:#2e7d32':''}">${p!==null?'R$ '+Number(p).toFixed(2).replace('.',','):'-'}</td>`;}).join('')}<td style="text-align:center;background:#e6f4ea;font-weight:700;color:#2e7d32">${menor!==null?'R$ '+Number(menor).toFixed(2).replace('.',','):'-'}</td></tr>`;
-    });
-    html+='</tbody></table></div>';
-    if (fornecedores.length===0) html+='<div style="margin-top:16px;padding:16px;background:#fff3cd;border-radius:8px;font-size:13px;color:#856404">⚠️ Nenhuma resposta de fornecedor ainda.</div>';
-    document.getElementById('detalhe-conteudo').innerHTML=html;
-  }
-
-  async function finalizarCotacao(id) {
-    if (!confirm('Finalizar esta cotação?')) return;
-    await sb.from('cotacoes').update({status:'finalizada',finalizada_at:new Date()}).eq('id',id);
-    carregarCotacoes();
-  }
-
-  async function carregarFarmacias() {
-    const { data } = await sb.from('farmacias').select('*').order('nome');
-    document.getElementById('tabela-farmacias').innerHTML = !data||data.length===0
-      ? '<tr><td colspan="6" class="vazio">Nenhuma farmácia cadastrada.</td></tr>'
-      : data.map(f=>`<tr><td><b>${f.nome}</b></td><td>${f.cnpj}</td><td>${f.email}</td><td>${f.cidade||'-'}</td><td><span class="badge ${f.ativo?'badge-verde':'badge-vermelho'}">${f.ativo?'Ativa':'Inativa'}</span></td><td><button class="btn btn-outline" style="padding:4px 10px;font-size:12px" onclick="toggleFarmacia('${f.id}',${f.ativo})">${f.ativo?'Desativar':'Ativar'}</button></td></tr>`).join('');
-  }
-
-  function abrirModalFarmacia() {
-    ['f-nome','f-cnpj','f-email','f-senha','f-telefone','f-cidade'].forEach(id=>document.getElementById(id).value='');
-    document.getElementById('modal-farmacia').classList.add('aberto');
-  }
-
-  async function salvarFarmacia() {
-    const nome=document.getElementById('f-nome').value.trim();
-    const cnpj=document.getElementById('f-cnpj').value.trim();
-    const email=document.getElementById('f-email').value.trim();
-    const senha=document.getElementById('f-senha').value;
-    const telefone=document.getElementById('f-telefone').value.trim();
-    const cidade=document.getElementById('f-cidade').value.trim();
-    if (!nome||!cnpj||!email||!senha) { alert('Preencha todos os campos obrigatórios.'); return; }
-    const { error } = await sb.from('farmacias').insert({nome,cnpj,email,telefone,cidade,ativo:true});
-    if (error) { alert('Erro ao cadastrar: '+error.message); return; }
-    fecharModal('modal-farmacia');
-    alert('Farmácia cadastrada!\n\nEnvie o e-mail e senha para a farmácia acessar o portal.');
-    carregarFarmacias();
-  }
-
-  async function toggleFarmacia(id,ativo) {
-    await sb.from('farmacias').update({ativo:!ativo}).eq('id',id);
-    carregarFarmacias();
-  }
-
-  async function carregarTodasCotacoes() {
-    const { data } = await sb.from('cotacoes').select('*, farmacias(nome), cotacao_itens(count)').order('created_at',{ascending:false});
-    document.getElementById('tabela-todas').innerHTML = !data||data.length===0
-      ? '<tr><td colspan="5" class="vazio">Nenhuma cotação encontrada.</td></tr>'
-      : data.map(c=>`<tr><td><b>${c.farmacias?.nome||'-'}</b></td><td>${c.titulo||'Sem título'}</td><td>${new Date(c.created_at).toLocaleDateString('pt-BR')}</td><td>${c.cotacao_itens?.[0]?.count||0} itens</td><td><span class="badge ${c.status==='aberta'?'badge-azul':'badge-verde'}">${c.status}</span></td></tr>`).join('');
-  }
-
-  function fecharModal(id) { document.getElementById(id).classList.remove('aberto'); }
-  document.querySelectorAll('.modal-overlay').forEach(o=>o.addEventListener('click',function(e){if(e.target===this)this.classList.remove('aberto');}));
-
-  (async()=>{
-    const { data: { session } } = await sb.auth.getSession();
-    if (session) {
-      usuarioAtual = session.user;
-      isAdmin = (usuarioAtual.email === ADMIN_EMAIL);
-      await carregarFarmacia();
-      iniciarApp();
+  const respostas=[];
+  itens.forEach(item=>{
+    const val=parseFloat(document.getElementById('fpreco-'+item.id)?.value)||null;
+    if(val&&val>0){
+      respostas.push({cotacao_id:cotacaoId,fornecedor_id:fornecedorId,item_id:item.id,preco:val});
     }
-  })();
+  });
+
+  if(respostas.length>0){
+    // Remove respostas anteriores do mesmo fornecedor
+    await sb.from('cotacao_respostas').delete().eq('cotacao_id',cotacaoId).eq('fornecedor_id',fornecedorId);
+    await sb.from('cotacao_respostas').insert(respostas);
+  }
+
+  await sb.from('cotacao_links').update({status:'respondido',respondido_em:new Date()}).eq('token',token);
+
+  document.getElementById('forn-conteudo').innerHTML=`
+    <div style="text-align:center;padding:40px">
+      <div style="font-size:48px">🎉</div>
+      <div style="font-size:18px;font-weight:700;margin-top:16px;color:#2e7d32">Cotação enviada com sucesso!</div>
+      <p style="color:#888;margin-top:8px">Obrigado pela sua participação. Você pode fechar esta janela.</p>
+    </div>`;
+}
+
+// ════════════════════════════════════════
+// LOGIN
+// ════════════════════════════════════════
+async function fazerLogin(){
+  const email=document.getElementById('login-email').value.trim();
+  const senha=document.getElementById('login-senha').value;
+  document.getElementById('login-erro').textContent='';
+  if(!email||!senha){document.getElementById('login-erro').textContent='Preencha e-mail e senha.';return;}
+  const {data,error}=await sb.auth.signInWithPassword({email,password:senha});
+  if(error){document.getElementById('login-erro').textContent='E-mail ou senha incorretos.';return;}
+  usuarioAtual=data.user;
+  isAdmin=(usuarioAtual.email===ADMIN_EMAIL);
+  await carregarFarmacia();
+  iniciarApp();
+}
+
+async function carregarFarmacia(){
+  if(isAdmin){farmaciaAtual={nome:'Coopefarma (Admin)'};return;}
+  const {data}=await sb.from('farmacias').select('*').eq('email',usuarioAtual.email).single();
+  farmaciaAtual=data;
+}
+
+function iniciarApp(){
+  document.getElementById('tela-login').style.display='none';
+  document.getElementById('tela-app').style.display='block';
+  document.getElementById('nome-usuario').textContent=farmaciaAtual?.nome||usuarioAtual.email;
+  if(isAdmin)document.querySelectorAll('.sidebar-admin').forEach(el=>el.style.display='flex');
+  carregarDashboard();
+}
+
+async function sair(){await sb.auth.signOut();location.reload();}
+
+function mostrarRecuperacao(){document.getElementById('modal-recuperacao').classList.add('aberto');}
+
+async function enviarRecuperacao(){
+  const email=document.getElementById('rec-email').value.trim();
+  if(!email){alert('Informe o e-mail.');return;}
+  await sb.auth.resetPasswordForEmail(email,{redirectTo:PORTAL_URL});
+  fecharModal('modal-recuperacao');
+  alert('Link de recuperação enviado para seu e-mail!');
+}
+
+// ════════════════════════════════════════
+// NAVEGAÇÃO
+// ════════════════════════════════════════
+function irPara(pagina){
+  document.querySelectorAll('.pagina').forEach(p=>p.classList.remove('ativa'));
+  document.querySelectorAll('.sidebar-item').forEach(s=>s.classList.remove('ativo'));
+  const mapa={dashboard:'pg-dashboard',cotacoes:'pg-cotacoes','nova-cotacao':'pg-nova-cotacao',detalhe:'pg-detalhe',fornecedores:'pg-fornecedores',farmacias:'pg-farmacias','todas-cotacoes':'pg-todas-cotacoes',perfil:'pg-perfil'};
+  document.getElementById(mapa[pagina])?.classList.add('ativa');
+  if(pagina==='dashboard')carregarDashboard();
+  if(pagina==='cotacoes')carregarCotacoes();
+  if(pagina==='nova-cotacao')iniciarNovaCotacao();
+  if(pagina==='fornecedores')carregarFornecedores();
+  if(pagina==='farmacias')carregarFarmacias();
+  if(pagina==='todas-cotacoes')carregarTodasCotacoes();
+  if(pagina==='perfil')carregarPerfil();
+}
+
+// ════════════════════════════════════════
+// DASHBOARD
+// ════════════════════════════════════════
+async function carregarDashboard(){
+  let q=sb.from('cotacoes').select('*,cotacao_itens(count),cotacao_links(count,status)');
+  if(!isAdmin&&farmaciaAtual?.id)q=q.eq('farmacia_id',farmaciaAtual.id);
+  const {data:c}=await q.order('created_at',{ascending:false}).limit(10);
+  if(!c)return;
+
+  document.getElementById('card-abertas').textContent=c.filter(x=>x.status==='aberta').length;
+  document.getElementById('card-finalizadas').textContent=c.filter(x=>x.status==='finalizada').length;
+  document.getElementById('card-itens').textContent=c.reduce((a,x)=>a+(x.cotacao_itens?.[0]?.count||0),0);
+
+  const {count:nForn}=await sb.from('fornecedores').select('*',{count:'exact',head:true}).eq('ativo',true);
+  document.getElementById('card-fornecedores').textContent=nForn||0;
+
+  document.getElementById('tabela-dashboard').innerHTML=c.length===0
+    ?'<tr><td colspan="6" class="vazio">Nenhuma cotação ainda.</td></tr>'
+    :c.map(x=>{
+      const resp=(x.cotacao_links||[]).filter(l=>l.status==='respondido').length;
+      const total=(x.cotacao_links||[]).length;
+      return`<tr>
+        <td><b>${x.titulo||'Sem título'}</b></td>
+        <td>${new Date(x.created_at).toLocaleDateString('pt-BR')}</td>
+        <td>${x.cotacao_itens?.[0]?.count||0}</td>
+        <td>${resp}/${total}</td>
+        <td><span class="badge ${x.status==='aberta'?'badge-azul':'badge-verde'}">${x.status}</span></td>
+        <td><button class="btn btn-outline btn-sm" onclick="verDetalhe('${x.id}','${(x.titulo||'').replace(/'/g,"\\'")}')">Ver</button></td>
+      </tr>`;
+    }).join('');
+}
+
+// ════════════════════════════════════════
+// COTAÇÕES
+// ════════════════════════════════════════
+async function carregarCotacoes(){
+  let q=sb.from('cotacoes').select('*,cotacao_itens(count),cotacao_links(count,status)');
+  if(!isAdmin&&farmaciaAtual?.id)q=q.eq('farmacia_id',farmaciaAtual.id);
+  const {data}=await q.order('created_at',{ascending:false});
+  document.getElementById('tabela-cotacoes').innerHTML=!data||data.length===0
+    ?'<tr><td colspan="6" class="vazio">Nenhuma cotação encontrada.</td></tr>'
+    :data.map(c=>{
+      const resp=(c.cotacao_links||[]).filter(l=>l.status==='respondido').length;
+      const total=(c.cotacao_links||[]).length;
+      return`<tr>
+        <td><b>${c.titulo||'Sem título'}</b></td>
+        <td>${new Date(c.created_at).toLocaleDateString('pt-BR')}</td>
+        <td>${c.cotacao_itens?.[0]?.count||0} itens</td>
+        <td>${resp}/${total} respostas</td>
+        <td><span class="badge ${c.status==='aberta'?'badge-azul':'badge-verde'}">${c.status}</span></td>
+        <td style="display:flex;gap:6px">
+          <button class="btn btn-outline btn-sm" onclick="verDetalhe('${c.id}','${(c.titulo||'').replace(/'/g,"\\'")}')">Ver</button>
+          ${c.status==='aberta'?`<button class="btn btn-success btn-sm" onclick="finalizarCotacao('${c.id}')">Finalizar</button>`:''}
+        </td>
+      </tr>`;
+    }).join('');
+}
+
+// ════════════════════════════════════════
+// NOVA COTAÇÃO
+// ════════════════════════════════════════
+let contNC=0;
+function iniciarNovaCotacao(){
+  document.getElementById('nc-titulo').value='';
+  document.getElementById('nc-itens').innerHTML='';
+  document.getElementById('import-area').innerHTML='<div class="import-icone">📊</div><div style="font-weight:700;color:#555;margin-top:8px">Clique para importar Excel</div><p>Colunas: Produto | Quantidade | Último Preço | Observação</p>';
+  contNC=0;
+  for(let i=0;i<5;i++)adicionarItemNC();
+}
+
+function adicionarItemNC(prod='',qtd='',preco='',obs=''){
+  contNC++;
+  const id=contNC;
+  const div=document.createElement('div');
+  div.className='item-linha';div.id='nc-'+id;
+  div.innerHTML=`
+    <input type="text" placeholder="Nome do produto" id="np-${id}" value="${prod}"/>
+    <input type="number" placeholder="Qtd" id="nq-${id}" value="${qtd}"/>
+    <input type="number" placeholder="0,00" id="npr-${id}" step="0.01" value="${preco}"/>
+    <input type="text" placeholder="Observação" id="no-${id}" value="${obs}"/>
+    <button onclick="document.getElementById('nc-${id}').remove()" style="background:#fdecea;border:none;color:#c0392b;padding:7px 10px;border-radius:6px;cursor:pointer;font-size:14px">✕</button>
+  `;
+  document.getElementById('nc-itens').appendChild(div);
+}
+
+function importarExcel(input){
+  const file=input.files[0];
+  if(!file)return;
+  const reader=new FileReader();
+  reader.onload=function(e){
+    const wb=XLSX.read(e.target.result,{type:'array'});
+    const ws=wb.Sheets[wb.SheetNames[0]];
+    const rows=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});
+    document.getElementById('nc-itens').innerHTML='';
+    contNC=0;
+    let count=0;
+    rows.forEach((row,i)=>{
+      if(i===0&&isNaN(row[1])&&isNaN(row[2]))return; // pula cabeçalho
+      const prod=String(row[0]||'').trim();
+      if(!prod)return;
+      const qtd=row[1]||'';
+      const preco=row[2]||'';
+      const obs=String(row[3]||'').trim();
+      adicionarItemNC(prod,qtd,preco,obs);
+      count++;
+    });
+    document.getElementById('import-area').innerHTML=`<div style="font-size:24px">✅</div><div style="font-weight:700;color:#2e7d32;margin-top:8px">${count} produtos importados!</div>`;
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+async function salvarCotacao(){
+  const titulo=document.getElementById('nc-titulo').value.trim();
+  if(!titulo){alert('Informe um título para a cotação.');return;}
+  if(!farmaciaAtual?.id){alert('Farmácia não identificada.');return;}
+
+  const itens=[];
+  document.querySelectorAll('#nc-itens .item-linha').forEach(linha=>{
+    const id=linha.id.replace('nc-','');
+    const produto=document.getElementById('np-'+id)?.value.trim();
+    const quantidade=parseFloat(document.getElementById('nq-'+id)?.value)||null;
+    const ultimo_preco=parseFloat(document.getElementById('npr-'+id)?.value)||null;
+    const observacao=document.getElementById('no-'+id)?.value.trim()||null;
+    if(produto)itens.push({produto,quantidade,ultimo_preco,observacao});
+  });
+
+  if(itens.length===0){alert('Adicione pelo menos um item.');return;}
+
+  const {data:cot,error}=await sb.from('cotacoes').insert({farmacia_id:farmaciaAtual.id,titulo,status:'aberta'}).select().single();
+  if(error){alert('Erro ao salvar: '+error.message);return;}
+  await sb.from('cotacao_itens').insert(itens.map(i=>({...i,cotacao_id:cot.id})));
+  alert('Cotação salva! Agora selecione os fornecedores para disparar.');
+  await verDetalhe(cot.id,titulo);
+}
+
+// ════════════════════════════════════════
+// DETALHE / ANÁLISE
+// ════════════════════════════════════════
+async function verDetalhe(id,titulo){
+  cotacaoAtualId=id;
+  vencedoresOverride={};
+  document.getElementById('detalhe-titulo').textContent=titulo||'Cotação';
+  document.getElementById('analise-conteudo').innerHTML='<div class="loading">Carregando...</div>';
+  document.getElementById('termometro').innerHTML='<div class="loading">Carregando...</div>';
+  irPara('detalhe');
+  await carregarDetalhe(id);
+}
+
+async function carregarDetalhe(id){
+  const [{data:itens},{data:respostas},{data:links}]=await Promise.all([
+    sb.from('cotacao_itens').select('*').eq('cotacao_id',id),
+    sb.from('cotacao_respostas').select('*,fornecedores(nome,distribuidora)').eq('cotacao_id',id),
+    sb.from('cotacao_links').select('*,fornecedores(nome,distribuidora,whatsapp)').eq('cotacao_id',id)
+  ]);
+
+  itensCache=itens||[];
+  respostasCache=respostas||[];
+  linksCache=links||[];
+
+  renderTermometro(links||[]);
+  renderAnalise(itens||[],respostas||[]);
+}
+
+function renderTermometro(links){
+  if(!links||links.length===0){
+    document.getElementById('termometro').innerHTML='<div style="color:#888;font-size:13px">Nenhum fornecedor foi acionado ainda. Clique em "Disparar WhatsApp".</div>';
+    return;
+  }
+  const html=links.map(l=>{
+    const cls=l.status==='respondido'?'termo-respondido':l.status==='aberto'?'termo-aberto':'termo-enviado';
+    const dot=l.status==='respondido'?'dot-respondido':l.status==='aberto'?'dot-aberto':'dot-enviado';
+    const icon=l.status==='respondido'?'✅':l.status==='aberto'?'👀':'📤';
+    return`<div class="termo-item ${cls}">
+      <div class="termo-dot ${dot}"></div>
+      <div>${icon} <b>${l.fornecedores?.nome||'-'}</b><br><span style="font-size:11px;font-weight:400">${l.fornecedores?.distribuidora||''} — ${l.status}</span></div>
+    </div>`;
+  }).join('');
+  document.getElementById('termometro').innerHTML=html;
+}
+
+function renderAnalise(itens,respostas){
+  if(!itens||itens.length===0){
+    document.getElementById('analise-conteudo').innerHTML='<div class="vazio">Nenhum item encontrado.</div>';
+    return;
+  }
+
+  // Agrupa respostas por fornecedor
+  const fornMap={};
+  respostas.forEach(r=>{
+    const fKey=r.fornecedor_id;
+    if(!fornMap[fKey])fornMap[fKey]={nome:r.fornecedores?.nome||'?',dist:r.fornecedores?.distribuidora||'',precos:{}};
+    fornMap[fKey].precos[r.item_id]=r.preco;
+  });
+  const fornIds=Object.keys(fornMap);
+
+  if(fornIds.length===0){
+    document.getElementById('analise-conteudo').innerHTML='<div style="padding:20px;background:#fff8e1;border-radius:8px;font-size:13px;color:#856404">⚠️ Aguardando respostas dos fornecedores.</div>';
+    document.getElementById('analise-acoes').style.display='none';
+    return;
+  }
+
+  let html=`<div style="overflow-x:auto"><table style="min-width:700px">
+    <thead><tr>
+      <th>Produto</th><th>Qtd</th><th>Últ. Preço</th>
+      ${fornIds.map(fId=>`<th>${fornMap[fId].nome}</th>`).join('')}
+      <th style="background:#2e7d32">Vencedor</th>
+      <th style="background:#1a1a1a">Trocar</th>
+    </tr></thead><tbody>`;
+
+  itens.forEach(item=>{
+    const precos=fornIds.map(fId=>({fId,fNome:fornMap[fId].nome,preco:fornMap[fId].precos[item.id]||null}));
+    const validos=precos.filter(p=>p.preco&&p.preco>0).sort((a,b)=>a.preco-b.preco);
+    const menor=validos[0]||null;
+    const venc=vencedoresOverride[item.id]||menor?.fId||null;
+    const vencNome=venc?fornMap[venc]?.nome||'-':'-';
+    const vencPreco=venc&&fornMap[venc]?.precos[item.id]?'R$ '+Number(fornMap[venc].precos[item.id]).toFixed(2).replace('.',','):'-';
+
+    html+=`<tr>
+      <td><b>${item.produto}</b>${item.observacao?`<div style="font-size:11px;color:#888">${item.observacao}</div>`:''}</td>
+      <td style="text-align:center">${item.quantidade||'-'}</td>
+      <td style="text-align:center">${item.ultimo_preco?'R$ '+Number(item.ultimo_preco).toFixed(2).replace('.',','):'-'}</td>
+      ${precos.map((p,i)=>{
+        const isVenc=p.fId===venc;
+        const rank=validos.findIndex(v=>v.fId===p.fId);
+        const cls=isVenc?'preco-menor':rank===1?'preco-segundo':rank===2?'preco-terceiro':'';
+        return`<td class="${cls}" style="text-align:center">${p.preco?'R$ '+Number(p.preco).toFixed(2).replace('.',','):'-'}</td>`;
+      }).join('')}
+      <td style="text-align:center;background:#e6f4ea;font-weight:700;color:#2e7d32">${vencNome}<br><span style="font-size:12px">${vencPreco}</span></td>
+      <td style="text-align:center"><button class="btn btn-outline btn-sm" onclick="abrirRanking('${item.id}','${item.produto.replace(/'/g,"\\'")}',${JSON.stringify(validos)})">🔄 Trocar</button></td>
+    </tr>`;
+  });
+
+  html+='</tbody></table></div>';
+  document.getElementById('analise-conteudo').innerHTML=html;
+  document.getElementById('analise-acoes').style.display='flex';
+}
+
+function abrirRanking(itemId,produto,validos){
+  document.getElementById('ranking-titulo').textContent='🏆 Ranking: '+produto;
+  const lista=document.getElementById('ranking-lista');
+  if(!validos||validos.length===0){
+    lista.innerHTML='<div class="vazio">Nenhuma oferta recebida para este item.</div>';
+  }else{
+    lista.innerHTML=validos.map((v,i)=>{
+      const posClass=i===0?'pos-1':i===1?'pos-2':i===2?'pos-3':'pos-n';
+      const isSel=vencedoresOverride[itemId]===v.fId||(i===0&&!vencedoresOverride[itemId]);
+      return`<div class="ranking-item">
+        <div class="ranking-pos ${posClass}">${i+1}</div>
+        <div class="ranking-info">
+          <div class="ranking-forn">${v.fNome}</div>
+          <div class="ranking-preco">R$ ${Number(v.preco).toFixed(2).replace('.',',')}</div>
+        </div>
+        ${isSel
+          ?'<span class="btn-selecionado">✅ Selecionado</span>'
+          :`<button class="btn-selecionar" onclick="selecionarVencedor('${itemId}','${v.fId}')">Selecionar</button>`}
+      </div>`;
+    }).join('');
+  }
+  document.getElementById('modal-ranking').classList.add('aberto');
+}
+
+function selecionarVencedor(itemId,fId){
+  vencedoresOverride[itemId]=fId;
+  fecharModal('modal-ranking');
+  renderAnalise(itensCache,respostasCache);
+}
+
+async function finalizarCotacaoAtual(){
+  if(!confirm('Finalizar esta cotação?'))return;
+  await sb.from('cotacoes').update({status:'finalizada',finalizada_at:new Date()}).eq('id',cotacaoAtualId);
+  document.getElementById('btn-finalizar-det').style.display='none';
+  alert('Cotação finalizada!');
+  irPara('cotacoes');
+}
+
+async function finalizarCotacao(id){
+  if(!confirm('Finalizar esta cotação?'))return;
+  await sb.from('cotacoes').update({status:'finalizada',finalizada_at:new Date()}).eq('id',id);
+  carregarCotacoes();
+}
+
+// ════════════════════════════════════════
+// WHATSAPP / LINKS
+// ════════════════════════════════════════
+async function dispararWhatsApp(){
+  const {data:fornecedores}=await sb.from('fornecedores').select('*').eq('ativo',true).order('distribuidora');
+  if(!fornecedores||fornecedores.length===0){alert('Nenhum fornecedor cadastrado. Vá em Fornecedores e cadastre.');return;}
+
+  const div=document.getElementById('lista-fornecedores-disparar');
+  div.innerHTML=fornecedores.map((f,i)=>`
+    <label style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:#f8f9fa;border-radius:6px;cursor:pointer;border:1px solid #e0e0e0">
+      <input type="checkbox" id="chk-forn-${f.id}" value="${f.id}" style="width:16px;height:16px">
+      <div>
+        <div style="font-weight:700;font-size:13px">${f.nome}</div>
+        <div style="font-size:12px;color:#888">${f.distribuidora} — ${f.whatsapp}</div>
+      </div>
+    </label>
+  `).join('');
+
+  document.getElementById('modal-disparar').classList.add('aberto');
+}
+
+function marcarTodosForn(val){
+  document.querySelectorAll('#lista-fornecedores-disparar input[type=checkbox]').forEach(c=>c.checked=val);
+}
+
+async function confirmarDisparoWhatsApp(){
+  const selecionados=[];
+  document.querySelectorAll('#lista-fornecedores-disparar input:checked').forEach(c=>selecionados.push(c.value));
+  if(selecionados.length===0){alert('Selecione pelo menos um fornecedor.');return;}
+
+  fecharModal('modal-disparar');
+
+  // Gera tokens e links
+  for(const fornId of selecionados){
+    const token=Math.random().toString(36).substr(2,12)+Date.now().toString(36);
+    // Remove link anterior se existir
+    await sb.from('cotacao_links').delete().eq('cotacao_id',cotacaoAtualId).eq('fornecedor_id',fornId);
+    await sb.from('cotacao_links').insert({cotacao_id:cotacaoAtualId,fornecedor_id:fornId,token,status:'enviado'});
+  }
+
+  // Busca fornecedores com tokens
+  const {data:links}=await sb.from('cotacao_links').select('*,fornecedores(nome,distribuidora,whatsapp)').eq('cotacao_id',cotacaoAtualId).in('fornecedor_id',selecionados);
+
+  // Abre WhatsApp para cada um
+  for(const link of links){
+    const url=`${PORTAL_URL}?token=${link.token}`;
+    const msg=encodeURIComponent(`Olá ${link.fornecedores?.nome}! 👋\n\nSeguem o link para participar de nossa cotação de compras:\n\n${url}\n\nPor favor, preencha os preços e clique em enviar.\n\nObrigado! 🙏`);
+    const whats=link.fornecedores?.whatsapp?.replace(/\D/g,'');
+    window.open(`https://wa.me/55${whats}?text=${msg}`,'_blank');
+    await new Promise(r=>setTimeout(r,1500));
+  }
+
+  await carregarDetalhe(cotacaoAtualId);
+}
+
+// ════════════════════════════════════════
+// GERAR PEDIDOS
+// ════════════════════════════════════════
+function gerarPedidos(){
+  const itens=itensCache;
+  const respostas=respostasCache;
+
+  const fornMap={};
+  respostas.forEach(r=>{
+    if(!fornMap[r.fornecedor_id])fornMap[r.fornecedor_id]={nome:r.fornecedores?.nome||'?',dist:r.fornecedores?.distribuidora||'',itens:[]};
+  });
+
+  const pedidos={};
+  itens.forEach(item=>{
+    const precos=respostas.filter(r=>r.item_id===item.id&&r.preco>0).sort((a,b)=>a.preco-b.preco);
+    const vencFId=vencedoresOverride[item.id]||precos[0]?.fornecedor_id;
+    if(!vencFId)return;
+    const vencResp=respostas.find(r=>r.item_id===item.id&&r.fornecedor_id===vencFId);
+    if(!vencResp)return;
+    if(!pedidos[vencFId])pedidos[vencFId]={nome:vencResp.fornecedores?.nome||'?',dist:vencResp.fornecedores?.distribuidora||'',itens:[]};
+    pedidos[vencFId].itens.push({produto:item.produto,qtd:item.quantidade,preco:vencResp.preco,total:vencResp.preco*(item.quantidade||1)});
+  });
+
+  const fIds=Object.keys(pedidos);
+  if(fIds.length===0){alert('Nenhum vencedor definido.');return;}
+
+  let html='';
+  fIds.forEach(fId=>{
+    const p=pedidos[fId];
+    const total=p.itens.reduce((a,i)=>a+i.total,0);
+    html+=`<div style="margin-bottom:24px;border:1px solid #e0e0e0;border-radius:8px;overflow:hidden">
+      <div style="background:#1a1a1a;color:#fff;padding:12px 16px;font-weight:700">${p.nome} — ${p.dist}</div>
+      <table style="width:100%;border-collapse:collapse">
+        <thead><tr style="background:#f5f5f5"><th style="padding:8px 12px;text-align:left;font-size:12px">Produto</th><th style="padding:8px 12px;text-align:center;font-size:12px">Qtd</th><th style="padding:8px 12px;text-align:center;font-size:12px">Preço Unit.</th><th style="padding:8px 12px;text-align:center;font-size:12px">Total</th></tr></thead>
+        <tbody>
+          ${p.itens.map(i=>`<tr><td style="padding:8px 12px;font-size:13px">${i.produto}</td><td style="padding:8px 12px;text-align:center;font-size:13px">${i.qtd||'-'}</td><td style="padding:8px 12px;text-align:center;font-size:13px">R$ ${Number(i.preco).toFixed(2).replace('.',',')}</td><td style="padding:8px 12px;text-align:center;font-size:13px">R$ ${Number(i.total).toFixed(2).replace('.',',')}</td></tr>`).join('')}
+        </tbody>
+        <tfoot><tr style="background:#e6f4ea"><td colspan="3" style="padding:10px 12px;font-weight:700;text-align:right">TOTAL DO PEDIDO</td><td style="padding:10px 12px;text-align:center;font-weight:700;color:#2e7d32">R$ ${Number(total).toFixed(2).replace('.',',')}</td></tr></tfoot>
+      </table>
+    </div>`;
+  });
+
+  document.getElementById('pedidos-conteudo').innerHTML=html;
+  document.getElementById('modal-pedidos').classList.add('aberto');
+}
+
+function imprimirPedidos(){
+  const conteudo=document.getElementById('pedidos-conteudo').innerHTML;
+  const win=window.open('','_blank');
+  win.document.write(`<html><head><title>Pedidos</title><style>body{font-family:Arial,sans-serif;padding:20px}table{width:100%;border-collapse:collapse;margin-bottom:20px}th,td{padding:8px 12px;border:1px solid #ddd;font-size:13px}</style></head><body>${conteudo}</body></html>`);
+  win.document.close();
+  win.print();
+}
+
+// ════════════════════════════════════════
+// FORNECEDORES
+// ════════════════════════════════════════
+async function carregarFornecedores(){
+  const {data}=await sb.from('fornecedores').select('*').order('distribuidora');
+  document.getElementById('tabela-fornecedores').innerHTML=!data||data.length===0
+    ?'<tr><td colspan="5" class="vazio">Nenhum fornecedor cadastrado.</td></tr>'
+    :data.map(f=>`<tr>
+      <td><b>${f.nome}</b></td>
+      <td>${f.distribuidora}</td>
+      <td>${f.whatsapp}</td>
+      <td><span class="badge ${f.ativo?'badge-verde':'badge-vermelho'}">${f.ativo?'Ativo':'Inativo'}</span></td>
+      <td style="display:flex;gap:6px">
+        <button class="btn btn-outline btn-sm" onclick="editarFornecedor('${f.id}','${f.nome.replace(/'/g,"\\'")}','${f.distribuidora.replace(/'/g,"\\'")}','${f.whatsapp}')">Editar</button>
+        <button class="btn btn-outline btn-sm" onclick="toggleFornecedor('${f.id}',${f.ativo})">${f.ativo?'Desativar':'Ativar'}</button>
+      </td>
+    </tr>`).join('');
+}
+
+function abrirModalFornecedor(){
+  ['fo-nome','fo-dist','fo-whats'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('modal-fornecedor').classList.add('aberto');
+}
+
+async function salvarFornecedor(){
+  const nome=document.getElementById('fo-nome').value.trim();
+  const distribuidora=document.getElementById('fo-dist').value.trim();
+  const whatsapp=document.getElementById('fo-whats').value.trim().replace(/\D/g,'');
+  if(!nome||!distribuidora||!whatsapp){alert('Preencha todos os campos.');return;}
+  const {error}=await sb.from('fornecedores').insert({nome,distribuidora,whatsapp,ativo:true});
+  if(error){alert('Erro: '+error.message);return;}
+  fecharModal('modal-fornecedor');
+  carregarFornecedores();
+}
+
+function editarFornecedor(id,nome,dist,whats){
+  document.getElementById('fo-nome').value=nome;
+  document.getElementById('fo-dist').value=dist;
+  document.getElementById('fo-whats').value=whats;
+  document.getElementById('modal-fornecedor').dataset.editId=id;
+  document.getElementById('modal-fornecedor').classList.add('aberto');
+}
+
+async function toggleFornecedor(id,ativo){
+  await sb.from('fornecedores').update({ativo:!ativo}).eq('id',id);
+  carregarFornecedores();
+}
+
+// ════════════════════════════════════════
+// FARMÁCIAS
+// ════════════════════════════════════════
+async function carregarFarmacias(){
+  const {data}=await sb.from('farmacias').select('*').order('nome');
+  document.getElementById('tabela-farmacias').innerHTML=!data||data.length===0
+    ?'<tr><td colspan="6" class="vazio">Nenhuma farmácia cadastrada.</td></tr>'
+    :data.map(f=>`<tr>
+      <td><b>${f.nome}</b></td>
+      <td>${f.cnpj}</td>
+      <td>${f.email}</td>
+      <td>${f.cidade||'-'}</td>
+      <td><span class="badge ${f.ativo?'badge-verde':'badge-vermelho'}">${f.ativo?'Ativa':'Inativa'}</span></td>
+      <td style="display:flex;gap:6px">
+        <button class="btn btn-outline btn-sm" onclick="abrirEdicaoFarmacia('${f.id}','${f.nome.replace(/'/g,"\\'")}','${f.cnpj}','${f.email}','${f.telefone||''}','${f.cidade||''}')">Editar</button>
+        <button class="btn btn-outline btn-sm" onclick="toggleFarmacia('${f.id}',${f.ativo})">${f.ativo?'Desativar':'Ativar'}</button>
+      </td>
+    </tr>`).join('');
+}
+
+function abrirModalFarmacia(){
+  ['f-nome','f-cnpj','f-email','f-senha','f-telefone','f-cidade'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('modal-farmacia').classList.add('aberto');
+}
+
+async function salvarFarmacia(){
+  const nome=document.getElementById('f-nome').value.trim();
+  const cnpj=document.getElementById('f-cnpj').value.trim();
+  const email=document.getElementById('f-email').value.trim();
+  const senha=document.getElementById('f-senha').value;
+  const telefone=document.getElementById('f-telefone').value.trim();
+  const cidade=document.getElementById('f-cidade').value.trim();
+  if(!nome||!cnpj||!email||!senha){alert('Preencha todos os campos obrigatórios.');return;}
+  const {error}=await sb.from('farmacias').insert({nome,cnpj,email,telefone,cidade,ativo:true});
+  if(error){alert('Erro ao cadastrar: '+error.message);return;}
+  fecharModal('modal-farmacia');
+  alert('Farmácia cadastrada!\n\nCrie o usuário no Supabase Authentication com o e-mail '+email+' e a senha escolhida.');
+  carregarFarmacias();
+}
+
+function abrirEdicaoFarmacia(id,nome,cnpj,email,telefone,cidade){
+  document.getElementById('ef-id').value=id;
+  document.getElementById('ef-nome').value=nome;
+  document.getElementById('ef-cnpj').value=cnpj;
+  document.getElementById('ef-email').value=email;
+  document.getElementById('ef-telefone').value=telefone;
+  document.getElementById('ef-cidade').value=cidade;
+  document.getElementById('modal-editar-farmacia').classList.add('aberto');
+}
+
+async function salvarEdicaoFarmacia(){
+  const id=document.getElementById('ef-id').value;
+  const nome=document.getElementById('ef-nome').value.trim();
+  const cnpj=document.getElementById('ef-cnpj').value.trim();
+  const email=document.getElementById('ef-email').value.trim();
+  const telefone=document.getElementById('ef-telefone').value.trim();
+  const cidade=document.getElementById('ef-cidade').value.trim();
+  if(!nome||!cnpj||!email){alert('Preencha os campos obrigatórios.');return;}
+  const {error}=await sb.from('farmacias').update({nome,cnpj,email,telefone,cidade}).eq('id',id);
+  if(error){alert('Erro: '+error.message);return;}
+  fecharModal('modal-editar-farmacia');
+  carregarFarmacias();
+}
+
+async function toggleFarmacia(id,ativo){
+  await sb.from('farmacias').update({ativo:!ativo}).eq('id',id);
+  carregarFarmacias();
+}
+
+// ════════════════════════════════════════
+// TODAS COTAÇÕES
+// ════════════════════════════════════════
+async function carregarTodasCotacoes(){
+  const {data}=await sb.from('cotacoes').select('*,farmacias(nome),cotacao_itens(count)').order('created_at',{ascending:false});
+  document.getElementById('tabela-todas').innerHTML=!data||data.length===0
+    ?'<tr><td colspan="5" class="vazio">Nenhuma cotação.</td></tr>'
+    :data.map(c=>`<tr>
+      <td><b>${c.farmacias?.nome||'-'}</b></td>
+      <td>${c.titulo||'Sem título'}</td>
+      <td>${new Date(c.created_at).toLocaleDateString('pt-BR')}</td>
+      <td>${c.cotacao_itens?.[0]?.count||0} itens</td>
+      <td><span class="badge ${c.status==='aberta'?'badge-azul':'badge-verde'}">${c.status}</span></td>
+    </tr>`).join('');
+}
+
+// ════════════════════════════════════════
+// PERFIL
+// ════════════════════════════════════════
+async function carregarPerfil(){
+  if(!farmaciaAtual?.id)return;
+  document.getElementById('perfil-nome').value=farmaciaAtual.nome||'';
+  document.getElementById('perfil-cidade').value=farmaciaAtual.cidade||'';
+  document.getElementById('perfil-telefone').value=farmaciaAtual.telefone||'';
+}
+
+async function salvarPerfil(){
+  const nome=document.getElementById('perfil-nome').value.trim();
+  const cidade=document.getElementById('perfil-cidade').value.trim();
+  const telefone=document.getElementById('perfil-telefone').value.trim();
+  const senha=document.getElementById('perfil-senha').value;
+  const senha2=document.getElementById('perfil-senha2').value;
+
+  if(farmaciaAtual?.id){
+    await sb.from('farmacias').update({nome,cidade,telefone}).eq('id',farmaciaAtual.id);
+    farmaciaAtual.nome=nome;
+    document.getElementById('nome-usuario').textContent=nome;
+  }
+
+  if(senha){
+    if(senha!==senha2){alert('As senhas não coincidem.');return;}
+    if(senha.length<6){alert('A senha deve ter no mínimo 6 caracteres.');return;}
+    const {error}=await sb.auth.updateUser({password:senha});
+    if(error){alert('Erro ao alterar senha: '+error.message);return;}
+  }
+
+  alert('Perfil atualizado com sucesso!');
+}
+
+// ════════════════════════════════════════
+// UTILITÁRIOS
+// ════════════════════════════════════════
+function fecharModal(id){
+  document.getElementById(id).classList.remove('aberto');
+  delete document.getElementById(id).dataset.editId;
+}
+
+document.querySelectorAll('.modal-overlay').forEach(o=>o.addEventListener('click',function(e){if(e.target===this)this.classList.remove('aberto');}));
 </script>
 </body>
 </html>
