@@ -3,1239 +3,1235 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-<title>Coopefarma - Portal de Cotação</title>
+<title>CotaFarma — Sistema de Cotação</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet"/>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
-*{box-sizing:border-box;margin:0;padding:0;font-family:'Segoe UI',sans-serif}
-body{background:#f0f4f8;min-height:100vh}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',sans-serif;background:#f5f7fa;color:#1a1a2e}
+.hidden{display:none!important}
+.btn{padding:9px 18px;border:none;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;transition:all .2s;font-family:'Inter',sans-serif}
+.btn-primary{background:#15a563;color:#fff}
+.btn-primary:hover{background:#0f8a52}
+.btn-danger{background:#e8112d;color:#fff}
+.btn-outline{background:#fff;color:#444;border:1.5px solid #ddd}
+.btn-outline:hover{border-color:#15a563;color:#15a563}
+.btn-sm{padding:6px 12px;font-size:12px}
+.badge{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:700}
+.badge-verde{background:#d4edda;color:#155724}
+.badge-amarelo{background:#fff3cd;color:#856404}
+.badge-cinza{background:#e2e8f0;color:#64748b}
+.badge-azul{background:#dbeafe;color:#1e40af}
+.badge-vermelho{background:#f8d7da;color:#721c24}
 
 /* LOGIN */
-#tela-login{display:flex;align-items:center;justify-content:center;min-height:100vh;background:linear-gradient(135deg,#1a1a1a,#2d2d2d)}
-.login-box{background:#fff;border-radius:12px;padding:40px 36px;width:100%;max-width:400px;box-shadow:0 8px 32px rgba(0,0,0,.3)}
+#tela-login{display:none;align-items:center;justify-content:center;min-height:100vh;background:linear-gradient(135deg,#0d1b2a,#1b4332)}
+.login-box{background:#fff;border-radius:16px;padding:40px;width:100%;max-width:380px;box-shadow:0 20px 60px rgba(0,0,0,.3)}
 .login-logo{text-align:center;margin-bottom:28px}
-.login-logo img{height:60px;object-fit:contain}
-.login-logo p{color:#888;font-size:13px;margin-top:8px}
-.login-box label{font-size:13px;color:#555;font-weight:600;display:block;margin-bottom:5px}
-.login-box input{width:100%;padding:11px 14px;border:1.5px solid #ddd;border-radius:8px;font-size:14px;margin-bottom:16px;transition:border .2s}
-.login-box input:focus{border-color:#8DC63F;outline:none}
-.btn-login{width:100%;padding:13px;background:#8DC63F;color:#fff;border:none;border-radius:8px;font-size:15px;font-weight:700;cursor:pointer}
-.btn-login:hover{background:#75a832}
-.login-erro{color:#c0392b;font-size:13px;margin-top:10px;text-align:center}
-.login-link{text-align:center;margin-top:12px;font-size:13px;color:#888}
-.login-link a{color:#8DC63F;cursor:pointer;text-decoration:underline}
+.login-logo img{height:55px;object-fit:contain}
+.login-logo h2{font-family:'Poppins',sans-serif;font-size:17px;color:#15a563;margin-top:10px}
+.login-logo p{color:#888;font-size:12px}
+.login-box label{font-size:12px;font-weight:600;color:#555;display:block;margin-bottom:5px}
+.login-box input{width:100%;padding:11px 14px;border:1.5px solid #e0e0e0;border-radius:8px;font-size:14px;margin-bottom:14px;transition:border .2s;font-family:'Inter',sans-serif}
+.login-box input:focus{border-color:#15a563;outline:none}
+.login-erro{color:#e8112d;font-size:12px;margin-bottom:10px;text-align:center;min-height:18px}
 
 /* APP */
-#tela-app{display:none}
-.topbar{background:#1a1a1a;color:#fff;padding:0 28px;height:60px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 2px 8px rgba(0,0,0,.3)}
-.topbar-logo img{height:38px;object-fit:contain}
-.topbar-user{display:flex;align-items:center;gap:14px;font-size:13px;color:#ccc}
-.btn-sair{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:#fff;padding:6px 14px;border-radius:6px;cursor:pointer;font-size:13px}
-.btn-sair:hover{background:rgba(255,255,255,.2)}
+#tela-app{display:none;flex-direction:column;min-height:100vh}
+.topbar{background:#15a563;color:#fff;padding:0 24px;height:56px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 2px 8px rgba(0,0,0,.15);flex-shrink:0}
+.topbar-logo{display:flex;align-items:center;gap:10px}
+.topbar-logo img{height:34px;object-fit:contain;filter:brightness(0) invert(1)}
+.topbar-logo span{font-family:'Poppins',sans-serif;font-size:16px;font-weight:700}
+.topbar-nav{display:flex;gap:4px}
+.nav-btn{padding:7px 14px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;color:rgba(255,255,255,.85);transition:all .2s;background:transparent;border:none;font-family:'Inter',sans-serif}
+.nav-btn:hover,.nav-btn.ativo{background:rgba(255,255,255,.2);color:#fff}
+.topbar-user{display:flex;align-items:center;gap:12px;font-size:13px;opacity:.9}
+.topbar-user button{background:rgba(255,255,255,.15);border:none;color:#fff;padding:5px 12px;border-radius:6px;cursor:pointer;font-size:12px;font-family:'Inter',sans-serif}
+.topbar-user button:hover{background:rgba(255,255,255,.3)}
+.main{flex:1;padding:24px;max-width:1300px;width:100%;margin:0 auto}
+.page{display:none}
+.page.ativo{display:block}
+.page-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:20px;gap:12px;flex-wrap:wrap}
+.page-title{font-family:'Poppins',sans-serif;font-size:20px;font-weight:700;color:#1a1a2e}
+.page-sub{color:#64748b;font-size:13px;margin-top:3px}
+.page-header-btns{display:flex;gap:8px;flex-wrap:wrap}
 
-.sidebar{position:fixed;left:0;top:60px;bottom:0;width:220px;background:#fff;border-right:1px solid #e0e0e0;padding:20px 0;z-index:10;overflow-y:auto}
-.sidebar-item{padding:12px 24px;cursor:pointer;font-size:14px;color:#555;display:flex;align-items:center;gap:10px;transition:all .2s;border-left:3px solid transparent}
-.sidebar-item:hover{background:#f5fae8;color:#8DC63F}
-.sidebar-item.ativo{background:#f5fae8;color:#75a832;font-weight:700;border-left-color:#8DC63F}
-.sidebar-item span{font-size:18px}
-.sidebar-admin{display:none}
-.sidebar-sep{height:1px;background:#f0f0f0;margin:8px 0}
+/* COTAÇÕES GRID */
+.cotacoes-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px}
+.cot-card{background:#fff;border-radius:12px;padding:18px;box-shadow:0 1px 4px rgba(0,0,0,.08);cursor:pointer;border:2px solid transparent;transition:all .2s}
+.cot-card:hover{border-color:#15a563;box-shadow:0 4px 16px rgba(21,165,99,.15)}
+.cot-card-titulo{font-family:'Poppins',sans-serif;font-size:15px;font-weight:700;color:#1a1a2e;margin-bottom:6px}
+.cot-card-info{font-size:12px;color:#64748b;margin-bottom:10px}
+.cot-card-stats{display:flex;gap:14px;font-size:12px;color:#64748b;margin-top:10px}
 
-.conteudo{margin-left:220px;padding:28px;min-height:calc(100vh - 60px)}
-.pagina{display:none}
-.pagina.ativa{display:block}
-.page-title{font-size:22px;font-weight:700;color:#1a1a1a;margin-bottom:20px;padding-bottom:12px;border-bottom:2px solid #e0e0e0}
+/* DETALHE */
+.det-header-box{background:#fff;border-radius:12px;padding:18px 20px;margin-bottom:20px;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+.fornecedor-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:14px}
+.forn-card{background:#fff;border-radius:12px;padding:16px;box-shadow:0 1px 4px rgba(0,0,0,.08);border:2px solid #e2e8f0;transition:border .2s}
+.forn-card.respondido{border-color:#15a563}
+.forn-card.rascunho{border-color:#f59e0b}
+.forn-card.aberto{border-color:#3b82f6}
+.forn-card-nome{font-family:'Poppins',sans-serif;font-size:14px;font-weight:700;color:#1a1a2e;margin-bottom:2px}
+.forn-card-dist{font-size:11px;color:#64748b;margin-bottom:8px;line-height:1.5}
+.forn-card-valor{font-size:20px;font-weight:700;color:#15a563;margin:6px 0}
+.forn-card-itens{font-size:12px;color:#64748b}
+.progress-wrap{margin-top:8px}
+.progress-info{display:flex;justify-content:space-between;font-size:11px;color:#64748b;margin-bottom:4px}
+.progress-bar{height:6px;background:#e2e8f0;border-radius:3px;overflow:hidden}
+.progress-fill{height:100%;border-radius:3px;transition:width .4s}
+.prog-ok{background:#15a563}
+.prog-warn{background:#f59e0b}
+.parceiro-btns{display:flex;gap:6px;margin-top:10px}
+.parc-btn{flex:1;padding:5px 6px;border-radius:6px;border:1.5px solid #e0e0e0;font-size:11px;font-weight:600;cursor:pointer;text-align:center;background:#fff;color:#64748b;transition:all .2s;font-family:'Inter',sans-serif}
+.parc-btn.sim{border-color:#15a563;background:#d4edda;color:#155724}
+.parc-btn.nao{border-color:#e8112d;background:#f8d7da;color:#721c24}
+.forn-card-acoes{display:flex;gap:5px;margin-top:10px;flex-wrap:wrap}
 
-/* CARDS */
-.cards-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;margin-bottom:28px}
-.card{background:#fff;border-radius:10px;padding:20px 24px;box-shadow:0 2px 8px rgba(0,0,0,.07);border-left:4px solid #8DC63F}
-.card-label{font-size:11px;color:#888;text-transform:uppercase;letter-spacing:1px}
-.card-valor{font-size:28px;font-weight:800;color:#1a1a1a;margin-top:6px}
+/* NOVA COTAÇÃO */
+.nova-section{background:#fff;border-radius:12px;padding:20px;margin-bottom:16px;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+.nova-section h3{font-family:'Poppins',sans-serif;font-size:14px;font-weight:700;margin-bottom:14px;color:#1a1a2e}
+.form-row{display:flex;gap:12px;margin-bottom:10px;align-items:flex-end;flex-wrap:wrap}
+.form-group{display:flex;flex-direction:column;gap:5px;flex:1;min-width:160px}
+.form-group label{font-size:12px;font-weight:600;color:#475569}
+.form-group input,.form-group select{padding:9px 12px;border:1.5px solid #e0e0e0;border-radius:8px;font-size:13px;transition:border .2s;font-family:'Inter',sans-serif}
+.form-group input:focus,.form-group select:focus{border-color:#15a563;outline:none}
+.itens-lista{display:flex;flex-direction:column;gap:6px;max-height:420px;overflow-y:auto;padding-right:2px}
+.item-row{display:flex;gap:6px;align-items:center;padding:8px 10px;background:#f8fafc;border-radius:8px;border:1px solid #e2e8f0}
+.item-row input{padding:7px 9px;border:1.5px solid #e0e0e0;border-radius:6px;font-size:12px;font-family:'Inter',sans-serif}
+.item-row input:focus{border-color:#15a563;outline:none}
+.inp-desc{flex:3;min-width:120px}
+.inp-ean{flex:2;min-width:90px}
+.inp-qty{width:60px;text-align:center}
+.inp-preco{width:90px;text-align:right}
+.btn-del{background:none;border:none;cursor:pointer;color:#e8112d;font-size:18px;padding:2px 4px;line-height:1;flex-shrink:0}
 
-/* TABELAS */
-.tabela-wrap{background:#fff;border-radius:10px;box-shadow:0 2px 8px rgba(0,0,0,.07);overflow:hidden}
-table{width:100%;border-collapse:collapse}
-th{background:#1a1a1a;color:#fff;padding:12px 16px;text-align:left;font-size:13px;white-space:nowrap}
-td{padding:10px 16px;font-size:13px;border-bottom:1px solid #f0f0f0;color:#333}
-tr:last-child td{border-bottom:none}
-tr:hover td{background:#f9fdf0}
+/* RANKING */
+.comp-wrap{background:#fff;border-radius:12px;overflow:auto;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+.comp-table{width:100%;border-collapse:collapse;font-size:12px}
+.comp-table th{background:#f8fafc;padding:10px 12px;text-align:left;font-weight:600;border-bottom:2px solid #e2e8f0;color:#475569;white-space:nowrap;position:sticky;top:0}
+.comp-table th.num{text-align:right}
+.comp-table td{padding:8px 12px;border-bottom:1px solid #f1f5f9;vertical-align:middle}
+.comp-table tr:hover td{background:#fafbfc}
+.preco-melhor{background:#d4edda;color:#155724;font-weight:700;border-radius:4px;padding:2px 7px;display:inline-block}
+.preco-sem{color:#cbd5e1}
+.preco-normal{color:#1a1a2e}
 
-/* BADGES */
-.badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700}
-.badge-verde{background:#e6f4ea;color:#2e7d32}
-.badge-azul{background:#e8f5e9;color:#388e3c}
-.badge-amarelo{background:#fff8e1;color:#f57f17}
-.badge-cinza{background:#f0f0f0;color:#888}
-.badge-vermelho{background:#fdecea;color:#c0392b}
+/* FORNECEDORES GESTÃO */
+.forn-table{width:100%;border-collapse:collapse;font-size:13px}
+.forn-table th{padding:10px 14px;text-align:left;font-weight:600;border-bottom:2px solid #e2e8f0;color:#475569;background:#f8fafc}
+.forn-table td{padding:10px 14px;border-bottom:1px solid #f1f5f9;vertical-align:middle}
+.forn-table tr:hover td{background:#fafbfc}
 
-/* BOTÕES */
-.btn{padding:9px 18px;border:none;border-radius:7px;cursor:pointer;font-size:13px;font-weight:600;transition:all .2s;display:inline-flex;align-items:center;gap:6px}
-.btn-primary{background:#8DC63F;color:#fff}
-.btn-primary:hover{background:#75a832}
-.btn-success{background:#2e7d32;color:#fff}
-.btn-success:hover{background:#388e3c}
-.btn-danger{background:#c0392b;color:#fff}
-.btn-danger:hover{background:#e74c3c}
-.btn-outline{background:#fff;color:#8DC63F;border:1.5px solid #8DC63F}
-.btn-outline:hover{background:#f5fae8}
-.btn-dark{background:#1a1a1a;color:#fff}
-.btn-dark:hover{background:#333}
-.btn-whats{background:#25D366;color:#fff}
-.btn-whats:hover{background:#128C7E}
-.btn-sm{padding:5px 12px;font-size:12px}
-
-.toolbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px}
-
-/* FORMS */
-.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-.form-group{display:flex;flex-direction:column;gap:5px}
-.form-group.full{grid-column:1/-1}
-.form-group label{font-size:12px;font-weight:600;color:#555}
-.form-group input,.form-group select,.form-group textarea{padding:9px 12px;border:1.5px solid #ddd;border-radius:7px;font-size:13px;transition:border .2s}
-.form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:#8DC63F;outline:none}
-
-/* MODAL */
-.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:100;align-items:center;justify-content:center}
+/* MODAIS */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:100;align-items:center;justify-content:center;padding:16px}
 .modal-overlay.aberto{display:flex}
-.modal{background:#fff;border-radius:12px;padding:28px;width:100%;max-width:560px;max-height:90vh;overflow-y:auto;box-shadow:0 8px 32px rgba(0,0,0,.2)}
-.modal-titulo{font-size:17px;font-weight:700;color:#1a1a1a;margin-bottom:20px}
-.modal-footer{display:flex;justify-content:flex-end;gap:10px;margin-top:20px}
+.modal{background:#fff;border-radius:16px;padding:24px;width:100%;max-width:560px;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.25)}
+.modal-titulo{font-family:'Poppins',sans-serif;font-size:16px;font-weight:700;margin-bottom:16px;color:#1a1a2e}
+.modal-btns{display:flex;gap:8px;justify-content:flex-end;margin-top:18px}
+.check-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border:1.5px solid #e0e0e0;border-radius:8px;cursor:pointer;transition:all .2s;margin-bottom:6px}
+.check-item:hover{border-color:#15a563;background:#f0fdf4}
+.check-item.sel{border-color:#15a563;background:#f0fdf4}
+.check-item.ja{opacity:.6;cursor:default}
+.check-item input[type=checkbox]{width:16px;height:16px;accent-color:#15a563;flex-shrink:0}
 
-/* TERMÔMETRO */
-.termometro{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
-.termo-item{display:flex;align-items:center;gap:8px;padding:8px 14px;border-radius:8px;font-size:13px;font-weight:600;min-width:160px}
-.termo-enviado{background:#f0f0f0;color:#666}
-.termo-aberto{background:#fff8e1;color:#f57f17}
-.termo-respondido{background:#e6f4ea;color:#2e7d32}
-.termo-dot{width:10px;height:10px;border-radius:50%}
-.dot-enviado{background:#aaa}
-.dot-aberto{background:#f57f17}
-.dot-respondido{background:#2e7d32}
+/* TELA FORNECEDOR (PÚBLICA) */
+#tela-fornecedor{display:none;min-height:100vh;background:#f5f7fa}
+.tf-topbar{background:#15a563;color:#fff;padding:14px 20px;display:flex;align-items:center;gap:14px}
+.tf-topbar img{height:34px;object-fit:contain;filter:brightness(0) invert(1);flex-shrink:0}
+.tf-topbar-info h3{font-family:'Poppins',sans-serif;font-size:15px;font-weight:700;line-height:1.2}
+.tf-topbar-info p{font-size:12px;opacity:.85;margin-top:2px}
+.tf-content{max-width:700px;margin:24px auto;padding:0 16px 40px}
+.tf-box{background:#fff;border-radius:12px;padding:18px;margin-bottom:14px;box-shadow:0 1px 4px rgba(0,0,0,.08)}
+.tf-box h4{font-family:'Poppins',sans-serif;font-size:12px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:.6px;margin-bottom:14px}
+.prod-item{display:flex;align-items:center;gap:12px;padding:10px 12px;border:1.5px solid #e0e0e0;border-radius:8px;margin-bottom:7px;background:#fff;transition:border .2s}
+.prod-item.ok{border-color:#15a563;background:#f0fdf4}
+.prod-desc{flex:1;min-width:0}
+.prod-desc strong{display:block;font-size:13px;color:#1a1a2e;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.prod-desc span{font-size:11px;color:#64748b}
+.prod-input-wrap{display:flex;align-items:center;gap:6px;flex-shrink:0}
+.prod-input-wrap label{font-size:12px;color:#64748b;font-weight:600}
+.preco-inp{width:95px;padding:8px 10px;border:1.5px solid #e0e0e0;border-radius:7px;font-size:14px;font-weight:600;text-align:right;color:#1a1a2e;transition:border .2s;font-family:'Inter',sans-serif}
+.preco-inp:focus{border-color:#15a563;outline:none}
+.preco-inp.ok{border-color:#15a563;background:#f0fdf4;color:#155724}
+.preco-inp[readonly]{background:#f8fafc;color:#64748b;cursor:default}
+.tf-footer{background:#fff;position:sticky;bottom:0;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 -2px 12px rgba(0,0,0,.08);gap:12px;flex-wrap:wrap}
+.tf-prog{font-size:13px;color:#475569}
+.tf-prog strong{font-size:22px;font-weight:700;color:#15a563}
 
-/* ANÁLISE */
-.analise-tabela{overflow-x:auto}
-.analise-tabela table{min-width:600px}
-.preco-menor{background:#e6f4ea!important;font-weight:700;color:#2e7d32}
-.preco-segundo{background:#fff8e1!important;color:#f57f17}
-.preco-terceiro{background:#fdecea!important;color:#c0392b}
-.vencedor-sel{background:#e8f5e9;border:2px solid #8DC63F;border-radius:6px;padding:3px 8px;font-size:12px;font-weight:700;color:#2e7d32;cursor:pointer}
+/* EMPTY / LOADING */
+.empty{text-align:center;padding:50px 20px;color:#94a3b8;font-size:14px;grid-column:1/-1}
+.spin{display:inline-block;width:18px;height:18px;border:2px solid #e0e0e0;border-top-color:#15a563;border-radius:50%;animation:sp .7s linear infinite;vertical-align:middle;margin-right:8px}
+@keyframes sp{to{transform:rotate(360deg)}}
+.loading-box{display:flex;align-items:center;justify-content:center;padding:60px;color:#64748b;font-size:14px}
 
-/* RANKING MODAL */
-.ranking-lista{display:flex;flex-direction:column;gap:8px;margin-top:12px}
-.ranking-item{display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:8px;border:1px solid #e0e0e0}
-.ranking-pos{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;flex-shrink:0}
-.pos-1{background:#FFD700;color:#333}
-.pos-2{background:#C0C0C0;color:#333}
-.pos-3{background:#CD7F32;color:#fff}
-.pos-n{background:#f0f0f0;color:#666}
-.ranking-info{flex:1}
-.ranking-forn{font-weight:700;font-size:14px;color:#1a1a1a}
-.ranking-preco{font-size:13px;color:#555}
-.btn-selecionar{background:#8DC63F;color:#fff;border:none;padding:6px 14px;border-radius:6px;cursor:pointer;font-size:12px;font-weight:700}
-.btn-selecionar:hover{background:#75a832}
-.btn-selecionado{background:#e6f4ea;color:#2e7d32;border:2px solid #8DC63F;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:700;cursor:default}
+/* TOAST */
+.toast-el{position:fixed;bottom:24px;right:24px;background:#1a1a2e;color:#fff;padding:12px 20px;border-radius:10px;font-size:13px;z-index:999;animation:tin .3s ease;box-shadow:0 4px 16px rgba(0,0,0,.2);max-width:320px}
+.toast-el.ok{background:#15a563}
+.toast-el.err{background:#e8112d}
+@keyframes tin{from{opacity:0;transform:translateY(8px)}}
 
-/* IMPORT AREA */
-.import-area{border:2px dashed #8DC63F;border-radius:10px;padding:32px;text-align:center;cursor:pointer;transition:all .2s;margin-bottom:16px}
-.import-area:hover{background:#f5fae8}
-.import-area p{color:#888;font-size:14px;margin-top:8px}
-.import-icone{font-size:36px}
+/* STATUS AVISOS */
+.aviso-box{padding:14px 16px;border-radius:10px;font-size:13px;margin-bottom:14px;border-left:4px solid}
+.aviso-verde{border-color:#15a563;background:#f0fdf4;color:#155724}
+.aviso-amarelo{border-color:#f59e0b;background:#fffbeb;color:#78350f}
 
-/* ITEM LINHA */
-.item-linha{display:grid;grid-template-columns:2fr 70px 100px 120px auto;gap:8px;align-items:center;margin-bottom:6px}
-.item-linha input{padding:7px 10px;border:1.5px solid #ddd;border-radius:6px;font-size:13px}
-.item-linha input:focus{border-color:#8DC63F;outline:none}
-
-/* TELA FORNECEDOR */
-#tela-fornecedor{display:none;min-height:100vh;background:#f0f4f8}
-.forn-header{background:#1a1a1a;padding:16px 24px;display:flex;align-items:center}
-.forn-header img{height:40px}
-.forn-box{max-width:700px;margin:24px auto;background:#fff;border-radius:12px;padding:28px;box-shadow:0 4px 16px rgba(0,0,0,.1)}
-.forn-titulo{font-size:18px;font-weight:700;color:#1a1a1a;margin-bottom:6px}
-.forn-sub{font-size:13px;color:#888;margin-bottom:20px}
-.forn-item{display:grid;grid-template-columns:1fr 120px;gap:12px;align-items:center;padding:12px 0;border-bottom:1px solid #f0f0f0}
-.forn-item:last-child{border-bottom:none}
-.forn-produto{font-size:14px;font-weight:600;color:#1a1a1a}
-.forn-obs{font-size:12px;color:#888;margin-top:2px}
-.forn-preco{padding:8px 12px;border:1.5px solid #ddd;border-radius:7px;font-size:14px;text-align:center;width:100%}
-.forn-preco:focus{border-color:#8DC63F;outline:none}
-.forn-info{background:#f5fae8;border-radius:8px;padding:12px 16px;font-size:13px;color:#555;margin-bottom:20px}
-
-.loading{text-align:center;padding:40px;color:#888;font-size:14px}
-.vazio{text-align:center;padding:40px;color:#aaa;font-size:14px}
-
-@media(max-width:768px){
-  .sidebar{display:none}
-  .conteudo{margin-left:0;padding:16px}
-  .form-grid{grid-template-columns:1fr}
-  .item-linha{grid-template-columns:1fr 60px}
+@media(max-width:600px){
+  .fornecedor-grid,.cotacoes-grid{grid-template-columns:1fr}
+  .topbar-nav{display:none}
+  .forn-card-acoes{flex-direction:column}
+  .form-row{flex-direction:column}
 }
 </style>
 </head>
 <body>
 
-<!-- ═══════════════ TELA FORNECEDOR (pública) ═══════════════ -->
+<!-- ═══════════ TELA FORNECEDOR (PÚBLICA) ═══════════ -->
 <div id="tela-fornecedor">
-  <div class="forn-header">
+  <div class="tf-topbar">
     <img src="https://raw.githubusercontent.com/coopefarma/portal-cotacao/main/Coopefarma_Marca_1.jpg" alt="Coopefarma"/>
+    <div class="tf-topbar-info">
+      <h3 id="tf-titulo-cot">Carregando...</h3>
+      <p id="tf-nome-forn"></p>
+    </div>
   </div>
-  <div class="forn-box">
-    <div id="forn-conteudo"><div class="loading">Carregando cotação...</div></div>
+  <div class="tf-content">
+    <div id="tf-aviso"></div>
+    <div id="tf-itens">
+      <div class="loading-box"><div class="spin"></div> Carregando produtos...</div>
+    </div>
+  </div>
+  <div class="tf-footer" id="tf-footer" style="display:none">
+    <div class="tf-prog">
+      <strong id="tf-preench">0</strong>/<span id="tf-total">0</span> itens preenchidos
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-outline" onclick="salvarRascunho()">💾 Salvar rascunho</button>
+      <button class="btn btn-primary" onclick="enviarRespostas()">✅ Enviar respostas</button>
+    </div>
   </div>
 </div>
 
-<!-- ═══════════════ TELA LOGIN ═══════════════ -->
+<!-- ═══════════ LOGIN ═══════════ -->
 <div id="tela-login">
   <div class="login-box">
     <div class="login-logo">
       <img src="https://raw.githubusercontent.com/coopefarma/portal-cotacao/main/Coopefarma_Marca_1.jpg" alt="Coopefarma"/>
-      <p>Portal de Cotação de Compras</p>
+      <h2>CotaFarma</h2>
+      <p>Sistema de Cotação Coopefarma</p>
     </div>
     <label>E-mail</label>
-    <input type="email" id="login-email" placeholder="seu@email.com"/>
+    <input type="email" id="l-email" placeholder="seu@email.com" autocomplete="email"/>
     <label>Senha</label>
-    <input type="password" id="login-senha" placeholder="••••••••" onkeydown="if(event.key==='Enter')fazerLogin()"/>
-    <button class="btn-login" onclick="fazerLogin()">Entrar</button>
-    <div class="login-erro" id="login-erro"></div>
-    <div class="login-link"><a onclick="mostrarRecuperacao()">Esqueci minha senha</a></div>
+    <input type="password" id="l-senha" placeholder="••••••••" autocomplete="current-password"
+      onkeydown="if(event.key==='Enter')fazerLogin()"/>
+    <div class="login-erro" id="l-erro"></div>
+    <button class="btn btn-primary" style="width:100%;padding:13px;font-size:14px" onclick="fazerLogin()">
+      Entrar
+    </button>
   </div>
 </div>
 
-<!-- ═══════════════ APP ═══════════════ -->
+<!-- ═══════════ APP (ADMIN) ═══════════ -->
 <div id="tela-app">
   <div class="topbar">
-    <div class="topbar-logo"><img src="https://raw.githubusercontent.com/coopefarma/portal-cotacao/main/Coopefarma_Marca_1.jpg" alt="Coopefarma"/></div>
-    <div class="topbar-user"><span id="nome-usuario"></span><button class="btn-sair" onclick="sair()">Sair</button></div>
+    <div class="topbar-logo">
+      <img src="https://raw.githubusercontent.com/coopefarma/portal-cotacao/main/Coopefarma_Marca_1.jpg" alt="Logo"/>
+      <span>CotaFarma</span>
+    </div>
+    <div class="topbar-nav">
+      <button class="nav-btn" onclick="irPara('cotacoes')">📋 Cotações</button>
+      <button class="nav-btn" onclick="irPara('fornecedores')">🚚 Fornecedores</button>
+    </div>
+    <div class="topbar-user">
+      <span id="u-email" style="font-size:12px"></span>
+      <button onclick="fazerLogout()">Sair</button>
+    </div>
   </div>
 
-  <div class="sidebar">
-    <div class="sidebar-item ativo" onclick="irPara('dashboard')"><span>🏠</span> Dashboard</div>
-    <div class="sidebar-item" onclick="irPara('cotacoes')"><span>📋</span> Minhas Cotações</div>
-    <div class="sidebar-item" onclick="irPara('nova-cotacao')"><span>➕</span> Nova Cotação</div>
-    <div class="sidebar-sep"></div>
-    <div class="sidebar-item sidebar-admin" onclick="irPara('farmacias')"><span>🏪</span> Farmácias</div>
-    <div class="sidebar-item sidebar-admin" onclick="irPara('fornecedores')"><span>🚚</span> Fornecedores</div>
-    <div class="sidebar-item sidebar-admin" onclick="irPara('todas-cotacoes')"><span>📊</span> Todas Cotações</div>
-    <div class="sidebar-sep sidebar-admin"></div>
-    <div class="sidebar-item" onclick="irPara('perfil')"><span>👤</span> Meu Perfil</div>
-  </div>
+  <div class="main">
 
-  <div class="conteudo">
-
-    <!-- DASHBOARD -->
-    <div class="pagina ativa" id="pg-dashboard">
-      <div class="page-title">Dashboard</div>
-      <div class="cards-grid">
-        <div class="card"><div class="card-label">Cotações Abertas</div><div class="card-valor" id="card-abertas">0</div></div>
-        <div class="card" style="border-left-color:#2e7d32"><div class="card-label">Finalizadas</div><div class="card-valor" id="card-finalizadas">0</div></div>
-        <div class="card" style="border-left-color:#e67e22"><div class="card-label">Itens Cotados</div><div class="card-valor" id="card-itens">0</div></div>
-        <div class="card" style="border-left-color:#8e44ad"><div class="card-label">Fornecedores</div><div class="card-valor" id="card-fornecedores">0</div></div>
+    <!-- ── COTAÇÕES (lista) ── -->
+    <div class="page" id="pg-cotacoes">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Cotações</div>
+          <div class="page-sub" id="sub-cotacoes"></div>
+        </div>
+        <button class="btn btn-primary" onclick="irPara('nova')">+ Nova Cotação</button>
       </div>
-      <div class="tabela-wrap">
-        <table><thead><tr><th>Cotação</th><th>Data</th><th>Itens</th><th>Respostas</th><th>Status</th><th>Ação</th></tr></thead>
-        <tbody id="tabela-dashboard"></tbody></table>
+      <div class="cotacoes-grid" id="lista-cotacoes">
+        <div class="loading-box" style="grid-column:1/-1"><div class="spin"></div> Carregando...</div>
       </div>
     </div>
 
-    <!-- MINHAS COTAÇÕES -->
-    <div class="pagina" id="pg-cotacoes">
-      <div class="toolbar">
-        <div class="page-title" style="border:none;margin:0;padding:0">Minhas Cotações</div>
-        <button class="btn btn-primary" onclick="irPara('nova-cotacao')">➕ Nova Cotação</button>
+    <!-- ── NOVA COTAÇÃO ── -->
+    <div class="page" id="pg-nova">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Nova Cotação</div>
+          <div class="page-sub">Preencha o título e adicione os produtos</div>
+        </div>
+        <button class="btn btn-outline" onclick="irPara('cotacoes')">← Voltar</button>
       </div>
-      <div class="tabela-wrap">
-        <table><thead><tr><th>Título</th><th>Data</th><th>Itens</th><th>Respostas</th><th>Status</th><th>Ações</th></tr></thead>
-        <tbody id="tabela-cotacoes"></tbody></table>
+
+      <div class="nova-section">
+        <h3>Dados</h3>
+        <div class="form-group" style="max-width:500px">
+          <label>Título da cotação *</label>
+          <input type="text" id="nc-titulo" placeholder="Ex: Compras semana 20/06 — Eurofarma"/>
+        </div>
       </div>
-    </div>
 
-    <!-- NOVA COTAÇÃO -->
-    <div class="pagina" id="pg-nova-cotacao">
-      <div class="page-title">Nova Cotação</div>
-      <div class="tabela-wrap" style="padding:24px;margin-bottom:20px">
-        <div class="form-grid" style="margin-bottom:20px">
-          <div class="form-group full">
-            <label>Título da Cotação *</label>
-            <input type="text" id="nc-titulo" placeholder="Ex: Compras semana 1 - Maio"/>
-          </div>
+      <div class="nova-section">
+        <h3>Produtos</h3>
+        <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap">
+          <button class="btn btn-outline btn-sm" onclick="addLinha()">+ Linha</button>
+          <label class="btn btn-outline btn-sm" style="cursor:pointer;display:inline-flex;align-items:center;gap:5px">
+            📥 Importar Excel
+            <input type="file" id="inp-xl" accept=".xlsx,.xls" style="display:none" onchange="importarExcel(this)"/>
+          </label>
         </div>
 
-        <!-- IMPORTAR EXCEL -->
-        <div style="margin-bottom:16px">
-          <div style="font-weight:700;color:#1a1a1a;font-size:14px;margin-bottom:10px">📂 Importar planilha Excel</div>
-          <div class="import-area" onclick="document.getElementById('input-excel').click()" id="import-area">
-            <div class="import-icone">📊</div>
-            <div style="font-weight:700;color:#555;margin-top:8px">Clique para importar Excel</div>
-            <p>Colunas: Produto | Quantidade | Último Preço | Observação</p>
-          </div>
-          <input type="file" id="input-excel" accept=".xlsx,.xls,.csv" style="display:none" onchange="importarExcel(this)"/>
+        <!-- Cabeçalho das colunas -->
+        <div style="display:flex;gap:6px;padding:0 10px;margin-bottom:4px">
+          <span class="inp-desc" style="font-size:11px;font-weight:600;color:#64748b">DESCRIÇÃO *</span>
+          <span class="inp-ean" style="font-size:11px;font-weight:600;color:#64748b">EAN / CÓD.</span>
+          <span class="inp-qty" style="font-size:11px;font-weight:600;color:#64748b;text-align:center">QTD *</span>
+          <span class="inp-preco" style="font-size:11px;font-weight:600;color:#64748b;text-align:right">ÚLT. PREÇO</span>
+          <span style="width:28px"></span>
         </div>
 
-        <div style="font-weight:700;color:#1a1a1a;font-size:14px;margin-bottom:8px">Itens da Cotação</div>
-        <div style="display:grid;grid-template-columns:2fr 70px 100px 120px auto;gap:8px;margin-bottom:6px">
-          <div style="font-size:11px;font-weight:600;color:#888">PRODUTO *</div>
-          <div style="font-size:11px;font-weight:600;color:#888">QTD</div>
-          <div style="font-size:11px;font-weight:600;color:#888">ÚLT. PREÇO</div>
-          <div style="font-size:11px;font-weight:600;color:#888">OBSERVAÇÃO</div>
-          <div></div>
-        </div>
-        <div id="nc-itens"></div>
-        <button class="btn btn-outline btn-sm" style="margin-top:8px" onclick="adicionarItemNC()">+ Adicionar linha</button>
+        <div class="itens-lista" id="itens-lista"></div>
+        <div style="margin-top:8px;font-size:12px;color:#94a3b8" id="nc-count">0 produto(s)</div>
+      </div>
 
-        <div style="margin-top:24px;display:flex;gap:10px;flex-wrap:wrap">
-          <button class="btn btn-primary" onclick="salvarCotacao()">💾 Salvar Cotação</button>
-          <button class="btn btn-outline" onclick="irPara('cotacoes')">Cancelar</button>
-        </div>
+      <div style="display:flex;justify-content:flex-end;gap:10px">
+        <button class="btn btn-outline" onclick="irPara('cotacoes')">Cancelar</button>
+        <button class="btn btn-primary" onclick="salvarCotacao()">Salvar e continuar →</button>
       </div>
     </div>
 
-    <!-- DETALHE / ANÁLISE DA COTAÇÃO -->
-    <div class="pagina" id="pg-detalhe">
-      <div class="toolbar">
-        <div class="page-title" style="border:none;margin:0;padding:0" id="detalhe-titulo">Cotação</div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap">
-          <button class="btn btn-outline btn-sm" onclick="irPara('cotacoes')">← Voltar</button>
-          <button class="btn btn-success btn-sm" id="btn-finalizar-det" onclick="finalizarCotacaoAtual()">✅ Finalizar</button>
+    <!-- ── DETALHE ── -->
+    <div class="page" id="pg-detalhe">
+      <div class="page-header">
+        <div>
+          <div class="page-title" id="det-titulo">Cotação</div>
+          <div class="page-sub" id="det-sub"></div>
+        </div>
+        <div class="page-header-btns">
+          <button class="btn btn-outline" onclick="irPara('cotacoes')">← Voltar</button>
+          <button class="btn btn-outline" onclick="abrirDisparar()">📲 Disparar</button>
+          <button class="btn btn-primary" onclick="irPara('comparacao')">📊 Ranking</button>
         </div>
       </div>
-
-      <!-- TERMÔMETRO -->
-      <div class="tabela-wrap" style="padding:20px;margin-bottom:20px">
-        <div style="font-weight:700;color:#1a1a1a;margin-bottom:12px">📡 Status dos Fornecedores</div>
-        <div class="termometro" id="termometro"></div>
-        <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap">
-          <button class="btn btn-dark btn-sm" onclick="dispararWhatsApp()">📲 Disparar WhatsApp</button>
-          <button class="btn btn-primary btn-sm" onclick="carregarDetalhe(cotacaoAtualId)">🔄 Atualizar Respostas</button>
-        </div>
-      </div>
-
-      <!-- ANÁLISE DE PREÇOS -->
-      <div class="tabela-wrap" style="padding:20px">
-        <div style="font-weight:700;color:#1a1a1a;margin-bottom:12px">💰 Análise de Preços</div>
-        <div class="analise-tabela" id="analise-conteudo"><div class="loading">Carregando...</div></div>
-        <div style="margin-top:20px;display:flex;gap:10px;flex-wrap:wrap" id="analise-acoes" style="display:none">
-          <button class="btn btn-primary" onclick="gerarPedidos()">🛒 Gerar Pedidos</button>
-        </div>
+      <div class="fornecedor-grid" id="det-cards">
+        <div class="loading-box" style="grid-column:1/-1"><div class="spin"></div></div>
       </div>
     </div>
 
-    <!-- FORNECEDORES -->
-    <div class="pagina" id="pg-fornecedores">
-      <div class="toolbar">
-        <div class="page-title" style="border:none;margin:0;padding:0">Fornecedores Cadastrados</div>
-        <button class="btn btn-primary" onclick="abrirModalFornecedor()">➕ Cadastrar Fornecedor</button>
+    <!-- ── RANKING DE PREÇOS ── -->
+    <div class="page" id="pg-comparacao">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Ranking de Preços</div>
+          <div class="page-sub" id="comp-sub"></div>
+        </div>
+        <button class="btn btn-outline" onclick="irPara('detalhe')">← Voltar</button>
       </div>
-      <div class="tabela-wrap">
-        <table><thead><tr><th>Nome</th><th>Distribuidora</th><th>WhatsApp</th><th>Status</th><th>Ações</th></tr></thead>
-        <tbody id="tabela-fornecedores"></tbody></table>
+      <div class="comp-wrap">
+        <div id="comp-corpo"></div>
       </div>
     </div>
 
-    <!-- FARMÁCIAS -->
-    <div class="pagina" id="pg-farmacias">
-      <div class="toolbar">
-        <div class="page-title" style="border:none;margin:0;padding:0">Farmácias Cadastradas</div>
-        <button class="btn btn-primary" onclick="abrirModalFarmacia()">➕ Cadastrar Farmácia</button>
+    <!-- ── FORNECEDORES ── -->
+    <div class="page" id="pg-fornecedores">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Fornecedores</div>
+          <div class="page-sub" id="sub-forn"></div>
+        </div>
+        <button class="btn btn-primary" onclick="abrirModalForn()">+ Cadastrar</button>
       </div>
-      <div class="tabela-wrap">
-        <table><thead><tr><th>Nome</th><th>CNPJ</th><th>E-mail</th><th>Cidade</th><th>Status</th><th>Ações</th></tr></thead>
-        <tbody id="tabela-farmacias"></tbody></table>
-      </div>
-    </div>
-
-    <!-- TODAS COTAÇÕES -->
-    <div class="pagina" id="pg-todas-cotacoes">
-      <div class="page-title">Todas as Cotações da Rede</div>
-      <div class="tabela-wrap">
-        <table><thead><tr><th>Farmácia</th><th>Título</th><th>Data</th><th>Itens</th><th>Status</th></tr></thead>
-        <tbody id="tabela-todas"></tbody></table>
-      </div>
-    </div>
-
-    <!-- PERFIL -->
-    <div class="pagina" id="pg-perfil">
-      <div class="page-title">Meu Perfil</div>
-      <div class="tabela-wrap" style="padding:24px;max-width:500px">
-        <div class="form-group" style="margin-bottom:16px">
-          <label>Nome da Farmácia</label>
-          <input type="text" id="perfil-nome"/>
-        </div>
-        <div class="form-group" style="margin-bottom:16px">
-          <label>Cidade</label>
-          <input type="text" id="perfil-cidade"/>
-        </div>
-        <div class="form-group" style="margin-bottom:16px">
-          <label>Telefone</label>
-          <input type="text" id="perfil-telefone"/>
-        </div>
-        <div style="margin-top:8px;font-weight:700;color:#1a1a1a;font-size:14px;margin-bottom:12px">🔒 Alterar Senha</div>
-        <div class="form-group" style="margin-bottom:16px">
-          <label>Nova Senha</label>
-          <input type="password" id="perfil-senha" placeholder="Deixe em branco para não alterar"/>
-        </div>
-        <div class="form-group" style="margin-bottom:20px">
-          <label>Confirmar Nova Senha</label>
-          <input type="password" id="perfil-senha2" placeholder="Repita a nova senha"/>
-        </div>
-        <button class="btn btn-primary" onclick="salvarPerfil()">💾 Salvar Alterações</button>
+      <div style="background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.06)">
+        <table class="forn-table">
+          <thead><tr>
+            <th>Nome / Distribuidora</th>
+            <th>Contato</th>
+            <th>WhatsApp</th>
+            <th>Ped. Mínimo</th>
+            <th>Status</th>
+            <th></th>
+          </tr></thead>
+          <tbody id="forn-tbody"></tbody>
+        </table>
       </div>
     </div>
 
-  </div>
-</div>
+  </div><!-- /main -->
+</div><!-- /tela-app -->
 
-<!-- ═══ MODAIS ═══ -->
-
-<!-- MODAL FORNECEDOR -->
-<div class="modal-overlay" id="modal-fornecedor">
+<!-- ═══════ MODAL: NOVO/EDITAR FORNECEDOR ═══════ -->
+<div class="modal-overlay" id="modal-forn">
   <div class="modal">
-    <div class="modal-titulo">Cadastrar Fornecedor</div>
-    <div class="form-grid">
-      <div class="form-group"><label>Nome do Representante *</label><input type="text" id="fo-nome" placeholder="João Silva"/></div>
-      <div class="form-group"><label>Distribuidora *</label><input type="text" id="fo-dist" placeholder="Distribuidora ABC"/></div>
-      <div class="form-group full"><label>WhatsApp * (com DDD, só números)</label><input type="text" id="fo-whats" placeholder="84999999999"/></div>
+    <div class="modal-titulo" id="mf-titulo">Cadastrar Fornecedor</div>
+    <input type="hidden" id="mf-id"/>
+    <div class="form-row">
+      <div class="form-group" style="flex:2">
+        <label>Nome *</label>
+        <input type="text" id="mf-nome" placeholder="Ex: Acripel"/>
+      </div>
     </div>
-    <div class="modal-footer">
-      <button class="btn btn-outline" onclick="fecharModal('modal-fornecedor')">Cancelar</button>
-      <button class="btn btn-primary" onclick="salvarFornecedor()">Cadastrar</button>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Distribuidora / Laboratório</label>
+        <input type="text" id="mf-dist" placeholder="Nome da distribuidora"/>
+      </div>
+      <div class="form-group">
+        <label>Contato (representante)</label>
+        <input type="text" id="mf-contato" placeholder="Nome do representante"/>
+      </div>
     </div>
-  </div>
-</div>
-
-<!-- MODAL FARMÁCIA -->
-<div class="modal-overlay" id="modal-farmacia">
-  <div class="modal">
-    <div class="modal-titulo">Cadastrar Farmácia</div>
-    <div class="form-grid">
-      <div class="form-group full"><label>Nome da Farmácia *</label><input type="text" id="f-nome" placeholder="Farmácia São João"/></div>
-      <div class="form-group"><label>CNPJ *</label><input type="text" id="f-cnpj" placeholder="00.000.000/0000-00"/></div>
-      <div class="form-group"><label>E-mail de Acesso *</label><input type="email" id="f-email" placeholder="farmacia@email.com"/></div>
-      <div class="form-group"><label>Senha Inicial *</label><input type="password" id="f-senha" placeholder="Mínimo 6 caracteres"/></div>
-      <div class="form-group"><label>Telefone</label><input type="text" id="f-telefone" placeholder="(84) 99999-9999"/></div>
-      <div class="form-group"><label>Cidade</label><input type="text" id="f-cidade" placeholder="Natal"/></div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>WhatsApp (com DDD, sem +55)</label>
+        <input type="text" id="mf-wpp" placeholder="84999999999"/>
+      </div>
+      <div class="form-group">
+        <label>E-mail</label>
+        <input type="email" id="mf-email" placeholder="vendas@fornecedor.com"/>
+      </div>
     </div>
-    <div class="modal-footer">
-      <button class="btn btn-outline" onclick="fecharModal('modal-farmacia')">Cancelar</button>
-      <button class="btn btn-primary" onclick="salvarFarmacia()">Cadastrar</button>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Pedido Mínimo (R$)</label>
+        <input type="text" id="mf-pedmin" placeholder="200,00"/>
+      </div>
+      <div class="form-group" style="justify-content:flex-end">
+        <label style="display:flex;align-items:center;gap:8px;margin-top:auto;cursor:pointer">
+          <input type="checkbox" id="mf-ativo" checked style="width:16px;height:16px;accent-color:#15a563"/>
+          Fornecedor ativo
+        </label>
+      </div>
     </div>
-  </div>
-</div>
-
-<!-- MODAL EDITAR FARMÁCIA -->
-<div class="modal-overlay" id="modal-editar-farmacia">
-  <div class="modal">
-    <div class="modal-titulo">Editar Farmácia</div>
-    <input type="hidden" id="ef-id"/>
-    <div class="form-grid">
-      <div class="form-group full"><label>Nome da Farmácia *</label><input type="text" id="ef-nome"/></div>
-      <div class="form-group"><label>CNPJ *</label><input type="text" id="ef-cnpj"/></div>
-      <div class="form-group"><label>E-mail *</label><input type="email" id="ef-email"/></div>
-      <div class="form-group"><label>Telefone</label><input type="text" id="ef-telefone"/></div>
-      <div class="form-group"><label>Cidade</label><input type="text" id="ef-cidade"/></div>
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-outline" onclick="fecharModal('modal-editar-farmacia')">Cancelar</button>
-      <button class="btn btn-primary" onclick="salvarEdicaoFarmacia()">Salvar</button>
+    <div class="modal-btns">
+      <button class="btn btn-outline" onclick="fecharModal('modal-forn')">Cancelar</button>
+      <button class="btn btn-primary" onclick="salvarFornecedor()">Salvar</button>
     </div>
   </div>
 </div>
 
-<!-- MODAL SELECIONAR FORNECEDORES PARA DISPARAR -->
+<!-- ═══════ MODAL: DISPARAR ═══════ -->
 <div class="modal-overlay" id="modal-disparar">
   <div class="modal">
-    <div class="modal-titulo">📲 Selecionar Fornecedores para Disparar</div>
-    <div style="font-size:13px;color:#888;margin-bottom:14px">Selecione os fornecedores que receberão o link da cotação via WhatsApp:</div>
-    <div style="display:flex;justify-content:space-between;margin-bottom:10px">
-      <label style="font-size:13px;cursor:pointer"><input type="checkbox" id="chk-todos-forn" onchange="marcarTodosForn(this.checked)" style="margin-right:6px">Marcar todos</label>
+    <div class="modal-titulo">📲 Enviar para Fornecedores</div>
+    <p style="font-size:13px;color:#64748b;margin-bottom:12px">Selecione os fornecedores que receberão o link desta cotação:</p>
+    <div style="display:flex;gap:8px;margin-bottom:12px">
+      <button class="btn btn-outline btn-sm" onclick="selTodos(true)">Marcar todos</button>
+      <button class="btn btn-outline btn-sm" onclick="selTodos(false)">Desmarcar</button>
     </div>
-    <div id="lista-fornecedores-disparar" style="max-height:300px;overflow-y:auto;display:flex;flex-direction:column;gap:6px"></div>
-    <div class="modal-footer">
+    <div id="disp-lista" style="max-height:340px;overflow-y:auto"></div>
+    <div class="modal-btns">
       <button class="btn btn-outline" onclick="fecharModal('modal-disparar')">Cancelar</button>
-      <button class="btn btn-whats" onclick="confirmarDisparoWhatsApp()">📲 Abrir WhatsApp</button>
+      <button class="btn btn-primary" onclick="confirmarDisparar()">✅ Gerar links e disparar</button>
     </div>
   </div>
 </div>
 
-<!-- MODAL RANKING DO ITEM -->
-<div class="modal-overlay" id="modal-ranking">
-  <div class="modal">
-    <div class="modal-titulo" id="ranking-titulo">Ranking do Item</div>
-    <div style="font-size:13px;color:#888;margin-bottom:8px">Clique em "Selecionar" para trocar o fornecedor vencedor deste item:</div>
-    <div class="ranking-lista" id="ranking-lista"></div>
-    <div class="modal-footer">
-      <button class="btn btn-outline" onclick="fecharModal('modal-ranking')">Fechar</button>
-    </div>
-  </div>
-</div>
-
-<!-- MODAL PEDIDOS -->
-<div class="modal-overlay" id="modal-pedidos">
-  <div class="modal" style="max-width:700px">
-    <div class="modal-titulo">🛒 Pedidos por Fornecedor</div>
-    <div id="pedidos-conteudo"></div>
-    <div class="modal-footer">
-      <button class="btn btn-outline" onclick="fecharModal('modal-pedidos')">Fechar</button>
-      <button class="btn btn-primary" onclick="imprimirPedidos()">🖨️ Imprimir</button>
-    </div>
-  </div>
-</div>
-
-<!-- MODAL RECUPERAÇÃO DE SENHA -->
-<div class="modal-overlay" id="modal-recuperacao">
-  <div class="modal" style="max-width:400px">
-    <div class="modal-titulo">🔒 Recuperar Senha</div>
-    <div class="form-group" style="margin-bottom:16px">
-      <label>E-mail cadastrado</label>
-      <input type="email" id="rec-email" placeholder="seu@email.com"/>
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-outline" onclick="fecharModal('modal-recuperacao')">Cancelar</button>
-      <button class="btn btn-primary" onclick="enviarRecuperacao()">Enviar Link</button>
+<!-- ═══════ MODAL: VER RESPOSTAS ═══════ -->
+<div class="modal-overlay" id="modal-resp">
+  <div class="modal" style="max-width:660px">
+    <div class="modal-titulo" id="mr-titulo">Respostas</div>
+    <div id="mr-corpo"></div>
+    <div class="modal-btns">
+      <button class="btn btn-outline" onclick="fecharModal('modal-resp')">Fechar</button>
     </div>
   </div>
 </div>
 
 <script>
-const SUPABASE_URL='https://uofcbqqbubvvltnzvhsx.supabase.co';
-const SUPABASE_KEY='sb_publishable_SQ0x7RDU9B0u5lqvn2pr1Q_4NwoJMY9';
-const {createClient}=supabase;
-const sb=createClient(SUPABASE_URL,SUPABASE_KEY);
-const ADMIN_EMAIL='drogariaflorania@yahoo.com.br';
-const LOGO_URL='https://raw.githubusercontent.com/coopefarma/portal-cotacao/main/Coopefarma_Marca_1.jpg';
-const PORTAL_URL='https://portal-cotacao.vercel.app';
+// ══════════════════════════════
+// CONFIGURAÇÃO
+// ══════════════════════════════
+const SB_URL = 'https://uofcbqqbubvvltnzvhsx.supabase.co';
+const SB_KEY = 'sb_publishable_SQ0x7RDU9B0u5lqvn2pr1Q_4NwoJMY9';
+const { createClient } = supabase;
+const sb = createClient(SB_URL, SB_KEY);
+const LOGO = 'https://raw.githubusercontent.com/coopefarma/portal-cotacao/main/Coopefarma_Marca_1.jpg';
+const BASE = location.origin + location.pathname;
 
-let usuarioAtual=null,farmaciaAtual=null,isAdmin=false,cotacaoAtualId=null;
-let vencedoresOverride={}; // itemId -> fornecedor escolhido manualmente
-let itensCache=[], respostasCache=[], linksCache=[];
+// Estado global
+let cotacaoId = null;
+let fornState = {}; // dados da tela pública do fornecedor
 
-// ════════════════════════════════════════
-// DETECTAR TELA DE FORNECEDOR
-// ════════════════════════════════════════
-(async()=>{
-  const params=new URLSearchParams(window.location.search);
-  const token=params.get('token');
-  if(token){
-    document.getElementById('tela-login').style.display='none';
-    document.getElementById('tela-fornecedor').style.display='block';
-    await carregarTelaFornecedor(token);
+// ══════════════════════════════
+// UTILITÁRIOS
+// ══════════════════════════════
+const fmtR = v => (v != null && v !== '' && !isNaN(v))
+  ? 'R$ ' + Number(v).toFixed(2).replace('.', ',')
+  : '—';
+
+function parsePreco(s) {
+  if (!s || String(s).trim() === '') return null;
+  const n = parseFloat(String(s).replace(/\./g, '').replace(',', '.'));
+  return isNaN(n) ? null : n;
+}
+
+const fmtData = d => d ? new Date(d).toLocaleDateString('pt-BR') : '';
+
+function toast(msg, tipo = '') {
+  const el = document.createElement('div');
+  el.className = 'toast-el ' + tipo;
+  el.textContent = msg;
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 3500);
+}
+
+function abrirModal(id) { document.getElementById(id).classList.add('aberto'); }
+function fecharModal(id) { document.getElementById(id).classList.remove('aberto'); }
+
+// ══════════════════════════════
+// INICIALIZAÇÃO / ROTEAMENTO
+// ══════════════════════════════
+async function init() {
+  const params = new URLSearchParams(location.search);
+  const token = params.get('t') || params.get('token');
+
+  if (token) {
+    document.getElementById('tela-fornecedor').style.display = 'block';
+    await initFornecedor(token);
     return;
   }
-  const {data:{session}}=await sb.auth.getSession();
-  if(session){
-    usuarioAtual=session.user;
-    isAdmin=(usuarioAtual.email===ADMIN_EMAIL);
-    await carregarFarmacia();
-    iniciarApp();
+
+  const { data: { session } } = await sb.auth.getSession();
+  if (session) {
+    document.getElementById('u-email').textContent = session.user.email;
+    document.getElementById('tela-app').style.display = 'flex';
+    irPara('cotacoes');
+  } else {
+    document.getElementById('tela-login').style.display = 'flex';
   }
-})();
-
-// ════════════════════════════════════════
-// TELA PÚBLICA DO FORNECEDOR
-// ════════════════════════════════════════
-async function carregarTelaFornecedor(token){
-  const div=document.getElementById('forn-conteudo');
-  const {data:link,error}=await sb.from('cotacao_links').select('*,cotacoes(*),fornecedores(*)').eq('token',token).single();
-  if(error||!link){div.innerHTML='<div class="vazio">❌ Link inválido ou expirado.</div>';return;}
-
-  // Marca como aberto
-  if(link.status==='enviado'){
-    await sb.from('cotacao_links').update({status:'aberto',aberto_em:new Date()}).eq('token',token);
-  }
-
-  // Verifica se já respondeu
-  if(link.status==='respondido'){
-    div.innerHTML=`<div style="text-align:center;padding:40px"><div style="font-size:48px">✅</div><div style="font-size:18px;font-weight:700;margin-top:16px;color:#2e7d32">Cotação já respondida!</div><p style="color:#888;margin-top:8px">Obrigado pela sua participação.</p></div>`;
-    return;
-  }
-
-  const {data:itens}=await sb.from('cotacao_itens').select('*').eq('cotacao_id',link.cotacao_id);
-  if(!itens||itens.length===0){div.innerHTML='<div class="vazio">Nenhum item encontrado.</div>';return;}
-
-  let html=`
-    <div class="forn-titulo">Cotação: ${link.cotacoes?.titulo||'Sem título'}</div>
-    <div class="forn-sub">Fornecedor: <b>${link.fornecedores?.nome||''}</b> — ${link.fornecedores?.distribuidora||''}</div>
-    <div class="forn-info">💡 Preencha os preços unitários dos produtos que você tem disponível. Deixe em branco os que não tiver.</div>
-    <div id="forn-itens">
-  `;
-  itens.forEach(item=>{
-    html+=`<div class="forn-item">
-      <div>
-        <div class="forn-produto">${item.produto}</div>
-        ${item.quantidade?`<div class="forn-obs">Qtd: ${item.quantidade}</div>`:''}
-        ${item.ultimo_preco?`<div class="forn-obs">Último preço: R$ ${Number(item.ultimo_preco).toFixed(2).replace('.',',')}</div>`:''}
-        ${item.observacao?`<div class="forn-obs">Obs: ${item.observacao}</div>`:''}
-      </div>
-      <input type="number" class="forn-preco" id="fpreco-${item.id}" placeholder="R$ 0,00" step="0.01" min="0"/>
-    </div>`;
-  });
-  html+=`</div>
-    <div style="margin-top:24px">
-      <div class="form-group" style="margin-bottom:16px">
-        <label style="font-size:13px;font-weight:600;color:#555">Observações (opcional)</label>
-        <textarea id="forn-obs-geral" rows="3" style="padding:9px 12px;border:1.5px solid #ddd;border-radius:7px;font-size:13px;resize:vertical;width:100%" placeholder="Condições de pagamento, prazo de entrega, etc."></textarea>
-      </div>
-      <button onclick="enviarRespostaFornecedor('${token}','${link.cotacao_id}','${link.fornecedor_id}',${JSON.stringify(itens).replace(/'/g,"\\'")})" 
-        style="width:100%;padding:14px;background:#8DC63F;color:#fff;border:none;border-radius:8px;font-size:16px;font-weight:700;cursor:pointer">
-        ✅ Enviar Minha Cotação
-      </button>
-    </div>
-  `;
-  div.innerHTML=html;
 }
 
-async function enviarRespostaFornecedor(token,cotacaoId,fornecedorId,itens){
-  const btn=event.target;
-  btn.disabled=true;
-  btn.textContent='Enviando...';
+function irPara(pag) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('ativo'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('ativo'));
 
-  const respostas=[];
-  itens.forEach(item=>{
-    const val=parseFloat(document.getElementById('fpreco-'+item.id)?.value)||null;
-    if(val&&val>0){
-      respostas.push({cotacao_id:cotacaoId,fornecedor_id:fornecedorId,item_id:item.id,preco:val});
-    }
-  });
-
-  if(respostas.length>0){
-    // Remove respostas anteriores do mesmo fornecedor
-    await sb.from('cotacao_respostas').delete().eq('cotacao_id',cotacaoId).eq('fornecedor_id',fornecedorId);
-    await sb.from('cotacao_respostas').insert(respostas);
-  }
-
-  await sb.from('cotacao_links').update({status:'respondido',respondido_em:new Date()}).eq('token',token);
-
-  document.getElementById('forn-conteudo').innerHTML=`
-    <div style="text-align:center;padding:40px">
-      <div style="font-size:48px">🎉</div>
-      <div style="font-size:18px;font-weight:700;margin-top:16px;color:#2e7d32">Cotação enviada com sucesso!</div>
-      <p style="color:#888;margin-top:8px">Obrigado pela sua participação. Você pode fechar esta janela.</p>
-    </div>`;
-}
-
-// ════════════════════════════════════════
-// LOGIN
-// ════════════════════════════════════════
-async function fazerLogin(){
-  const email=document.getElementById('login-email').value.trim();
-  const senha=document.getElementById('login-senha').value;
-  document.getElementById('login-erro').textContent='';
-  if(!email||!senha){document.getElementById('login-erro').textContent='Preencha e-mail e senha.';return;}
-  const {data,error}=await sb.auth.signInWithPassword({email,password:senha});
-  if(error){document.getElementById('login-erro').textContent='E-mail ou senha incorretos.';return;}
-  usuarioAtual=data.user;
-  isAdmin=(usuarioAtual.email===ADMIN_EMAIL);
-  await carregarFarmacia();
-  iniciarApp();
-}
-
-async function carregarFarmacia(){
-  if(isAdmin){farmaciaAtual={nome:'Coopefarma (Admin)'};return;}
-  const {data}=await sb.from('farmacias').select('*').eq('email',usuarioAtual.email).single();
-  farmaciaAtual=data;
-}
-
-function iniciarApp(){
-  document.getElementById('tela-login').style.display='none';
-  document.getElementById('tela-app').style.display='block';
-  document.getElementById('nome-usuario').textContent=farmaciaAtual?.nome||usuarioAtual.email;
-  if(isAdmin)document.querySelectorAll('.sidebar-admin').forEach(el=>el.style.display='flex');
-  carregarDashboard();
-}
-
-async function sair(){await sb.auth.signOut();location.reload();}
-
-function mostrarRecuperacao(){document.getElementById('modal-recuperacao').classList.add('aberto');}
-
-async function enviarRecuperacao(){
-  const email=document.getElementById('rec-email').value.trim();
-  if(!email){alert('Informe o e-mail.');return;}
-  await sb.auth.resetPasswordForEmail(email,{redirectTo:PORTAL_URL});
-  fecharModal('modal-recuperacao');
-  alert('Link de recuperação enviado para seu e-mail!');
-}
-
-// ════════════════════════════════════════
-// NAVEGAÇÃO
-// ════════════════════════════════════════
-function irPara(pagina){
-  document.querySelectorAll('.pagina').forEach(p=>p.classList.remove('ativa'));
-  document.querySelectorAll('.sidebar-item').forEach(s=>s.classList.remove('ativo'));
-  const mapa={dashboard:'pg-dashboard',cotacoes:'pg-cotacoes','nova-cotacao':'pg-nova-cotacao',detalhe:'pg-detalhe',fornecedores:'pg-fornecedores',farmacias:'pg-farmacias','todas-cotacoes':'pg-todas-cotacoes',perfil:'pg-perfil'};
-  document.getElementById(mapa[pagina])?.classList.add('ativa');
-  if(pagina==='dashboard')carregarDashboard();
-  if(pagina==='cotacoes')carregarCotacoes();
-  if(pagina==='nova-cotacao')iniciarNovaCotacao();
-  if(pagina==='fornecedores')carregarFornecedores();
-  if(pagina==='farmacias')carregarFarmacias();
-  if(pagina==='todas-cotacoes')carregarTodasCotacoes();
-  if(pagina==='perfil')carregarPerfil();
-}
-
-// ════════════════════════════════════════
-// DASHBOARD
-// ════════════════════════════════════════
-async function carregarDashboard(){
-  let q=sb.from('cotacoes').select('*,cotacao_itens(count),cotacao_links(count,status)');
-  if(!isAdmin&&farmaciaAtual?.id)q=q.eq('farmacia_id',farmaciaAtual.id);
-  const {data:c}=await q.order('created_at',{ascending:false}).limit(10);
-  if(!c)return;
-
-  document.getElementById('card-abertas').textContent=c.filter(x=>x.status==='aberta').length;
-  document.getElementById('card-finalizadas').textContent=c.filter(x=>x.status==='finalizada').length;
-  document.getElementById('card-itens').textContent=c.reduce((a,x)=>a+(x.cotacao_itens?.[0]?.count||0),0);
-
-  const {count:nForn}=await sb.from('fornecedores').select('*',{count:'exact',head:true}).eq('ativo',true);
-  document.getElementById('card-fornecedores').textContent=nForn||0;
-
-  document.getElementById('tabela-dashboard').innerHTML=c.length===0
-    ?'<tr><td colspan="6" class="vazio">Nenhuma cotação ainda.</td></tr>'
-    :c.map(x=>{
-      const resp=(x.cotacao_links||[]).filter(l=>l.status==='respondido').length;
-      const total=(x.cotacao_links||[]).length;
-      return`<tr>
-        <td><b>${x.titulo||'Sem título'}</b></td>
-        <td>${new Date(x.created_at).toLocaleDateString('pt-BR')}</td>
-        <td>${x.cotacao_itens?.[0]?.count||0}</td>
-        <td>${resp}/${total}</td>
-        <td><span class="badge ${x.status==='aberta'?'badge-azul':'badge-verde'}">${x.status}</span></td>
-        <td><button class="btn btn-outline btn-sm" onclick="verDetalhe('${x.id}','${(x.titulo||'').replace(/'/g,"\\'")}')">Ver</button></td>
-      </tr>`;
-    }).join('');
-}
-
-// ════════════════════════════════════════
-// COTAÇÕES
-// ════════════════════════════════════════
-async function carregarCotacoes(){
-  let q=sb.from('cotacoes').select('*,cotacao_itens(count),cotacao_links(count,status)');
-  if(!isAdmin&&farmaciaAtual?.id)q=q.eq('farmacia_id',farmaciaAtual.id);
-  const {data}=await q.order('created_at',{ascending:false});
-  document.getElementById('tabela-cotacoes').innerHTML=!data||data.length===0
-    ?'<tr><td colspan="6" class="vazio">Nenhuma cotação encontrada.</td></tr>'
-    :data.map(c=>{
-      const resp=(c.cotacao_links||[]).filter(l=>l.status==='respondido').length;
-      const total=(c.cotacao_links||[]).length;
-      return`<tr>
-        <td><b>${c.titulo||'Sem título'}</b></td>
-        <td>${new Date(c.created_at).toLocaleDateString('pt-BR')}</td>
-        <td>${c.cotacao_itens?.[0]?.count||0} itens</td>
-        <td>${resp}/${total} respostas</td>
-        <td><span class="badge ${c.status==='aberta'?'badge-azul':'badge-verde'}">${c.status}</span></td>
-        <td style="display:flex;gap:6px">
-          <button class="btn btn-outline btn-sm" onclick="verDetalhe('${c.id}','${(c.titulo||'').replace(/'/g,"\\'")}')">Ver</button>
-          ${c.status==='aberta'?`<button class="btn btn-success btn-sm" onclick="finalizarCotacao('${c.id}')">Finalizar</button>`:''}
-        </td>
-      </tr>`;
-    }).join('');
-}
-
-// ════════════════════════════════════════
-// NOVA COTAÇÃO
-// ════════════════════════════════════════
-let contNC=0;
-function iniciarNovaCotacao(){
-  document.getElementById('nc-titulo').value='';
-  document.getElementById('nc-itens').innerHTML='';
-  document.getElementById('import-area').innerHTML='<div class="import-icone">📊</div><div style="font-weight:700;color:#555;margin-top:8px">Clique para importar Excel</div><p>Colunas: Produto | Quantidade | Último Preço | Observação</p>';
-  contNC=0;
-  for(let i=0;i<5;i++)adicionarItemNC();
-}
-
-function adicionarItemNC(prod='',qtd='',preco='',obs=''){
-  contNC++;
-  const id=contNC;
-  const div=document.createElement('div');
-  div.className='item-linha';div.id='nc-'+id;
-  div.innerHTML=`
-    <input type="text" placeholder="Nome do produto" id="np-${id}" value="${prod}"/>
-    <input type="number" placeholder="Qtd" id="nq-${id}" value="${qtd}"/>
-    <input type="number" placeholder="0,00" id="npr-${id}" step="0.01" value="${preco}"/>
-    <input type="text" placeholder="Observação" id="no-${id}" value="${obs}"/>
-    <button onclick="document.getElementById('nc-${id}').remove()" style="background:#fdecea;border:none;color:#c0392b;padding:7px 10px;border-radius:6px;cursor:pointer;font-size:14px">✕</button>
-  `;
-  document.getElementById('nc-itens').appendChild(div);
-}
-
-function importarExcel(input){
-  const file=input.files[0];
-  if(!file)return;
-  const reader=new FileReader();
-  reader.onload=function(e){
-    const wb=XLSX.read(e.target.result,{type:'array'});
-    const ws=wb.Sheets[wb.SheetNames[0]];
-    const rows=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});
-    document.getElementById('nc-itens').innerHTML='';
-    contNC=0;
-    let count=0;
-    rows.forEach((row,i)=>{
-      if(i===0&&isNaN(row[1])&&isNaN(row[2]))return; // pula cabeçalho
-      const prod=String(row[0]||'').trim();
-      if(!prod)return;
-      const qtd=row[1]||'';
-      const preco=row[2]||'';
-      const obs=String(row[3]||'').trim();
-      adicionarItemNC(prod,qtd,preco,obs);
-      count++;
-    });
-    document.getElementById('import-area').innerHTML=`<div style="font-size:24px">✅</div><div style="font-weight:700;color:#2e7d32;margin-top:8px">${count} produtos importados!</div>`;
+  const ids = {
+    cotacoes: 'pg-cotacoes',
+    nova: 'pg-nova',
+    detalhe: 'pg-detalhe',
+    comparacao: 'pg-comparacao',
+    fornecedores: 'pg-fornecedores'
   };
-  reader.readAsArrayBuffer(file);
+
+  const pg = document.getElementById(ids[pag]);
+  if (pg) pg.classList.add('ativo');
+
+  if (pag === 'cotacoes') carregarCotacoes();
+  if (pag === 'nova') initNova();
+  if (pag === 'detalhe' && cotacaoId) carregarDetalhe(cotacaoId);
+  if (pag === 'comparacao' && cotacaoId) carregarComparacao(cotacaoId);
+  if (pag === 'fornecedores') carregarFornecedores();
 }
 
-async function salvarCotacao(){
-  const titulo=document.getElementById('nc-titulo').value.trim();
-  if(!titulo){alert('Informe um título para a cotação.');return;}
-  if(!farmaciaAtual?.id){alert('Farmácia não identificada.');return;}
+// ══════════════════════════════
+// AUTH
+// ══════════════════════════════
+async function fazerLogin() {
+  const email = document.getElementById('l-email').value.trim();
+  const senha = document.getElementById('l-senha').value;
+  document.getElementById('l-erro').textContent = '';
 
-  const itens=[];
-  document.querySelectorAll('#nc-itens .item-linha').forEach(linha=>{
-    const id=linha.id.replace('nc-','');
-    const produto=document.getElementById('np-'+id)?.value.trim();
-    const quantidade=parseFloat(document.getElementById('nq-'+id)?.value)||null;
-    const ultimo_preco=parseFloat(document.getElementById('npr-'+id)?.value)||null;
-    const observacao=document.getElementById('no-'+id)?.value.trim()||null;
-    if(produto)itens.push({produto,quantidade,ultimo_preco,observacao});
-  });
-
-  if(itens.length===0){alert('Adicione pelo menos um item.');return;}
-
-  const {data:cot,error}=await sb.from('cotacoes').insert({farmacia_id:farmaciaAtual.id,titulo,status:'aberta'}).select().single();
-  if(error){alert('Erro ao salvar: '+error.message);return;}
-  await sb.from('cotacao_itens').insert(itens.map(i=>({...i,cotacao_id:cot.id})));
-  alert('Cotação salva! Agora selecione os fornecedores para disparar.');
-  await verDetalhe(cot.id,titulo);
-}
-
-// ════════════════════════════════════════
-// DETALHE / ANÁLISE
-// ════════════════════════════════════════
-async function verDetalhe(id,titulo){
-  cotacaoAtualId=id;
-  vencedoresOverride={};
-  document.getElementById('detalhe-titulo').textContent=titulo||'Cotação';
-  document.getElementById('analise-conteudo').innerHTML='<div class="loading">Carregando...</div>';
-  document.getElementById('termometro').innerHTML='<div class="loading">Carregando...</div>';
-  irPara('detalhe');
-  await carregarDetalhe(id);
-}
-
-async function carregarDetalhe(id){
-  const [{data:itens},{data:respostas},{data:links}]=await Promise.all([
-    sb.from('cotacao_itens').select('*').eq('cotacao_id',id),
-    sb.from('cotacao_respostas').select('*,fornecedores(nome,distribuidora)').eq('cotacao_id',id),
-    sb.from('cotacao_links').select('*,fornecedores(nome,distribuidora,whatsapp)').eq('cotacao_id',id)
-  ]);
-
-  itensCache=itens||[];
-  respostasCache=respostas||[];
-  linksCache=links||[];
-
-  renderTermometro(links||[]);
-  renderAnalise(itens||[],respostas||[]);
-}
-
-function renderTermometro(links){
-  if(!links||links.length===0){
-    document.getElementById('termometro').innerHTML='<div style="color:#888;font-size:13px">Nenhum fornecedor foi acionado ainda. Clique em "Disparar WhatsApp".</div>';
+  const { data, error } = await sb.auth.signInWithPassword({ email, password: senha });
+  if (error) {
+    document.getElementById('l-erro').textContent = 'E-mail ou senha incorretos.';
     return;
   }
-  const html=links.map(l=>{
-    const cls=l.status==='respondido'?'termo-respondido':l.status==='aberto'?'termo-aberto':'termo-enviado';
-    const dot=l.status==='respondido'?'dot-respondido':l.status==='aberto'?'dot-aberto':'dot-enviado';
-    const icon=l.status==='respondido'?'✅':l.status==='aberto'?'👀':'📤';
-    return`<div class="termo-item ${cls}">
-      <div class="termo-dot ${dot}"></div>
-      <div>${icon} <b>${l.fornecedores?.nome||'-'}</b><br><span style="font-size:11px;font-weight:400">${l.fornecedores?.distribuidora||''} — ${l.status}</span></div>
-    </div>`;
-  }).join('');
-  document.getElementById('termometro').innerHTML=html;
-}
-
-function renderAnalise(itens,respostas){
-  if(!itens||itens.length===0){
-    document.getElementById('analise-conteudo').innerHTML='<div class="vazio">Nenhum item encontrado.</div>';
-    return;
-  }
-
-  // Agrupa respostas por fornecedor
-  const fornMap={};
-  respostas.forEach(r=>{
-    const fKey=r.fornecedor_id;
-    if(!fornMap[fKey])fornMap[fKey]={nome:r.fornecedores?.nome||'?',dist:r.fornecedores?.distribuidora||'',precos:{}};
-    fornMap[fKey].precos[r.item_id]=r.preco;
-  });
-  const fornIds=Object.keys(fornMap);
-
-  if(fornIds.length===0){
-    document.getElementById('analise-conteudo').innerHTML='<div style="padding:20px;background:#fff8e1;border-radius:8px;font-size:13px;color:#856404">⚠️ Aguardando respostas dos fornecedores.</div>';
-    document.getElementById('analise-acoes').style.display='none';
-    return;
-  }
-
-  let html=`<div style="overflow-x:auto"><table style="min-width:700px">
-    <thead><tr>
-      <th>Produto</th><th>Qtd</th><th>Últ. Preço</th>
-      ${fornIds.map(fId=>`<th>${fornMap[fId].nome}</th>`).join('')}
-      <th style="background:#2e7d32">Vencedor</th>
-      <th style="background:#1a1a1a">Trocar</th>
-    </tr></thead><tbody>`;
-
-  itens.forEach(item=>{
-    const precos=fornIds.map(fId=>({fId,fNome:fornMap[fId].nome,preco:fornMap[fId].precos[item.id]||null}));
-    const validos=precos.filter(p=>p.preco&&p.preco>0).sort((a,b)=>a.preco-b.preco);
-    const menor=validos[0]||null;
-    const venc=vencedoresOverride[item.id]||menor?.fId||null;
-    const vencNome=venc?fornMap[venc]?.nome||'-':'-';
-    const vencPreco=venc&&fornMap[venc]?.precos[item.id]?'R$ '+Number(fornMap[venc].precos[item.id]).toFixed(2).replace('.',','):'-';
-
-    html+=`<tr>
-      <td><b>${item.produto}</b>${item.observacao?`<div style="font-size:11px;color:#888">${item.observacao}</div>`:''}</td>
-      <td style="text-align:center">${item.quantidade||'-'}</td>
-      <td style="text-align:center">${item.ultimo_preco?'R$ '+Number(item.ultimo_preco).toFixed(2).replace('.',','):'-'}</td>
-      ${precos.map((p,i)=>{
-        const isVenc=p.fId===venc;
-        const rank=validos.findIndex(v=>v.fId===p.fId);
-        const cls=isVenc?'preco-menor':rank===1?'preco-segundo':rank===2?'preco-terceiro':'';
-        return`<td class="${cls}" style="text-align:center">${p.preco?'R$ '+Number(p.preco).toFixed(2).replace('.',','):'-'}</td>`;
-      }).join('')}
-      <td style="text-align:center;background:#e6f4ea;font-weight:700;color:#2e7d32">${vencNome}<br><span style="font-size:12px">${vencPreco}</span></td>
-      <td style="text-align:center"><button class="btn btn-outline btn-sm" onclick="abrirRanking('${item.id}','${item.produto.replace(/'/g,"\\'")}',${JSON.stringify(validos)})">🔄 Trocar</button></td>
-    </tr>`;
-  });
-
-  html+='</tbody></table></div>';
-  document.getElementById('analise-conteudo').innerHTML=html;
-  document.getElementById('analise-acoes').style.display='flex';
-}
-
-function abrirRanking(itemId,produto,validos){
-  document.getElementById('ranking-titulo').textContent='🏆 Ranking: '+produto;
-  const lista=document.getElementById('ranking-lista');
-  if(!validos||validos.length===0){
-    lista.innerHTML='<div class="vazio">Nenhuma oferta recebida para este item.</div>';
-  }else{
-    lista.innerHTML=validos.map((v,i)=>{
-      const posClass=i===0?'pos-1':i===1?'pos-2':i===2?'pos-3':'pos-n';
-      const isSel=vencedoresOverride[itemId]===v.fId||(i===0&&!vencedoresOverride[itemId]);
-      return`<div class="ranking-item">
-        <div class="ranking-pos ${posClass}">${i+1}</div>
-        <div class="ranking-info">
-          <div class="ranking-forn">${v.fNome}</div>
-          <div class="ranking-preco">R$ ${Number(v.preco).toFixed(2).replace('.',',')}</div>
-        </div>
-        ${isSel
-          ?'<span class="btn-selecionado">✅ Selecionado</span>'
-          :`<button class="btn-selecionar" onclick="selecionarVencedor('${itemId}','${v.fId}')">Selecionar</button>`}
-      </div>`;
-    }).join('');
-  }
-  document.getElementById('modal-ranking').classList.add('aberto');
-}
-
-function selecionarVencedor(itemId,fId){
-  vencedoresOverride[itemId]=fId;
-  fecharModal('modal-ranking');
-  renderAnalise(itensCache,respostasCache);
-}
-
-async function finalizarCotacaoAtual(){
-  if(!confirm('Finalizar esta cotação?'))return;
-  await sb.from('cotacoes').update({status:'finalizada',finalizada_at:new Date()}).eq('id',cotacaoAtualId);
-  document.getElementById('btn-finalizar-det').style.display='none';
-  alert('Cotação finalizada!');
+  document.getElementById('u-email').textContent = data.user.email;
+  document.getElementById('tela-login').style.display = 'none';
+  document.getElementById('tela-app').style.display = 'flex';
   irPara('cotacoes');
 }
 
-async function finalizarCotacao(id){
-  if(!confirm('Finalizar esta cotação?'))return;
-  await sb.from('cotacoes').update({status:'finalizada',finalizada_at:new Date()}).eq('id',id);
-  carregarCotacoes();
+async function fazerLogout() {
+  await sb.auth.signOut();
+  location.reload();
 }
 
-// ════════════════════════════════════════
-// WHATSAPP / LINKS
-// ════════════════════════════════════════
-async function dispararWhatsApp(){
-  const {data:fornecedores}=await sb.from('fornecedores').select('*').eq('ativo',true).order('distribuidora');
-  if(!fornecedores||fornecedores.length===0){alert('Nenhum fornecedor cadastrado. Vá em Fornecedores e cadastre.');return;}
+// ══════════════════════════════
+// COTAÇÕES — LISTA
+// ══════════════════════════════
+async function carregarCotacoes() {
+  const el = document.getElementById('lista-cotacoes');
+  el.innerHTML = '<div class="loading-box" style="grid-column:1/-1"><div class="spin"></div></div>';
 
-  const div=document.getElementById('lista-fornecedores-disparar');
-  div.innerHTML=fornecedores.map((f,i)=>`
-    <label style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:#f8f9fa;border-radius:6px;cursor:pointer;border:1px solid #e0e0e0">
-      <input type="checkbox" id="chk-forn-${f.id}" value="${f.id}" style="width:16px;height:16px">
-      <div>
-        <div style="font-weight:700;font-size:13px">${f.nome}</div>
-        <div style="font-size:12px;color:#888">${f.distribuidora} — ${f.whatsapp}</div>
+  const { data } = await sb
+    .from('cotacoes')
+    .select('*, cotacao_itens(count), cotacao_links(count, status)')
+    .order('created_at', { ascending: false });
+
+  if (!data || data.length === 0) {
+    el.innerHTML = `<div class="empty">Nenhuma cotação ainda.<br>
+      <a href="#" onclick="irPara('nova')" style="color:#15a563">Criar primeira cotação →</a></div>`;
+    document.getElementById('sub-cotacoes').textContent = '';
+    return;
+  }
+
+  document.getElementById('sub-cotacoes').textContent = `${data.length} cotação(ões)`;
+
+  el.innerHTML = data.map(c => {
+    const links = c.cotacao_links || [];
+    const resp = links.filter(l => l.status === 'respondido').length;
+    const total = links.length;
+    const itens = c.cotacao_itens?.[0]?.count || 0;
+    const aberta = (c.status || 'aberta') !== 'fechada';
+
+    return `<div class="cot-card" onclick="abrirCotacao('${c.id}')">
+      <div class="cot-card-titulo">${c.titulo || 'Sem título'}</div>
+      <div class="cot-card-info">${fmtData(c.created_at)}</div>
+      <span class="badge ${aberta ? 'badge-verde' : 'badge-cinza'}">${aberta ? 'Aberta' : 'Fechada'}</span>
+      <div class="cot-card-stats">
+        <span>📦 ${itens} produto(s)</span>
+        <span>✅ ${resp}/${total} respostas</span>
       </div>
-    </label>
-  `).join('');
-
-  document.getElementById('modal-disparar').classList.add('aberto');
+    </div>`;
+  }).join('');
 }
 
-function marcarTodosForn(val){
-  document.querySelectorAll('#lista-fornecedores-disparar input[type=checkbox]').forEach(c=>c.checked=val);
+function abrirCotacao(id) {
+  cotacaoId = id;
+  irPara('detalhe');
 }
 
-async function confirmarDisparoWhatsApp(){
-  const selecionados=[];
-  document.querySelectorAll('#lista-fornecedores-disparar input:checked').forEach(c=>selecionados.push(c.value));
-  if(selecionados.length===0){alert('Selecione pelo menos um fornecedor.');return;}
-
-  fecharModal('modal-disparar');
-
-  // Gera tokens e links
-  for(const fornId of selecionados){
-    const token=Math.random().toString(36).substr(2,12)+Date.now().toString(36);
-    // Remove link anterior se existir
-    await sb.from('cotacao_links').delete().eq('cotacao_id',cotacaoAtualId).eq('fornecedor_id',fornId);
-    await sb.from('cotacao_links').insert({cotacao_id:cotacaoAtualId,fornecedor_id:fornId,token,status:'enviado'});
-  }
-
-  // Busca fornecedores com tokens
-  const {data:links}=await sb.from('cotacao_links').select('*,fornecedores(nome,distribuidora,whatsapp)').eq('cotacao_id',cotacaoAtualId).in('fornecedor_id',selecionados);
-
-  // Abre WhatsApp para cada um
-  for(const link of links){
-    const url=`${PORTAL_URL}?token=${link.token}`;
-    const msg=encodeURIComponent(`Olá ${link.fornecedores?.nome}! 👋\n\nSeguem o link para participar de nossa cotação de compras:\n\n${url}\n\nPor favor, preencha os preços e clique em enviar.\n\nObrigado! 🙏`);
-    const whats=link.fornecedores?.whatsapp?.replace(/\D/g,'');
-    window.open(`https://wa.me/55${whats}?text=${msg}`,'_blank');
-    await new Promise(r=>setTimeout(r,1500));
-  }
-
-  await carregarDetalhe(cotacaoAtualId);
+// ══════════════════════════════
+// NOVA COTAÇÃO
+// ══════════════════════════════
+function initNova() {
+  document.getElementById('nc-titulo').value = '';
+  document.getElementById('itens-lista').innerHTML = '';
+  addLinha(); addLinha(); addLinha();
+  contarLinhas();
 }
 
-// ════════════════════════════════════════
-// GERAR PEDIDOS
-// ════════════════════════════════════════
-function gerarPedidos(){
-  const itens=itensCache;
-  const respostas=respostasCache;
+function addLinha(desc = '', ean = '', qty = '', preco = '') {
+  const d = document.createElement('div');
+  d.className = 'item-row';
+  d.innerHTML = `
+    <input class="inp-desc" type="text" placeholder="Descrição do produto *" value="${desc}" oninput="contarLinhas()"/>
+    <input class="inp-ean" type="text" placeholder="EAN" value="${ean}"/>
+    <input class="inp-qty" type="number" placeholder="1" min="1" value="${qty}"/>
+    <input class="inp-preco" type="text" placeholder="0,00" value="${preco}" oninput="soPrecoValido(this)"/>
+    <button class="btn-del" onclick="this.closest('.item-row').remove();contarLinhas()" title="Remover">×</button>`;
+  document.getElementById('itens-lista').appendChild(d);
+  contarLinhas();
+}
 
-  const fornMap={};
-  respostas.forEach(r=>{
-    if(!fornMap[r.fornecedor_id])fornMap[r.fornecedor_id]={nome:r.fornecedores?.nome||'?',dist:r.fornecedores?.distribuidora||'',itens:[]};
+function soPrecoValido(el) {
+  el.value = el.value.replace(/[^\d,]/g, '');
+}
+
+function contarLinhas() {
+  const n = [...document.querySelectorAll('#itens-lista .inp-desc')].filter(i => i.value.trim()).length;
+  document.getElementById('nc-count').textContent = `${n} produto(s)`;
+}
+
+async function importarExcel(inp) {
+  const file = inp.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const wb = XLSX.read(e.target.result, { type: 'binary' });
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
+
+      // Detectar colunas
+      let dCol = 0, eCol = 1, qCol = 2, pCol = -1, start = 0;
+      for (let r = 0; r < Math.min(5, rows.length); r++) {
+        const row = rows[r].map(c => String(c).toLowerCase());
+        let found = false;
+        row.forEach((c, i) => {
+          if (/desc|nome|produto|item|med/.test(c)) { dCol = i; found = true; }
+          if (/ean|cod|barra/.test(c)) eCol = i;
+          if (/qtd|quant/.test(c)) qCol = i;
+          if (/prec|valor|custo/.test(c)) pCol = i;
+        });
+        if (found) { start = r + 1; break; }
+      }
+
+      document.getElementById('itens-lista').innerHTML = '';
+      let n = 0;
+      for (let r = start; r < rows.length; r++) {
+        const row = rows[r];
+        const desc = String(row[dCol] || '').trim();
+        if (!desc) continue;
+        const ean = String(row[eCol] || '').trim();
+        const qty = String(row[qCol] || '').trim();
+        const preco = pCol >= 0 && row[pCol] ? String(row[pCol]).replace('.', ',') : '';
+        addLinha(desc, ean, qty, preco);
+        n++;
+      }
+      toast(n > 0 ? `${n} produto(s) importado(s)!` : 'Nenhum produto encontrado.', n > 0 ? 'ok' : 'err');
+    } catch { toast('Erro ao ler o arquivo.', 'err'); }
+    inp.value = '';
+  };
+  reader.readAsBinaryString(file);
+}
+
+async function salvarCotacao() {
+  const titulo = document.getElementById('nc-titulo').value.trim();
+  if (!titulo) { toast('Informe o título.', 'err'); return; }
+
+  const rows = document.querySelectorAll('#itens-lista .item-row');
+  const itens = [];
+  rows.forEach(r => {
+    const desc = r.querySelector('.inp-desc').value.trim();
+    if (!desc) return;
+    itens.push({
+      descricao: desc,
+      ean: r.querySelector('.inp-ean').value.trim() || null,
+      quantidade: parseInt(r.querySelector('.inp-qty').value) || 1,
+      ultimo_preco: parsePreco(r.querySelector('.inp-preco').value)
+    });
   });
 
-  const pedidos={};
-  itens.forEach(item=>{
-    const precos=respostas.filter(r=>r.item_id===item.id&&r.preco>0).sort((a,b)=>a.preco-b.preco);
-    const vencFId=vencedoresOverride[item.id]||precos[0]?.fornecedor_id;
-    if(!vencFId)return;
-    const vencResp=respostas.find(r=>r.item_id===item.id&&r.fornecedor_id===vencFId);
-    if(!vencResp)return;
-    if(!pedidos[vencFId])pedidos[vencFId]={nome:vencResp.fornecedores?.nome||'?',dist:vencResp.fornecedores?.distribuidora||'',itens:[]};
-    pedidos[vencFId].itens.push({produto:item.produto,qtd:item.quantidade,preco:vencResp.preco,total:vencResp.preco*(item.quantidade||1)});
-  });
+  if (itens.length === 0) { toast('Adicione pelo menos 1 produto.', 'err'); return; }
 
-  const fIds=Object.keys(pedidos);
-  if(fIds.length===0){alert('Nenhum vencedor definido.');return;}
+  const { data: cot, error: e1 } = await sb
+    .from('cotacoes').insert({ titulo, status: 'aberta' }).select().single();
+  if (e1) { toast('Erro ao salvar cotação: ' + e1.message, 'err'); return; }
 
-  let html='';
-  fIds.forEach(fId=>{
-    const p=pedidos[fId];
-    const total=p.itens.reduce((a,i)=>a+i.total,0);
-    html+=`<div style="margin-bottom:24px;border:1px solid #e0e0e0;border-radius:8px;overflow:hidden">
-      <div style="background:#1a1a1a;color:#fff;padding:12px 16px;font-weight:700">${p.nome} — ${p.dist}</div>
-      <table style="width:100%;border-collapse:collapse">
-        <thead><tr style="background:#f5f5f5"><th style="padding:8px 12px;text-align:left;font-size:12px">Produto</th><th style="padding:8px 12px;text-align:center;font-size:12px">Qtd</th><th style="padding:8px 12px;text-align:center;font-size:12px">Preço Unit.</th><th style="padding:8px 12px;text-align:center;font-size:12px">Total</th></tr></thead>
-        <tbody>
-          ${p.itens.map(i=>`<tr><td style="padding:8px 12px;font-size:13px">${i.produto}</td><td style="padding:8px 12px;text-align:center;font-size:13px">${i.qtd||'-'}</td><td style="padding:8px 12px;text-align:center;font-size:13px">R$ ${Number(i.preco).toFixed(2).replace('.',',')}</td><td style="padding:8px 12px;text-align:center;font-size:13px">R$ ${Number(i.total).toFixed(2).replace('.',',')}</td></tr>`).join('')}
-        </tbody>
-        <tfoot><tr style="background:#e6f4ea"><td colspan="3" style="padding:10px 12px;font-weight:700;text-align:right">TOTAL DO PEDIDO</td><td style="padding:10px 12px;text-align:center;font-weight:700;color:#2e7d32">R$ ${Number(total).toFixed(2).replace('.',',')}</td></tr></tfoot>
+  const { error: e2 } = await sb
+    .from('cotacao_itens').insert(itens.map(i => ({ ...i, cotacao_id: cot.id })));
+  if (e2) { toast('Erro ao salvar produtos: ' + e2.message, 'err'); return; }
+
+  toast(`✅ Cotação criada com ${itens.length} produto(s)!`, 'ok');
+  cotacaoId = cot.id;
+  setTimeout(() => irPara('detalhe'), 700);
+}
+
+// ══════════════════════════════
+// DETALHE DA COTAÇÃO
+// ══════════════════════════════
+async function carregarDetalhe(id) {
+  const el = document.getElementById('det-cards');
+  el.innerHTML = '<div class="loading-box" style="grid-column:1/-1"><div class="spin"></div></div>';
+
+  const [{ data: cot }, { data: itens }, { data: links }, { data: respostas }] = await Promise.all([
+    sb.from('cotacoes').select('*').eq('id', id).single(),
+    sb.from('cotacao_itens').select('*').eq('cotacao_id', id),
+    sb.from('cotacao_links').select('*, fornecedores(*)').eq('cotacao_id', id),
+    sb.from('cotacao_respostas').select('*').eq('cotacao_id', id)
+  ]);
+
+  if (cot) {
+    document.getElementById('det-titulo').textContent = cot.titulo || 'Cotação';
+    document.getElementById('det-sub').textContent =
+      `${itens?.length || 0} produto(s) · ${fmtData(cot.created_at)}`;
+  }
+
+  if (!links || links.length === 0) {
+    el.innerHTML = `<div class="empty" style="grid-column:1/-1">
+      Nenhum fornecedor acionado ainda.<br>
+      Clique em <b>📲 Disparar</b> para enviar os links.
+    </div>`;
+    return;
+  }
+
+  const nItens = itens?.length || 0;
+
+  el.innerHTML = links.map(lnk => {
+    const f = lnk.fornecedores || {};
+    const resps = (respostas || []).filter(r => r.fornecedor_id === lnk.fornecedor_id);
+    const preench = resps.filter(r => r.preco != null && r.preco > 0).length;
+    const pct = nItens > 0 ? Math.min(100, Math.round(preench / nItens * 100)) : 0;
+
+    const valorTotal = resps.reduce((s, r) => {
+      const item = (itens || []).find(i => i.id === r.item_id);
+      return s + (r.preco || 0) * (item?.quantidade || 1);
+    }, 0);
+
+    const pedMin = f.pedido_minimo || 0;
+    const atingiuMin = pedMin <= 0 || valorTotal >= pedMin;
+    const pctMin = pedMin > 0 ? Math.min(100, Math.round(valorTotal / pedMin * 100)) : 100;
+
+    const STATUS = {
+      aguardando: ['badge-cinza', '⏳ Aguardando'],
+      aberto:     ['badge-azul',  '👁 Aberto'],
+      rascunho:   ['badge-amarelo','✏️ Rascunho'],
+      respondido: ['badge-verde', '✅ Respondido']
+    };
+    const [bc, bt] = STATUS[lnk.status] || STATUS.aguardando;
+    const cardCls = ['respondido', 'rascunho', 'aberto'].includes(lnk.status) ? lnk.status : '';
+    const pc = lnk.parceiro;
+
+    return `<div class="forn-card ${cardCls}">
+      <div class="forn-card-nome">${f.nome || '—'}</div>
+      <div class="forn-card-dist">
+        ${f.contato ? '👤 ' + f.contato + '<br>' : ''}
+        ${f.email ? '✉ ' + f.email : ''}
+      </div>
+      <span class="badge ${bc}" style="margin-bottom:8px">${bt}</span>
+      <div class="forn-card-valor">${valorTotal > 0 ? fmtR(valorTotal) : '—'}</div>
+      <div class="forn-card-itens">🗂 ${preench}/${nItens} itens preenchidos</div>
+      ${pedMin > 0 ? `
+        <div class="progress-wrap">
+          <div class="progress-info">
+            <span>Mín: ${fmtR(pedMin)}</span>
+            <span>${pctMin}% ${atingiuMin ? '✅' : '⚠️'}</span>
+          </div>
+          <div class="progress-bar">
+            <div class="progress-fill ${atingiuMin ? 'prog-ok' : 'prog-warn'}" style="width:${pctMin}%"></div>
+          </div>
+        </div>` : ''}
+      <div class="parceiro-btns">
+        <button class="parc-btn ${pc === true ? 'sim' : ''}"
+          onclick="toggleParceiro('${lnk.id}',true,this)">✓ Parceiro</button>
+        <button class="parc-btn ${pc === false && pc !== null ? 'nao' : ''}"
+          onclick="toggleParceiro('${lnk.id}',false,this)">✗ Não parceiro</button>
+      </div>
+      <div class="forn-card-acoes">
+        ${lnk.status !== 'aguardando' ? `<button class="btn btn-outline btn-sm"
+          onclick="verRespostas('${lnk.id}','${(f.nome||'').replace(/'/g,"\\'")}')">Ver respostas</button>` : ''}
+        <button class="btn btn-outline btn-sm" onclick="copiarLink('${lnk.token}')">📋 Link</button>
+        <button class="btn btn-outline btn-sm" style="color:#25d366"
+          onclick="abrirWpp('${f.whatsapp||''}','${lnk.token}','${(f.nome||'').replace(/'/g,"\\'")}','${(cot?.titulo||'').replace(/'/g,"\\'")}')">💬 WhatsApp</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function toggleParceiro(linkId, valor, btn) {
+  await sb.from('cotacao_links').update({ parceiro: valor }).eq('id', linkId);
+  const card = btn.closest('.forn-card');
+  card.querySelectorAll('.parc-btn').forEach(b => b.classList.remove('sim', 'nao'));
+  btn.classList.add(valor ? 'sim' : 'nao');
+}
+
+function copiarLink(token) {
+  const url = `${BASE}?t=${token}`;
+  navigator.clipboard.writeText(url).then(() => toast('Link copiado!', 'ok'));
+}
+
+function abrirWpp(wpp, token, nome, titulo) {
+  const url = `${BASE}?t=${token}`;
+  const msg = encodeURIComponent(
+    `Olá ${nome}! Temos uma cotação aguardando sua resposta.\n\n*Cotação:* ${titulo}\n\n*Link para preenchimento:*\n${url}\n\nPor favor, preencha os preços com vírgula (ex: 12,50) e clique em Enviar. Obrigado! 🙏`
+  );
+  const num = wpp.replace(/\D/g, '');
+  window.open(num ? `https://wa.me/55${num}?text=${msg}` : `https://wa.me/?text=${msg}`, '_blank');
+}
+
+async function verRespostas(linkId, nomeForn) {
+  document.getElementById('mr-titulo').textContent = `Respostas — ${nomeForn}`;
+  document.getElementById('mr-corpo').innerHTML = '<div class="loading-box"><div class="spin"></div></div>';
+  abrirModal('modal-resp');
+
+  const { data: lnk } = await sb.from('cotacao_links').select('fornecedor_id,cotacao_id').eq('id', linkId).single();
+  const [{ data: resps }, { data: itens }] = await Promise.all([
+    sb.from('cotacao_respostas').select('*').eq('cotacao_id', lnk.cotacao_id).eq('fornecedor_id', lnk.fornecedor_id),
+    sb.from('cotacao_itens').select('*').eq('cotacao_id', lnk.cotacao_id)
+  ]);
+
+  if (!resps || resps.length === 0) {
+    document.getElementById('mr-corpo').innerHTML = '<p style="color:#94a3b8;padding:20px 0;text-align:center">Nenhuma resposta registrada.</p>';
+    return;
+  }
+
+  const rows = (itens || []).map(item => {
+    const r = resps.find(x => x.item_id === item.id);
+    const preco = r?.preco;
+    return `<tr>
+      <td style="font-weight:600">${item.descricao}</td>
+      <td style="text-align:center;color:#64748b">${item.quantidade || 1}</td>
+      <td style="text-align:right;font-weight:700;color:${preco ? '#15a563' : '#cbd5e1'}">${fmtR(preco)}</td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('mr-corpo').innerHTML = `
+    <div style="overflow:auto;max-height:420px">
+      <table class="comp-table">
+        <thead><tr><th>Produto</th><th class="num" style="text-align:center">Qtd</th><th class="num">Preço unit.</th></tr></thead>
+        <tbody>${rows}</tbody>
       </table>
     </div>`;
+}
+
+// ══════════════════════════════
+// DISPARAR LINKS
+// ══════════════════════════════
+let _dispForn = [];
+
+async function abrirDisparar() {
+  const { data: forn } = await sb.from('fornecedores').select('*').eq('ativo', true).order('nome');
+  const { data: existentes } = await sb.from('cotacao_links').select('fornecedor_id').eq('cotacao_id', cotacaoId);
+  const jaEnv = new Set((existentes || []).map(e => e.fornecedor_id));
+  _dispForn = forn || [];
+
+  document.getElementById('disp-lista').innerHTML = _dispForn.map(f => {
+    const ja = jaEnv.has(f.id);
+    return `<div class="check-item ${ja ? 'ja sel' : ''}" onclick="${ja ? '' : "toggleCheck(this)"}">
+      <input type="checkbox" value="${f.id}" ${ja ? 'checked disabled' : ''}/>
+      <div>
+        <div style="font-weight:600;font-size:13px">${f.nome}</div>
+        <div style="font-size:11px;color:#64748b">${f.distribuidora || ''} ${ja ? '· já enviado' : ''}</div>
+      </div>
+    </div>`;
+  }).join('');
+
+  abrirModal('modal-disparar');
+}
+
+function toggleCheck(el) {
+  const cb = el.querySelector('input');
+  cb.checked = !cb.checked;
+  el.classList.toggle('sel', cb.checked);
+}
+
+function selTodos(v) {
+  document.querySelectorAll('#disp-lista input:not(:disabled)').forEach(cb => {
+    cb.checked = v;
+    cb.closest('.check-item').classList.toggle('sel', v);
+  });
+}
+
+async function confirmarDisparar() {
+  const selecionados = [...document.querySelectorAll('#disp-lista input:checked:not(:disabled)')].map(cb => cb.value);
+  if (selecionados.length === 0) { toast('Selecione pelo menos um fornecedor.', 'err'); return; }
+
+  const { data: cot } = await sb.from('cotacoes').select('titulo').eq('id', cotacaoId).single();
+
+  const novos = selecionados.map(fId => ({
+    cotacao_id: cotacaoId,
+    fornecedor_id: fId,
+    token: crypto.randomUUID(),
+    status: 'aguardando',
+    parceiro: null
+  }));
+
+  const { data: gerados, error } = await sb.from('cotacao_links').insert(novos).select('*, fornecedores(nome,whatsapp)');
+  if (error) { toast('Erro ao gerar links: ' + error.message, 'err'); return; }
+
+  fecharModal('modal-disparar');
+  toast(`${gerados.length} link(s) gerado(s)!`, 'ok');
+
+  // Abrir WhatsApp para cada fornecedor com número cadastrado
+  gerados.forEach((l, i) => {
+    const f = l.fornecedores;
+    if (f?.whatsapp) {
+      setTimeout(() => abrirWpp(f.whatsapp, l.token, f.nome, cot?.titulo || ''), i * 800 + 400);
+    }
   });
 
-  document.getElementById('pedidos-conteudo').innerHTML=html;
-  document.getElementById('modal-pedidos').classList.add('aberto');
+  await carregarDetalhe(cotacaoId);
 }
 
-function imprimirPedidos(){
-  const conteudo=document.getElementById('pedidos-conteudo').innerHTML;
-  const win=window.open('','_blank');
-  win.document.write(`<html><head><title>Pedidos</title><style>body{font-family:Arial,sans-serif;padding:20px}table{width:100%;border-collapse:collapse;margin-bottom:20px}th,td{padding:8px 12px;border:1px solid #ddd;font-size:13px}</style></head><body>${conteudo}</body></html>`);
-  win.document.close();
-  win.print();
+// ══════════════════════════════
+// RANKING DE PREÇOS
+// ══════════════════════════════
+async function carregarComparacao(id) {
+  document.getElementById('comp-corpo').innerHTML = '<div class="loading-box"><div class="spin"></div></div>';
+
+  const [{ data: cot }, { data: itens }, { data: links }, { data: resps }] = await Promise.all([
+    sb.from('cotacoes').select('titulo').eq('id', id).single(),
+    sb.from('cotacao_itens').select('*').eq('cotacao_id', id),
+    sb.from('cotacao_links').select('*, fornecedores(nome)').eq('cotacao_id', id),
+    sb.from('cotacao_respostas').select('*').eq('cotacao_id', id)
+  ]);
+
+  document.getElementById('comp-sub').textContent = cot?.titulo || '';
+
+  const comResp = (links || []).filter(l => ['respondido', 'rascunho'].includes(l.status));
+  if (comResp.length === 0) {
+    document.getElementById('comp-corpo').innerHTML = '<div class="empty">Nenhuma resposta recebida ainda.</div>';
+    return;
+  }
+
+  const nomes = comResp.map(l => l.fornecedores?.nome || '—');
+
+  const rows = (itens || []).map(item => {
+    const precos = comResp.map(lnk => {
+      const r = (resps || []).find(x => x.item_id === item.id && x.fornecedor_id === lnk.fornecedor_id);
+      return r?.preco ?? null;
+    });
+    const validos = precos.filter(p => p != null && p > 0);
+    const menor = validos.length ? Math.min(...validos) : null;
+
+    const cells = precos.map(p => {
+      if (p == null) return '<td style="text-align:right"><span class="preco-sem">—</span></td>';
+      const cls = p === menor ? 'preco-melhor' : 'preco-normal';
+      return `<td style="text-align:right"><span class="${cls}">${fmtR(p)}</span></td>`;
+    }).join('');
+
+    return `<tr>
+      <td style="font-weight:600;max-width:220px">${item.descricao}</td>
+      <td style="text-align:center;color:#64748b">${item.quantidade || 1}</td>
+      <td style="color:#64748b">${item.ultimo_preco ? fmtR(item.ultimo_preco) : '—'}</td>
+      ${cells}
+    </tr>`;
+  }).join('');
+
+  document.getElementById('comp-corpo').innerHTML = `
+    <div style="overflow-x:auto">
+      <table class="comp-table">
+        <thead><tr>
+          <th style="min-width:180px">Produto</th>
+          <th class="num" style="text-align:center">Qtd</th>
+          <th>Últ. Preço</th>
+          ${nomes.map(n => `<th class="num">${n}</th>`).join('')}
+        </tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>
+    <div style="padding:12px 14px;font-size:11px;color:#94a3b8">
+      🟢 Menor preço para cada produto
+    </div>`;
 }
 
-// ════════════════════════════════════════
-// FORNECEDORES
-// ════════════════════════════════════════
-async function carregarFornecedores(){
-  const {data}=await sb.from('fornecedores').select('*').order('distribuidora');
-  document.getElementById('tabela-fornecedores').innerHTML=!data||data.length===0
-    ?'<tr><td colspan="5" class="vazio">Nenhum fornecedor cadastrado.</td></tr>'
-    :data.map(f=>`<tr>
-      <td><b>${f.nome}</b></td>
-      <td>${f.distribuidora}</td>
-      <td>${f.whatsapp}</td>
-      <td><span class="badge ${f.ativo?'badge-verde':'badge-vermelho'}">${f.ativo?'Ativo':'Inativo'}</span></td>
-      <td style="display:flex;gap:6px">
-        <button class="btn btn-outline btn-sm" onclick="editarFornecedor('${f.id}','${f.nome.replace(/'/g,"\\'")}','${f.distribuidora.replace(/'/g,"\\'")}','${f.whatsapp}')">Editar</button>
-        <button class="btn btn-outline btn-sm" onclick="toggleFornecedor('${f.id}',${f.ativo})">${f.ativo?'Desativar':'Ativar'}</button>
+// ══════════════════════════════
+// FORNECEDORES — GESTÃO
+// ══════════════════════════════
+async function carregarFornecedores() {
+  const { data } = await sb.from('fornecedores').select('*').order('nome');
+  document.getElementById('sub-forn').textContent = `${data?.length || 0} fornecedor(es) cadastrado(s)`;
+
+  if (!data || data.length === 0) {
+    document.getElementById('forn-tbody').innerHTML =
+      '<tr><td colspan="6" style="text-align:center;color:#94a3b8;padding:40px">Nenhum fornecedor cadastrado.</td></tr>';
+    return;
+  }
+
+  document.getElementById('forn-tbody').innerHTML = data.map(f => `
+    <tr>
+      <td>
+        <div style="font-weight:600">${f.nome}</div>
+        <div style="font-size:11px;color:#64748b">${f.distribuidora || ''}</div>
       </td>
+      <td>${f.contato || '—'}</td>
+      <td>${f.whatsapp || '—'}</td>
+      <td>${f.pedido_minimo ? fmtR(f.pedido_minimo) : '—'}</td>
+      <td><span class="badge ${f.ativo !== false ? 'badge-verde' : 'badge-cinza'}">${f.ativo !== false ? 'Ativo' : 'Inativo'}</span></td>
+      <td><button class="btn btn-outline btn-sm" onclick='editarForn(${JSON.stringify(f)})'>Editar</button></td>
     </tr>`).join('');
 }
 
-function abrirModalFornecedor(){
-  ['fo-nome','fo-dist','fo-whats'].forEach(id=>document.getElementById(id).value='');
-  document.getElementById('modal-fornecedor').classList.add('aberto');
+function abrirModalForn() {
+  ['mf-id','mf-nome','mf-dist','mf-contato','mf-wpp','mf-email','mf-pedmin'].forEach(id => {
+    document.getElementById(id).value = '';
+  });
+  document.getElementById('mf-ativo').checked = true;
+  document.getElementById('mf-titulo').textContent = 'Cadastrar Fornecedor';
+  abrirModal('modal-forn');
 }
 
-async function salvarFornecedor(){
-  const nome=document.getElementById('fo-nome').value.trim();
-  const distribuidora=document.getElementById('fo-dist').value.trim();
-  const whatsapp=document.getElementById('fo-whats').value.trim().replace(/\D/g,'');
-  if(!nome||!distribuidora||!whatsapp){alert('Preencha todos os campos.');return;}
-  const {error}=await sb.from('fornecedores').insert({nome,distribuidora,whatsapp,ativo:true});
-  if(error){alert('Erro: '+error.message);return;}
-  fecharModal('modal-fornecedor');
+function editarForn(f) {
+  document.getElementById('mf-id').value = f.id;
+  document.getElementById('mf-nome').value = f.nome || '';
+  document.getElementById('mf-dist').value = f.distribuidora || '';
+  document.getElementById('mf-contato').value = f.contato || '';
+  document.getElementById('mf-wpp').value = f.whatsapp || '';
+  document.getElementById('mf-email').value = f.email || '';
+  document.getElementById('mf-pedmin').value = f.pedido_minimo
+    ? String(f.pedido_minimo).replace('.', ',') : '';
+  document.getElementById('mf-ativo').checked = f.ativo !== false;
+  document.getElementById('mf-titulo').textContent = 'Editar Fornecedor';
+  abrirModal('modal-forn');
+}
+
+async function salvarFornecedor() {
+  const nome = document.getElementById('mf-nome').value.trim();
+  if (!nome) { toast('Informe o nome.', 'err'); return; }
+
+  const dados = {
+    nome,
+    distribuidora: document.getElementById('mf-dist').value.trim() || null,
+    contato: document.getElementById('mf-contato').value.trim() || null,
+    whatsapp: document.getElementById('mf-wpp').value.trim() || null,
+    email: document.getElementById('mf-email').value.trim() || null,
+    pedido_minimo: parsePreco(document.getElementById('mf-pedmin').value),
+    ativo: document.getElementById('mf-ativo').checked
+  };
+
+  const id = document.getElementById('mf-id').value;
+  const { error } = id
+    ? await sb.from('fornecedores').update(dados).eq('id', id)
+    : await sb.from('fornecedores').insert(dados);
+
+  if (error) { toast('Erro: ' + error.message, 'err'); return; }
+  fecharModal('modal-forn');
+  toast('Fornecedor salvo!', 'ok');
   carregarFornecedores();
 }
 
-function editarFornecedor(id,nome,dist,whats){
-  document.getElementById('fo-nome').value=nome;
-  document.getElementById('fo-dist').value=dist;
-  document.getElementById('fo-whats').value=whats;
-  document.getElementById('modal-fornecedor').dataset.editId=id;
-  document.getElementById('modal-fornecedor').classList.add('aberto');
-}
+// ══════════════════════════════
+// TELA PÚBLICA DO FORNECEDOR
+// ══════════════════════════════
+async function initFornecedor(token) {
+  const { data: lnk, error } = await sb
+    .from('cotacao_links')
+    .select('*, cotacoes(*), fornecedores(*)')
+    .eq('token', token)
+    .single();
 
-async function toggleFornecedor(id,ativo){
-  await sb.from('fornecedores').update({ativo:!ativo}).eq('id',id);
-  carregarFornecedores();
-}
-
-// ════════════════════════════════════════
-// FARMÁCIAS
-// ════════════════════════════════════════
-async function carregarFarmacias(){
-  const {data}=await sb.from('farmacias').select('*').order('nome');
-  document.getElementById('tabela-farmacias').innerHTML=!data||data.length===0
-    ?'<tr><td colspan="6" class="vazio">Nenhuma farmácia cadastrada.</td></tr>'
-    :data.map(f=>`<tr>
-      <td><b>${f.nome}</b></td>
-      <td>${f.cnpj}</td>
-      <td>${f.email}</td>
-      <td>${f.cidade||'-'}</td>
-      <td><span class="badge ${f.ativo?'badge-verde':'badge-vermelho'}">${f.ativo?'Ativa':'Inativa'}</span></td>
-      <td style="display:flex;gap:6px">
-        <button class="btn btn-outline btn-sm" onclick="abrirEdicaoFarmacia('${f.id}','${f.nome.replace(/'/g,"\\'")}','${f.cnpj}','${f.email}','${f.telefone||''}','${f.cidade||''}')">Editar</button>
-        <button class="btn btn-outline btn-sm" onclick="toggleFarmacia('${f.id}',${f.ativo})">${f.ativo?'Desativar':'Ativar'}</button>
-      </td>
-    </tr>`).join('');
-}
-
-function abrirModalFarmacia(){
-  ['f-nome','f-cnpj','f-email','f-senha','f-telefone','f-cidade'].forEach(id=>document.getElementById(id).value='');
-  document.getElementById('modal-farmacia').classList.add('aberto');
-}
-
-async function salvarFarmacia(){
-  const nome=document.getElementById('f-nome').value.trim();
-  const cnpj=document.getElementById('f-cnpj').value.trim();
-  const email=document.getElementById('f-email').value.trim();
-  const senha=document.getElementById('f-senha').value;
-  const telefone=document.getElementById('f-telefone').value.trim();
-  const cidade=document.getElementById('f-cidade').value.trim();
-  if(!nome||!cnpj||!email||!senha){alert('Preencha todos os campos obrigatórios.');return;}
-  const {error}=await sb.from('farmacias').insert({nome,cnpj,email,telefone,cidade,ativo:true});
-  if(error){alert('Erro ao cadastrar: '+error.message);return;}
-  fecharModal('modal-farmacia');
-  alert('Farmácia cadastrada!\n\nCrie o usuário no Supabase Authentication com o e-mail '+email+' e a senha escolhida.');
-  carregarFarmacias();
-}
-
-function abrirEdicaoFarmacia(id,nome,cnpj,email,telefone,cidade){
-  document.getElementById('ef-id').value=id;
-  document.getElementById('ef-nome').value=nome;
-  document.getElementById('ef-cnpj').value=cnpj;
-  document.getElementById('ef-email').value=email;
-  document.getElementById('ef-telefone').value=telefone;
-  document.getElementById('ef-cidade').value=cidade;
-  document.getElementById('modal-editar-farmacia').classList.add('aberto');
-}
-
-async function salvarEdicaoFarmacia(){
-  const id=document.getElementById('ef-id').value;
-  const nome=document.getElementById('ef-nome').value.trim();
-  const cnpj=document.getElementById('ef-cnpj').value.trim();
-  const email=document.getElementById('ef-email').value.trim();
-  const telefone=document.getElementById('ef-telefone').value.trim();
-  const cidade=document.getElementById('ef-cidade').value.trim();
-  if(!nome||!cnpj||!email){alert('Preencha os campos obrigatórios.');return;}
-  const {error}=await sb.from('farmacias').update({nome,cnpj,email,telefone,cidade}).eq('id',id);
-  if(error){alert('Erro: '+error.message);return;}
-  fecharModal('modal-editar-farmacia');
-  carregarFarmacias();
-}
-
-async function toggleFarmacia(id,ativo){
-  await sb.from('farmacias').update({ativo:!ativo}).eq('id',id);
-  carregarFarmacias();
-}
-
-// ════════════════════════════════════════
-// TODAS COTAÇÕES
-// ════════════════════════════════════════
-async function carregarTodasCotacoes(){
-  const {data}=await sb.from('cotacoes').select('*,farmacias(nome),cotacao_itens(count)').order('created_at',{ascending:false});
-  document.getElementById('tabela-todas').innerHTML=!data||data.length===0
-    ?'<tr><td colspan="5" class="vazio">Nenhuma cotação.</td></tr>'
-    :data.map(c=>`<tr>
-      <td><b>${c.farmacias?.nome||'-'}</b></td>
-      <td>${c.titulo||'Sem título'}</td>
-      <td>${new Date(c.created_at).toLocaleDateString('pt-BR')}</td>
-      <td>${c.cotacao_itens?.[0]?.count||0} itens</td>
-      <td><span class="badge ${c.status==='aberta'?'badge-azul':'badge-verde'}">${c.status}</span></td>
-    </tr>`).join('');
-}
-
-// ════════════════════════════════════════
-// PERFIL
-// ════════════════════════════════════════
-async function carregarPerfil(){
-  if(!farmaciaAtual?.id)return;
-  document.getElementById('perfil-nome').value=farmaciaAtual.nome||'';
-  document.getElementById('perfil-cidade').value=farmaciaAtual.cidade||'';
-  document.getElementById('perfil-telefone').value=farmaciaAtual.telefone||'';
-}
-
-async function salvarPerfil(){
-  const nome=document.getElementById('perfil-nome').value.trim();
-  const cidade=document.getElementById('perfil-cidade').value.trim();
-  const telefone=document.getElementById('perfil-telefone').value.trim();
-  const senha=document.getElementById('perfil-senha').value;
-  const senha2=document.getElementById('perfil-senha2').value;
-
-  if(farmaciaAtual?.id){
-    await sb.from('farmacias').update({nome,cidade,telefone}).eq('id',farmaciaAtual.id);
-    farmaciaAtual.nome=nome;
-    document.getElementById('nome-usuario').textContent=nome;
+  if (error || !lnk) {
+    document.getElementById('tf-itens').innerHTML =
+      '<div class="empty">Link inválido ou expirado. Solicite um novo link.</div>';
+    return;
   }
 
-  if(senha){
-    if(senha!==senha2){alert('As senhas não coincidem.');return;}
-    if(senha.length<6){alert('A senha deve ter no mínimo 6 caracteres.');return;}
-    const {error}=await sb.auth.updateUser({password:senha});
-    if(error){alert('Erro ao alterar senha: '+error.message);return;}
+  fornState = { token, lnk, itens: [], cotacaoId: lnk.cotacao_id, fornecedorId: lnk.fornecedor_id };
+
+  const cot = lnk.cotacoes || {};
+  const forn = lnk.fornecedores || {};
+  document.getElementById('tf-titulo-cot').textContent = cot.titulo || 'Cotação';
+  document.getElementById('tf-nome-forn').textContent =
+    [forn.nome, forn.distribuidora].filter(Boolean).join(' — ');
+
+  // Marcar como aberto
+  if (lnk.status === 'aguardando') {
+    await sb.from('cotacao_links')
+      .update({ status: 'aberto', aberto_em: new Date().toISOString() })
+      .eq('token', token);
   }
 
-  alert('Perfil atualizado com sucesso!');
+  // Carregar produtos e respostas existentes
+  const [{ data: itens }, { data: respostas }] = await Promise.all([
+    sb.from('cotacao_itens').select('*').eq('cotacao_id', lnk.cotacao_id).order('descricao'),
+    sb.from('cotacao_respostas').select('*')
+      .eq('cotacao_id', lnk.cotacao_id).eq('fornecedor_id', lnk.fornecedor_id)
+  ]);
+
+  fornState.itens = itens || [];
+  const respostaMap = {};
+  (respostas || []).forEach(r => { respostaMap[r.item_id] = r.preco; });
+
+  const jaRespondeu = lnk.status === 'respondido';
+  const rascunho = lnk.status === 'rascunho';
+
+  // Aviso de status
+  if (jaRespondeu) {
+    document.getElementById('tf-aviso').innerHTML = `
+      <div class="aviso-box aviso-verde">
+        ✅ <strong>Respostas enviadas!</strong> Você já respondeu esta cotação. Abaixo estão os valores enviados.
+      </div>`;
+  } else if (rascunho) {
+    document.getElementById('tf-aviso').innerHTML = `
+      <div class="aviso-box aviso-amarelo">
+        ✏️ <strong>Rascunho salvo.</strong> Continue preenchendo e clique em "Enviar respostas" quando terminar.
+      </div>`;
+  }
+
+  // Renderizar produtos
+  if (!itens || itens.length === 0) {
+    document.getElementById('tf-itens').innerHTML = '<div class="empty">Nenhum produto nesta cotação.</div>';
+    return;
+  }
+
+  document.getElementById('tf-itens').innerHTML = `
+    <div class="tf-box">
+      <h4>Produtos para cotar — use vírgula para decimais (ex: 12,50)</h4>
+      ${itens.map(item => {
+        const precoEx = respostaMap[item.id];
+        const precoFmt = precoEx != null ? String(precoEx).replace('.', ',') : '';
+        return `<div class="prod-item ${precoEx != null ? 'ok' : ''}" id="row-${item.id}">
+          <div class="prod-desc">
+            <strong title="${item.descricao}">${item.descricao}</strong>
+            <span>Qtd: ${item.quantidade || 1}${item.ean ? ' · EAN: ' + item.ean : ''}${item.ultimo_preco ? ' · Ref: ' + fmtR(item.ultimo_preco) : ''}</span>
+          </div>
+          <div class="prod-input-wrap">
+            <label>R$</label>
+            <input type="text" class="preco-inp ${precoEx != null ? 'ok' : ''}"
+              id="pi-${item.id}"
+              value="${precoFmt}"
+              placeholder="0,00"
+              inputmode="decimal"
+              ${jaRespondeu ? 'readonly' : ''}
+              oninput="onPrInput(this,'${item.id}')"/>
+          </div>
+        </div>`;
+      }).join('')}
+    </div>`;
+
+  document.getElementById('tf-total').textContent = itens.length;
+  atualizarProgForn();
+
+  if (!jaRespondeu) {
+    document.getElementById('tf-footer').style.display = 'flex';
+    // Autosave a cada 90 segundos
+    setInterval(() => _salvarRespostas('rascunho', true), 90000);
+  }
 }
 
-// ════════════════════════════════════════
-// UTILITÁRIOS
-// ════════════════════════════════════════
-function fecharModal(id){
-  document.getElementById(id).classList.remove('aberto');
-  delete document.getElementById(id).dataset.editId;
+function onPrInput(el, itemId) {
+  // Aceitar só dígitos e vírgula
+  el.value = el.value.replace(/[^\d,]/g, '');
+  const temValor = el.value.trim() !== '';
+  el.classList.toggle('ok', temValor);
+  document.getElementById('row-' + itemId).classList.toggle('ok', temValor);
+  atualizarProgForn();
 }
 
-document.querySelectorAll('.modal-overlay').forEach(o=>o.addEventListener('click',function(e){if(e.target===this)this.classList.remove('aberto');}));
+function atualizarProgForn() {
+  const preench = document.querySelectorAll('.preco-inp.ok').length;
+  document.getElementById('tf-preench').textContent = preench;
+}
+
+async function salvarRascunho() {
+  await _salvarRespostas('rascunho', false);
+  toast('Rascunho salvo!', 'ok');
+  document.getElementById('tf-aviso').innerHTML = `
+    <div class="aviso-box aviso-amarelo">
+      ✏️ <strong>Rascunho salvo.</strong> Continue preenchendo e clique em "Enviar respostas" quando terminar.
+    </div>`;
+}
+
+async function enviarRespostas() {
+  const preench = document.querySelectorAll('.preco-inp.ok').length;
+  const total = fornState.itens.length;
+  if (preench === 0) { toast('Preencha pelo menos um preço.', 'err'); return; }
+
+  const msg = preench < total
+    ? `Você preencheu ${preench} de ${total} produto(s). Deseja enviar assim mesmo?`
+    : `Enviar ${preench} resposta(s)?`;
+  if (!confirm(msg)) return;
+
+  await _salvarRespostas('respondido', false);
+  toast('✅ Respostas enviadas com sucesso!', 'ok');
+
+  document.getElementById('tf-footer').style.display = 'none';
+  document.querySelectorAll('.preco-inp').forEach(el => el.readOnly = true);
+  document.getElementById('tf-aviso').innerHTML = `
+    <div class="aviso-box aviso-verde">
+      ✅ <strong>Respostas enviadas!</strong> Obrigado. Sua participação foi registrada com sucesso.
+    </div>`;
+}
+
+async function _salvarRespostas(novoStatus, silencioso) {
+  const { token, cotacaoId, fornecedorId, itens } = fornState;
+
+  const respostas = itens.map(item => ({
+    cotacao_id: cotacaoId,
+    fornecedor_id: fornecedorId,
+    item_id: item.id,
+    preco: parsePreco(document.getElementById('pi-' + item.id)?.value || '')
+  }));
+
+  await sb.from('cotacao_respostas')
+    .delete().eq('cotacao_id', cotacaoId).eq('fornecedor_id', fornecedorId);
+  await sb.from('cotacao_respostas').insert(respostas);
+
+  const upd = { status: novoStatus };
+  if (novoStatus === 'respondido') upd.respondido_em = new Date().toISOString();
+  await sb.from('cotacao_links').update(upd).eq('token', token);
+
+  if (!silencioso) fornState.lnk.status = novoStatus;
+}
+
+// ══════════════════════════════
+// START
+// ══════════════════════════════
+init();
 </script>
 </body>
 </html>
