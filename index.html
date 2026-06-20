@@ -566,10 +566,12 @@ async function carregarCotacoes() {
   const el = document.getElementById('lista-cotacoes');
   el.innerHTML = '<div class="loading-box" style="grid-column:1/-1"><div class="spin"></div></div>';
 
-  const { data } = await sb
+  const { data, error } = await sb
     .from('cotacoes')
-    .select('*, cotacao_itens(count), cotacao_links(count, status)')
+    .select('*')
     .order('created_at', { ascending: false });
+
+  if (error) { el.innerHTML = `<div class="empty">Erro ao carregar: ${error.message}</div>`; return; }
 
   if (!data || data.length === 0) {
     el.innerHTML = `<div class="empty">Nenhuma cotação ainda.<br>
@@ -578,13 +580,20 @@ async function carregarCotacoes() {
     return;
   }
 
+  // Buscar contagens separadamente
+  const ids = data.map(c => c.id);
+  const [{ data: todosItens }, { data: todosLinks }] = await Promise.all([
+    sb.from('cotacao_itens').select('cotacao_id').in('cotacao_id', ids),
+    sb.from('cotacao_links').select('cotacao_id, status').in('cotacao_id', ids)
+  ]);
+
   document.getElementById('sub-cotacoes').textContent = `${data.length} cotação(ões)`;
 
   el.innerHTML = data.map(c => {
-    const links = c.cotacao_links || [];
+    const links = (todosLinks || []).filter(l => l.cotacao_id === c.id);
     const resp = links.filter(l => l.status === 'respondido').length;
     const total = links.length;
-    const itens = c.cotacao_itens?.[0]?.count || 0;
+    const itens = (todosItens || []).filter(i => i.cotacao_id === c.id).length;
     const aberta = (c.status || 'aberta') !== 'fechada';
 
     return `<div class="cot-card" onclick="abrirCotacao('${c.id}')">
@@ -1218,20 +1227,4 @@ async function _salvarRespostas(novoStatus, silencioso) {
   }));
 
   await sb.from('cotacao_respostas')
-    .delete().eq('cotacao_id', cotacaoId).eq('fornecedor_id', fornecedorId);
-  await sb.from('cotacao_respostas').insert(respostas);
-
-  const upd = { status: novoStatus };
-  if (novoStatus === 'respondido') upd.respondido_em = new Date().toISOString();
-  await sb.from('cotacao_links').update(upd).eq('token', token);
-
-  if (!silencioso) fornState.lnk.status = novoStatus;
-}
-
-// ══════════════════════════════
-// START
-// ══════════════════════════════
-init();
-</script>
-</body>
-</html>
+    .delete().eq('cotacao_id', cotacaoId).eq('fornecedor_id', 
