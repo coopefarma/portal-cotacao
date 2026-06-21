@@ -6,7 +6,7 @@
 <title>CotaFarma — Sistema de Cotação</title>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet"/>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Inter',sans-serif;background:#f5f7fa;color:#1a1a2e}
@@ -729,16 +729,46 @@ function exportarExcelForn(fornId,fornNome){
   const itensForn=itens.filter(item=>pedidoState[item.id]===fornId);
   if(itensForn.length===0){toast('Nenhum item para exportar.','err');return;}
   const wb=XLSX.utils.book_new();
-  const aoa=[[`Pedido — ${cotTitulo}`],[`Fornecedor: ${fornNome}`],[`Gerado em: ${new Date().toLocaleString('pt-BR')}`],[],['Descrição','EAN/Cód.','Qtd','Preço Unit. (R$)','Total (R$)']];
-  let totalGeral=0;
-  itensForn.forEach(item=>{
+  const ws={};
+  // estilos
+  const sTitle={font:{bold:true,sz:14,color:{rgb:'1A1A2E'}}};
+  const sSub={font:{bold:true,sz:11,color:{rgb:'15A563'}}};
+  const sInfo={font:{sz:10,color:{rgb:'94A3B8'},italic:true}};
+  const sHdr=(left)=>({font:{bold:true,color:{rgb:'FFFFFF'},sz:11},fill:{fgColor:{rgb:'15A563'}},alignment:{horizontal:left?'left':'center',vertical:'center'}});
+  const sRow=(par,right)=>({fill:{fgColor:{rgb:par?'F0FDF4':'FFFFFF'}},alignment:{horizontal:right?'right':'left',vertical:'center'}});
+  const sNum=(par)=>({fill:{fgColor:{rgb:par?'F0FDF4':'FFFFFF'}},alignment:{horizontal:'right',vertical:'center'},numFmt:'#,##0.00'});
+  const sCtr=(par)=>({fill:{fgColor:{rgb:par?'F0FDF4':'FFFFFF'}},alignment:{horizontal:'center',vertical:'center'}});
+  const sTotLbl={font:{bold:true,sz:11,color:{rgb:'155724'}},fill:{fgColor:{rgb:'D4EDDA'}},alignment:{horizontal:'right'}};
+  const sTotVal={font:{bold:true,sz:11,color:{rgb:'155724'}},fill:{fgColor:{rgb:'D4EDDA'}},alignment:{horizontal:'right'},numFmt:'#,##0.00'};
+  // cabeçalho do documento
+  ws['A1']={v:`Pedido — ${cotTitulo}`,t:'s',s:sTitle};
+  ws['A2']={v:`Fornecedor: ${fornNome}`,t:'s',s:sSub};
+  ws['A3']={v:`Gerado em: ${new Date().toLocaleString('pt-BR')}`,t:'s',s:sInfo};
+  // linha de headers (linha 5)
+  ws['A5']={v:'Descrição',t:'s',s:sHdr(true)};
+  ws['B5']={v:'EAN/Cód.',t:'s',s:sHdr(false)};
+  ws['C5']={v:'Qtd',t:'s',s:sHdr(false)};
+  ws['D5']={v:'Preço Unit. (R$)',t:'s',s:sHdr(false)};
+  ws['E5']={v:'Total (R$)',t:'s',s:sHdr(false)};
+  // dados
+  let totalGeral=0,row=6;
+  itensForn.forEach((item,idx)=>{
     const r=resps.find(x=>x.item_id===item.id&&x.fornecedor_id===fornId);
-    const preco=r?.preco||0;const qty=item.quantidade||1;const subtotal=preco*qty;totalGeral+=subtotal;
-    aoa.push([item.descricao,item.ean||'',qty,preco,subtotal]);
+    const preco=r?.preco||0;const qty=item.quantidade||1;const sub=preco*qty;totalGeral+=sub;
+    const par=idx%2===0;
+    ws[`A${row}`]={v:item.descricao,t:'s',s:sRow(par,false)};
+    ws[`B${row}`]={v:item.ean||'',t:'s',s:sCtr(par)};
+    ws[`C${row}`]={v:qty,t:'n',s:sCtr(par)};
+    ws[`D${row}`]={v:preco,t:'n',s:sNum(par)};
+    ws[`E${row}`]={v:sub,t:'n',s:sNum(par)};
+    row++;
   });
-  aoa.push([]);aoa.push(['','','','TOTAL:',totalGeral]);
-  const ws=XLSX.utils.aoa_to_sheet(aoa);
+  // linha de total
+  ws[`D${row}`]={v:'TOTAL:',t:'s',s:sTotLbl};
+  ws[`E${row}`]={v:totalGeral,t:'n',s:sTotVal};
+  ws['!ref']=`A1:E${row}`;
   ws['!cols']=[{wch:42},{wch:14},{wch:8},{wch:18},{wch:16}];
+  ws['!views']=[{showGridLines:false}];
   XLSX.utils.book_append_sheet(wb,ws,'Pedido');
   const dataHoje=new Date().toLocaleDateString('pt-BR').replace(/\//g,'-');
   XLSX.writeFile(wb,`Pedido_${fornNome}_${dataHoje}.xlsx`);
