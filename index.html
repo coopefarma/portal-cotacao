@@ -1086,6 +1086,7 @@ function lerOL(inp){
 }
 async function salvarOL(){
   if(!olState.itens.length){toast('Importe um arquivo primeiro.','err');return;}
+  await sb.from('fornecedor_ol_itens').delete().eq('fornecedor_id',olState.fornId);
   await sb.from('fornecedor_ols').delete().eq('fornecedor_id',olState.fornId);
   const{data:novaOL,error:e1}=await sb.from('fornecedor_ols').insert({fornecedor_id:olState.fornId,nome_arquivo:''}).select().single();
   if(e1){toast('Erro: '+e1.message,'err');return;}
