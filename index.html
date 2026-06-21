@@ -991,30 +991,76 @@ function lerOL(inp){
       const wb=XLSX.read(e.target.result,{type:'binary'});
       const ws=wb.Sheets[wb.SheetNames[0]];
       const rows=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});
-      let dCol=0,eCol=-1,pCol=-1,start=0;
-      for(let r=0;r<Math.min(5,rows.length);r++){
-        const row=rows[r].map(c=>String(c).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,''));
+      let dCol=0,eCol=-1,pCol=-1,condCol=-1,estoqueCol=-1,start=0;
+      let headerRowRaw=null;
+      for(let r=0;r<Math.min(6,rows.length);r++){
+        const norm=rows[r].map(c=>String(c).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,''));
         let found=false;
-        row.forEach((c,i)=>{
+        norm.forEach((c,i)=>{
           if(/desc|nome|produto|item|med/.test(c)){dCol=i;found=true;}
           if(/ean|cod|barra/.test(c))eCol=i;
           if(/prec|valor|custo/.test(c))pCol=i;
+          if(/quant|acima|condi|faixa/.test(c))condCol=i;
+          if(/estoque|saldo|dispon/.test(c))estoqueCol=i;
         });
-        if(found){start=r+1;break;}
+        if(found){start=r+1;headerRowRaw=rows[r];break;}
       }
-      olState.itens=[];
+      // Detectar colunas extras de estoque por local (ex: Germed — ACRIPEL, NAZARIA...)
+      const knownCols=new Set([dCol,eCol,pCol,condCol,estoqueCol].filter(i=>i>=0));
+      const extraCols=[];
+      if(headerRowRaw){
+        headerRowRaw.forEach((h,i)=>{
+          if(knownCols.has(i))return;
+          const hn=String(h).trim();
+          if(hn&&hn.length>=2&&hn.length<=20&&/^[A-Za-z]/.test(hn))extraCols.push({idx:i,nome:hn});
+        });
+      }
+      // Ler linhas brutas
+      const rawRows=[];
       for(let r=start;r<rows.length;r++){
         const row=rows[r];
         const desc=String(row[dCol]||'').trim();if(!desc)continue;
         const ean=eCol>=0?String(row[eCol]||'').trim():'';
         const precoRaw=pCol>=0&&row[pCol]!=null&&row[pCol]!==''?row[pCol]:'';
         const precoNum=precoRaw!==''?parseFloat(String(precoRaw).replace(/[^\d,.]/g,'').replace(',','.')):null;
-        olState.itens.push({descricao:desc,ean:ean||null,preco:(!isNaN(precoNum)&&precoNum!=null)?precoNum:null});
+        const cond=condCol>=0?String(row[condCol]||'').trim():'';
+        const estoqueRaw=estoqueCol>=0?row[estoqueCol]:null;
+        const estNum=estoqueRaw!=null&&estoqueRaw!==''?parseInt(String(estoqueRaw).replace(/[^\d]/g,'')):null;
+        const estoqLocais={};
+        extraCols.forEach(ec=>{const v=row[ec.idx];if(v!=null&&v!==''){const n=parseInt(String(v).replace(/[^\d]/g,''));if(!isNaN(n))estoqLocais[ec.nome]=n;}});
+        rawRows.push({descricao:desc,ean:ean||null,preco:(!isNaN(precoNum)&&precoNum!=null)?precoNum:null,cond,estoque:(!isNaN(estNum)&&estNum!=null)?estNum:null,estoqLocais});
       }
+      // Agrupar por EAN (ou descrição) para suporte a faixas de preço (Ranbaxy)
+      const grouped=new Map();
+      rawRows.forEach(r=>{
+        const key=(r.ean||r.descricao).toLowerCase();
+        if(!grouped.has(key))grouped.set(key,{descricao:r.descricao,ean:r.ean,preco:null,estoque:r.estoque,estoqLocais:r.estoqLocais,tiers:[]});
+        const g=grouped.get(key);
+        const isCond=/acima|a partir/i.test(r.cond);
+        const m=r.cond.match(/(\d+)/);
+        const minimo=m?parseInt(m[1]):1;
+        if(!isCond){if(g.preco===null)g.preco=r.preco;g.tiers.unshift({minimo:1,label:'Unitário',preco:r.preco});}
+        else g.tiers.push({minimo,label:r.cond,preco:r.preco});
+        if(g.estoque===null&&r.estoque!=null)g.estoque=r.estoque;
+      });
+      olState.itens=[];
+      grouped.forEach(g=>{
+        g.tiers.sort((a,b)=>a.minimo-b.minimo);
+        if(g.preco===null&&g.tiers.length)g.preco=g.tiers[0].preco;
+        const cond={};
+        if(g.tiers.length>1)cond.tiers=g.tiers;
+        if(Object.keys(g.estoqLocais).length)cond.estoques=g.estoqLocais;
+        olState.itens.push({descricao:g.descricao,ean:g.ean,preco:g.preco,estoque:g.estoque,condicoes:Object.keys(cond).length?JSON.stringify(cond):null});
+      });
       document.getElementById('mol-info').textContent=`${olState.itens.length} produto(s) encontrado(s)`;
       const prev=olState.itens.slice(0,10);
-      document.getElementById('mol-preview').innerHTML=`<div style="overflow:auto;max-height:220px;margin-top:10px"><table class="comp-table"><thead><tr><th>Descrição</th><th>EAN</th><th class="num">Preço</th></tr></thead><tbody>${prev.map(i=>`<tr><td>${i.descricao}</td><td style="color:#64748b">${i.ean||'—'}</td><td style="text-align:right">${i.preco!=null?fmtR(i.preco):'—'}</td></tr>`).join('')}</tbody></table>${olState.itens.length>10?`<div style="font-size:11px;color:#94a3b8;padding:8px 0">...e mais ${olState.itens.length-10} produto(s)</div>`:''}</div>`;
-    }catch(err){toast('Erro ao ler o arquivo.','err');}
+      document.getElementById('mol-preview').innerHTML=`<div style="overflow:auto;max-height:220px;margin-top:10px"><table class="comp-table"><thead><tr><th>Descrição</th><th>EAN</th><th class="num">Preço</th><th>Estoque / Condições</th></tr></thead><tbody>${prev.map(i=>{
+        let extra='&mdash;';
+        if(i.estoque!=null)extra=`<span style="color:${i.estoque===0?'#e8112d':'#15a563'}">${i.estoque}</span>`;
+        else if(i.condicoes){try{const c=JSON.parse(i.condicoes);if(c.tiers)extra=c.tiers.map(t=>`${t.label}: ${fmtR(t.preco)}`).join(' | ');else if(c.estoques)extra=Object.entries(c.estoques).map(([k,v])=>`${k}:${v}`).join(' &middot; ');}catch{}}
+        return `<tr><td>${i.descricao}</td><td style="color:#64748b">${i.ean||'&mdash;'}</td><td style="text-align:right">${i.preco!=null?fmtR(i.preco):'&mdash;'}</td><td style="font-size:10px;color:#64748b">${extra}</td></tr>`;
+      }).join('')}</tbody></table>${olState.itens.length>10?`<div style="font-size:11px;color:#94a3b8;padding:8px 0">...e mais ${olState.itens.length-10} produto(s)</div>`:''}</div>`;
+    }catch(err){toast('Erro ao ler o arquivo: '+err.message,'err');}
     inp.value='';
   };
   reader.readAsBinaryString(file);
@@ -1037,6 +1083,23 @@ async function salvarOL(){
 
 // ── AUTO-COTAR ─────────────────────────────────────────
 let autoState={itens:[],fornecedores:{},matches:{}};
+function getBestTier(olItem,qty){
+  if(!olItem.condicoes)return{preco:olItem.preco,label:null,idx:-1};
+  try{
+    const c=JSON.parse(olItem.condicoes);
+    if(!c.tiers||!c.tiers.length)return{preco:olItem.preco,label:null,idx:-1};
+    let best={minimo:0,preco:olItem.preco,label:null,idx:-1};
+    c.tiers.forEach((t,i)=>{if(qty>=t.minimo&&t.minimo>=best.minimo){best={...t,idx:i};}});
+    return best;
+  }catch{return{preco:olItem.preco,label:null,idx:-1};}
+}
+function selectTier(itemId,fornId,idx){
+  const m=autoState.matches[itemId]?.[fornId];if(!m)return;
+  m.tierIdx=idx;
+  try{const c=JSON.parse(m.item.condicoes);m.precoEfetivo=idx>=0?c.tiers[idx].preco:m.item.preco;}
+  catch{m.precoEfetivo=m.item.preco;}
+  renderAutoCotar();
+}
 function normDesc(s){
   return String(s).toLowerCase()
     .normalize('NFD').replace(/[̀-ͯ]/g,'')
@@ -1075,14 +1138,21 @@ async function abrirAutoCotar(){
       if(!olItens.length)return;
       if(item.ean){
         const eanMatch=olItens.find(o=>o.ean&&String(o.ean).trim()===String(item.ean).trim());
-        if(eanMatch){autoState.matches[item.id][fornId]={item:eanMatch,confidence:100,fonte:'ean',ativo:true};return;}
+        if(eanMatch){
+          const t=getBestTier(eanMatch,item.quantidade||1);
+          const semEstoque=eanMatch.estoque===0;
+          autoState.matches[item.id][fornId]={item:eanMatch,confidence:100,fonte:'ean',ativo:!semEstoque,tierIdx:t.idx,precoEfetivo:t.preco??eanMatch.preco};
+          return;
+        }
       }
       const fuse=new Fuse(olItens,{keys:['_norm'],threshold:0.42,includeScore:true,minMatchCharLength:3});
       const results=fuse.search(normDesc(item.descricao));
       if(results.length){
-        const best=results[0];
+        const best=results[0];const olIt=best.item;
         const pct=Math.round((1-best.score)*100);
-        autoState.matches[item.id][fornId]={item:best.item,confidence:pct,fonte:'fuzzy',ativo:pct>=60};
+        const t=getBestTier(olIt,item.quantidade||1);
+        const semEstoque=olIt.estoque===0;
+        autoState.matches[item.id][fornId]={item:olIt,confidence:pct,fonte:'fuzzy',ativo:!semEstoque&&pct>=60,tierIdx:t.idx,precoEfetivo:t.preco??olIt.preco};
       }
     });
   });
@@ -1098,9 +1168,27 @@ function renderAutoCotar(){
       const m=im[fId];
       if(!m)return `<div class="mac-card mac-sem"><div class="mac-forn">${fornecedores[fId].nome}</div><div class="mac-prod" style="color:#94a3b8;font-style:italic">sem match</div></div>`;
       const cor=m.confidence>=80?'#15a563':m.confidence>=60?'#f59e0b':'#e8112d';
-      const badge=m.fonte==='ean'?`<span style="font-size:10px;font-weight:700;color:#15a563">🔒 EAN</span>`:`<span style="font-size:10px;font-weight:700;color:${cor}">${m.confidence}%</span>`;
+      const badge=m.fonte==='ean'?`<span style="font-size:10px;font-weight:700;color:#15a563">EAN</span>`:`<span style="font-size:10px;font-weight:700;color:${cor}">${m.confidence}%</span>`;
       const ativo=m.ativo!==false;
-      return `<div class="mac-card ${ativo?'mac-ativo':'mac-inativo'}" onclick="toggleMatch('${item.id}','${fId}')"><div class="mac-forn">${fornecedores[fId].nome}</div><div class="mac-prod">${m.item.descricao}</div><div style="display:flex;justify-content:space-between;align-items:center;margin-top:5px">${m.item.preco!=null?`<span style="font-weight:700;color:#15a563;font-size:12px">${fmtR(m.item.preco)}</span>`:'<span style="color:#94a3b8;font-size:12px">—</span>'}${badge}</div></div>`;
+      const precoAtual=m.precoEfetivo??m.item.preco;
+      // Estoque simples (EMS)
+      let estoqueHtml='';
+      if(m.item.estoque!=null){
+        const ec=m.item.estoque===0?'#e8112d':m.item.estoque<10?'#f59e0b':'#64748b';
+        estoqueHtml=`<div style="font-size:10px;color:${ec};font-weight:600;margin-top:3px">Estoque: ${m.item.estoque}${m.item.estoque===0?' — sem estoque':''}</div>`;
+      }
+      // Tiers de preço (Ranbaxy) e estoques por local (Germed)
+      let extrasHtml='';
+      if(m.item.condicoes){try{
+        const c=JSON.parse(m.item.condicoes);
+        if(c.tiers&&c.tiers.length>1){
+          extrasHtml=`<div style="margin-top:6px;display:flex;flex-direction:column;gap:2px">${c.tiers.map((t,i)=>`<div style="font-size:10px;padding:2px 6px;border-radius:4px;cursor:pointer;border:1px solid ${m.tierIdx===i?'#15a563':'#e0e0e0'};background:${m.tierIdx===i?'#f0fdf4':'#fff'};color:${m.tierIdx===i?'#155724':'#64748b'}" onclick="event.stopPropagation();selectTier('${item.id}','${fId}',${i})">${t.label}: <strong>${fmtR(t.preco)}</strong></div>`).join('')}</div>`;
+        }
+        if(c.estoques){
+          extrasHtml+=`<div style="font-size:10px;color:#64748b;margin-top:4px">${Object.entries(c.estoques).map(([k,v])=>`<span style="margin-right:5px"><b>${k}:</b>${v}</span>`).join('')}</div>`;
+        }
+      }catch{}}
+      return `<div class="mac-card ${ativo?'mac-ativo':'mac-inativo'}" onclick="toggleMatch('${item.id}','${fId}')"><div class="mac-forn">${fornecedores[fId].nome}</div><div class="mac-prod">${m.item.descricao}</div>${estoqueHtml}${extrasHtml}<div style="display:flex;justify-content:space-between;align-items:center;margin-top:5px">${precoAtual!=null?`<span style="font-weight:700;color:#15a563;font-size:12px">${fmtR(precoAtual)}</span>`:'<span style="color:#94a3b8;font-size:12px">&mdash;</span>'}${badge}</div></div>`;
     }).join('');
     return `<div class="mac-item"><div class="mac-item-desc">${item.descricao} <span style="color:#94a3b8;font-size:11px;font-weight:400">· Qtd ${item.quantidade||1}</span></div><div class="mac-cards">${cards}</div></div>`;
   }).join('');
@@ -1128,7 +1216,8 @@ async function confirmarAutoCotar(){
     await sb.from('cotacao_respostas').delete().eq('cotacao_id',cotacaoId).eq('fornecedor_id',fornId);
     const respostas=itens.map(item=>{
       const m=matches[item.id]?.[fornId];
-      return{cotacao_id:cotacaoId,fornecedor_id:fornId,item_id:item.id,preco:(m?.ativo&&m.item.preco!=null)?m.item.preco:null};
+      const preco=m?.ativo?(m.precoEfetivo??m.item.preco??null):null;
+      return{cotacao_id:cotacaoId,fornecedor_id:fornId,item_id:item.id,preco};
     });
     await sb.from('cotacao_respostas').insert(respostas);
     total++;
