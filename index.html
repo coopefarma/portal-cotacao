@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-<title>CotaFarma ??? Sistema de Cota????o</title>
+<title>CotaFarma — Sistema de Cotação</title>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet"/>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
@@ -201,8 +201,8 @@ body{font-family:'Inter',sans-serif;background:#f5f7fa;color:#1a1a2e}
   <div class="tf-footer" id="tf-footer" style="display:none">
     <div class="tf-prog"><strong id="tf-preench">0</strong>/<span id="tf-total">0</span> itens preenchidos</div>
     <div style="display:flex;gap:8px">
-      <button class="btn btn-outline" onclick="salvarRascunho()">???? Salvar rascunho</button>
-      <button class="btn btn-primary" onclick="enviarRespostas()">??? Enviar respostas</button>
+      <button class="btn btn-outline" onclick="salvarRascunho()">💾 Salvar rascunho</button>
+      <button class="btn btn-primary" onclick="enviarRespostas()">✅ Enviar respostas</button>
     </div>
   </div>
 </div>
@@ -212,12 +212,12 @@ body{font-family:'Inter',sans-serif;background:#f5f7fa;color:#1a1a2e}
     <div class="login-logo">
       <img src="https://raw.githubusercontent.com/coopefarma/portal-cotacao/main/Coopefarma_Marca_1.jpg" alt="Coopefarma"/>
       <h2>CotaFarma</h2>
-      <p>Sistema de Cota????o Coopefarma</p>
+      <p>Sistema de Cotação Coopefarma</p>
     </div>
     <label>E-mail</label>
     <input type="email" id="l-email" placeholder="seu@email.com" autocomplete="email"/>
     <label>Senha</label>
-    <input type="password" id="l-senha" placeholder="????????????????????????" autocomplete="current-password" onkeydown="if(event.key==='Enter')fazerLogin()"/>
+    <input type="password" id="l-senha" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')fazerLogin()"/>
     <div class="login-erro" id="l-erro"></div>
     <button class="btn btn-primary" style="width:100%;padding:13px;font-size:14px" onclick="fazerLogin()">Entrar</button>
   </div>
@@ -230,8 +230,8 @@ body{font-family:'Inter',sans-serif;background:#f5f7fa;color:#1a1a2e}
       <span>CotaFarma</span>
     </div>
     <div class="topbar-nav">
-      <button class="nav-btn" onclick="irPara('cotacoes')">???? Cota????es</button>
-      <button class="nav-btn" onclick="irPara('fornecedores')">???? Fornecedores</button>
+      <button class="nav-btn" onclick="irPara('cotacoes')">📋 Cotações</button>
+      <button class="nav-btn" onclick="irPara('fornecedores')">🚚 Fornecedores</button>
     </div>
     <div class="topbar-user">
       <span id="u-email" style="font-size:12px"></span>
@@ -239,25 +239,25 @@ body{font-family:'Inter',sans-serif;background:#f5f7fa;color:#1a1a2e}
     </div>
   </div>
   <div class="main">
-    <!-- COTA????ES -->
+    <!-- COTAÇÕES -->
     <div class="page" id="pg-cotacoes">
       <div class="page-header">
-        <div><div class="page-title">Cota????es</div><div class="page-sub" id="sub-cotacoes"></div></div>
-        <button class="btn btn-primary" onclick="irPara('nova')">+ Nova Cota????o</button>
+        <div><div class="page-title">Cotações</div><div class="page-sub" id="sub-cotacoes"></div></div>
+        <button class="btn btn-primary" onclick="irPara('nova')">+ Nova Cotação</button>
       </div>
       <div class="cotacoes-grid" id="lista-cotacoes"><div class="loading-box" style="grid-column:1/-1"><div class="spin"></div></div></div>
     </div>
-    <!-- NOVA COTA????O -->
+    <!-- NOVA COTAÇÃO -->
     <div class="page" id="pg-nova">
       <div class="page-header">
-        <div><div class="page-title">Nova Cota????o</div><div class="page-sub">Preencha o t??tulo e adicione os produtos</div></div>
-        <button class="btn btn-outline" onclick="irPara('cotacoes')">??? Voltar</button>
+        <div><div class="page-title">Nova Cotação</div><div class="page-sub">Preencha o título e adicione os produtos</div></div>
+        <button class="btn btn-outline" onclick="irPara('cotacoes')">← Voltar</button>
       </div>
       <div class="nova-section">
         <h3>Dados</h3>
         <div class="form-group" style="max-width:500px">
-          <label>T??tulo da cota????o *</label>
-          <input type="text" id="nc-titulo" placeholder="Ex: Compras semana 20/06 ??? Eurofarma"/>
+          <label>Título da cotação *</label>
+          <input type="text" id="nc-titulo" placeholder="Ex: Compras semana 20/06 — Eurofarma"/>
         </div>
       </div>
       <div class="nova-section">
@@ -265,15 +265,15 @@ body{font-family:'Inter',sans-serif;background:#f5f7fa;color:#1a1a2e}
         <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap">
           <button class="btn btn-outline btn-sm" onclick="addLinha()">+ Linha</button>
           <label class="btn btn-outline btn-sm" style="cursor:pointer;display:inline-flex;align-items:center;gap:5px">
-            ???? Importar Excel
+            📥 Importar Excel
             <input type="file" id="inp-xl" accept=".xlsx,.xls" style="display:none" onchange="importarExcel(this)"/>
           </label>
         </div>
         <div style="display:flex;gap:6px;padding:0 10px;margin-bottom:4px">
-          <span class="inp-desc" style="font-size:11px;font-weight:600;color:#64748b">DESCRI????O *</span>
-          <span class="inp-ean" style="font-size:11px;font-weight:600;color:#64748b">EAN / C??D.</span>
+          <span class="inp-desc" style="font-size:11px;font-weight:600;color:#64748b">DESCRIÇÃO *</span>
+          <span class="inp-ean" style="font-size:11px;font-weight:600;color:#64748b">EAN / CÓD.</span>
           <span class="inp-qty" style="font-size:11px;font-weight:600;color:#64748b;text-align:center">QTD *</span>
-          <span class="inp-preco" style="font-size:11px;font-weight:600;color:#64748b;text-align:right">??LT. PRE??O</span>
+          <span class="inp-preco" style="font-size:11px;font-weight:600;color:#64748b;text-align:right">ÚLT. PREÇO</span>
           <span style="width:28px"></span>
         </div>
         <div class="itens-lista" id="itens-lista"></div>
@@ -281,19 +281,19 @@ body{font-family:'Inter',sans-serif;background:#f5f7fa;color:#1a1a2e}
       </div>
       <div style="display:flex;justify-content:flex-end;gap:10px">
         <button class="btn btn-outline" onclick="irPara('cotacoes')">Cancelar</button>
-        <button class="btn btn-primary" onclick="salvarCotacao()">Salvar e continuar ???</button>
+        <button class="btn btn-primary" onclick="salvarCotacao()">Salvar e continuar →</button>
       </div>
     </div>
     <!-- DETALHE -->
     <div class="page" id="pg-detalhe">
       <div class="page-header">
-        <div><div class="page-title" id="det-titulo">Cota????o</div><div class="page-sub" id="det-sub"></div></div>
+        <div><div class="page-title" id="det-titulo">Cotação</div><div class="page-sub" id="det-sub"></div></div>
         <div class="page-header-btns">
-          <button class="btn btn-outline" onclick="irPara('cotacoes')">??? Voltar</button>
-          <button class="btn btn-outline" id="btn-disparar" onclick="abrirDisparar()">???? Disparar</button>
+          <button class="btn btn-outline" onclick="irPara('cotacoes')">← Voltar</button>
+          <button class="btn btn-outline" id="btn-disparar" onclick="abrirDisparar()">📲 Disparar</button>
           <button class="btn btn-outline" id="btn-fechar-cot" style="display:none" onclick="toggleFecharCotacao()"></button>
-          <button class="btn btn-outline" id="btn-autocotar" style="display:none" onclick="abrirAutoCotar()">??? Auto-cotar</button>
-          <button class="btn btn-primary" onclick="irPara('comparacao')">???? Ranking</button>
+          <button class="btn btn-outline" id="btn-autocotar" style="display:none" onclick="abrirAutoCotar()">⚡ Auto-cotar</button>
+          <button class="btn btn-primary" onclick="irPara('comparacao')">📊 Ranking</button>
         </div>
       </div>
       <div class="fornecedor-grid" id="det-cards"><div class="loading-box" style="grid-column:1/-1"><div class="spin"></div></div></div>
@@ -301,10 +301,10 @@ body{font-family:'Inter',sans-serif;background:#f5f7fa;color:#1a1a2e}
     <!-- RANKING -->
     <div class="page" id="pg-comparacao">
       <div class="page-header">
-        <div><div class="page-title">Ranking de Pre??os</div><div class="page-sub" id="comp-sub"></div></div>
+        <div><div class="page-title">Ranking de Preços</div><div class="page-sub" id="comp-sub"></div></div>
         <div class="page-header-btns">
-          <button class="btn btn-outline" onclick="irPara('detalhe')">??? Voltar</button>
-          <button class="btn btn-primary" onclick="irPara('pedido')">???? Montar Pedido</button>
+          <button class="btn btn-outline" onclick="irPara('detalhe')">← Voltar</button>
+          <button class="btn btn-primary" onclick="irPara('pedido')">🛒 Montar Pedido</button>
         </div>
       </div>
       <div class="comp-wrap"><div id="comp-corpo"></div></div>
@@ -313,7 +313,7 @@ body{font-family:'Inter',sans-serif;background:#f5f7fa;color:#1a1a2e}
     <div class="page" id="pg-pedido">
       <div class="page-header">
         <div><div class="page-title">Montar Pedido</div><div class="page-sub" id="ped-sub"></div></div>
-        <button class="btn btn-outline" onclick="irPara('comparacao')">??? Ranking</button>
+        <button class="btn btn-outline" onclick="irPara('comparacao')">← Ranking</button>
       </div>
       <div id="ped-corpo"></div>
     </div>
@@ -325,7 +325,7 @@ body{font-family:'Inter',sans-serif;background:#f5f7fa;color:#1a1a2e}
       </div>
       <div style="background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.06)">
         <table class="forn-table">
-          <thead><tr><th>Nome / Distribuidora</th><th>Contato</th><th>WhatsApp</th><th>Ped. M??nimo</th><th>Status</th><th>OL</th><th></th></tr></thead>
+          <thead><tr><th>Nome / Distribuidora</th><th>Contato</th><th>WhatsApp</th><th>Ped. Mínimo</th><th>Status</th><th>OL</th><th></th></tr></thead>
           <tbody id="forn-tbody"></tbody>
         </table>
       </div>
@@ -341,7 +341,7 @@ body{font-family:'Inter',sans-serif;background:#f5f7fa;color:#1a1a2e}
       <div class="form-group" style="flex:2"><label>Nome *</label><input type="text" id="mf-nome" placeholder="Ex: Acripel"/></div>
     </div>
     <div class="form-row">
-      <div class="form-group"><label>Distribuidora / Laborat??rio</label><input type="text" id="mf-dist" placeholder="Nome da distribuidora"/></div>
+      <div class="form-group"><label>Distribuidora / Laboratório</label><input type="text" id="mf-dist" placeholder="Nome da distribuidora"/></div>
       <div class="form-group"><label>Contato (representante)</label><input type="text" id="mf-contato" placeholder="Nome do representante"/></div>
     </div>
     <div class="form-row">
@@ -349,7 +349,7 @@ body{font-family:'Inter',sans-serif;background:#f5f7fa;color:#1a1a2e}
       <div class="form-group"><label>E-mail</label><input type="email" id="mf-email" placeholder="vendas@fornecedor.com"/></div>
     </div>
     <div class="form-row">
-      <div class="form-group"><label>Pedido M??nimo (R$)</label><input type="text" id="mf-pedmin" placeholder="200,00"/></div>
+      <div class="form-group"><label>Pedido Mínimo (R$)</label><input type="text" id="mf-pedmin" placeholder="200,00"/></div>
       <div class="form-group" style="justify-content:flex-end">
         <label style="display:flex;align-items:center;gap:8px;margin-top:auto;cursor:pointer">
           <input type="checkbox" id="mf-ativo" checked style="width:16px;height:16px;accent-color:#15a563"/> Fornecedor ativo
@@ -365,8 +365,8 @@ body{font-family:'Inter',sans-serif;background:#f5f7fa;color:#1a1a2e}
 <!-- MODAL DISPARAR -->
 <div class="modal-overlay" id="modal-disparar">
   <div class="modal">
-    <div class="modal-titulo">???? Enviar para Fornecedores</div>
-    <p style="font-size:13px;color:#64748b;margin-bottom:12px">Selecione os fornecedores que receber??o o link desta cota????o:</p>
+    <div class="modal-titulo">📲 Enviar para Fornecedores</div>
+    <p style="font-size:13px;color:#64748b;margin-bottom:12px">Selecione os fornecedores que receberão o link desta cotação:</p>
     <div style="display:flex;gap:8px;margin-bottom:12px">
       <button class="btn btn-outline btn-sm" onclick="selTodos(true)">Marcar todos</button>
       <button class="btn btn-outline btn-sm" onclick="selTodos(false)">Desmarcar</button>
@@ -374,7 +374,7 @@ body{font-family:'Inter',sans-serif;background:#f5f7fa;color:#1a1a2e}
     <div id="disp-lista" style="max-height:340px;overflow-y:auto"></div>
     <div class="modal-btns">
       <button class="btn btn-outline" onclick="fecharModal('modal-disparar')">Cancelar</button>
-      <button class="btn btn-primary" onclick="confirmarDisparar()">??? Gerar links e disparar</button>
+      <button class="btn btn-primary" onclick="confirmarDisparar()">✅ Gerar links e disparar</button>
     </div>
   </div>
 </div>
@@ -384,27 +384,27 @@ body{font-family:'Inter',sans-serif;background:#f5f7fa;color:#1a1a2e}
     <div class="modal-titulo" id="mol-titulo">Importar OL</div>
     <p style="font-size:13px;color:#64748b;margin-bottom:14px">Selecione a planilha de oferta enviada pelo fornecedor. O sistema detecta automaticamente as colunas.</p>
     <label class="btn btn-outline" style="cursor:pointer;display:inline-flex;align-items:center;gap:6px;margin-bottom:10px">
-      ???? Selecionar arquivo Excel
+      📂 Selecionar arquivo Excel
       <input type="file" id="mol-inp" accept=".xlsx,.xls" style="display:none" onchange="lerOL(this)"/>
     </label>
     <div id="mol-info" style="font-size:12px;color:#15a563;margin-bottom:4px"></div>
     <div id="mol-preview"></div>
     <div class="modal-btns">
       <button class="btn btn-outline" onclick="fecharModal('modal-ol')">Cancelar</button>
-      <button class="btn btn-primary" onclick="salvarOL()">???? Salvar OL</button>
+      <button class="btn btn-primary" onclick="salvarOL()">💾 Salvar OL</button>
     </div>
   </div>
 </div>
 <!-- MODAL AUTO-COTAR -->
 <div class="modal-overlay" id="modal-autocotar">
   <div class="modal" style="max-width:780px">
-    <div class="modal-titulo">??? Auto-cotar por OLs</div>
-    <p style="font-size:13px;color:#64748b;margin-bottom:4px">O sistema cruzou o falteiro com as OLs importadas. Clique em um card para ativar/desativar. Cards verdes ser??o lan??ados no ranking.</p>
-    <div style="font-size:11px;color:#94a3b8;margin-bottom:14px">???? = match por EAN (exato) &nbsp;??&nbsp; % = similaridade por descri????o</div>
+    <div class="modal-titulo">⚡ Auto-cotar por OLs</div>
+    <p style="font-size:13px;color:#64748b;margin-bottom:4px">O sistema cruzou o falteiro com as OLs importadas. Clique em um card para ativar/desativar. Cards verdes serão lançados no ranking.</p>
+    <div style="font-size:11px;color:#94a3b8;margin-bottom:14px">🔒 = match por EAN (exato) &nbsp;·&nbsp; % = similaridade por descrição</div>
     <div id="mac-corpo" style="max-height:60vh;overflow-y:auto"></div>
     <div class="modal-btns">
       <button class="btn btn-outline" onclick="fecharModal('modal-autocotar')">Cancelar</button>
-      <button class="btn btn-primary" onclick="confirmarAutoCotar()">??? Lan??ar no Ranking</button>
+      <button class="btn btn-primary" onclick="confirmarAutoCotar()">✅ Lançar no Ranking</button>
     </div>
   </div>
 </div>
@@ -424,7 +424,7 @@ const sb=createClient(SB_URL,SB_KEY);
 const BASE=location.origin+location.pathname;
 let cotacaoId=null,cotacaoStatus=null,fornState={},pedidoState={},pedidoData=null;
 
-const fmtR=v=>(v!=null&&v!==''&&!isNaN(v))?'R$ '+Number(v).toFixed(2).replace('.',','):'???';
+const fmtR=v=>(v!=null&&v!==''&&!isNaN(v))?'R$ '+Number(v).toFixed(2).replace('.',','):'—';
 function parsePreco(s){if(!s||String(s).trim()==='')return null;const n=parseFloat(String(s).replace(/\./g,'').replace(',','.'));return isNaN(n)?null:n;}
 const fmtData=d=>d?new Date(d).toLocaleDateString('pt-BR'):'';
 function toast(msg,tipo=''){const el=document.createElement('div');el.className='toast-el '+tipo;el.textContent=msg;document.body.appendChild(el);setTimeout(()=>el.remove(),3500);}
@@ -473,7 +473,7 @@ async function carregarCotacoes(){
   const{data,error}=await sb.from('cotacoes').select('*').order('created_at',{ascending:false});
   if(error){el.innerHTML=`<div class="empty">Erro: ${error.message}</div>`;return;}
   if(!data||data.length===0){
-    el.innerHTML=`<div class="empty">Nenhuma cota????o ainda.<br><a href="#" onclick="irPara('nova')" style="color:#15a563">Criar primeira cota????o ???</a></div>`;
+    el.innerHTML=`<div class="empty">Nenhuma cotação ainda.<br><a href="#" onclick="irPara('nova')" style="color:#15a563">Criar primeira cotação →</a></div>`;
     document.getElementById('sub-cotacoes').textContent='';return;
   }
   const ids=data.map(c=>c.id);
@@ -481,7 +481,7 @@ async function carregarCotacoes(){
     sb.from('cotacao_itens').select('cotacao_id').in('cotacao_id',ids),
     sb.from('cotacao_links').select('cotacao_id,status').in('cotacao_id',ids)
   ]);
-  document.getElementById('sub-cotacoes').textContent=`${data.length} cota????o(??es)`;
+  document.getElementById('sub-cotacoes').textContent=`${data.length} cotação(ões)`;
   el.innerHTML=data.map(c=>{
     const links=(todosLinks||[]).filter(l=>l.cotacao_id===c.id);
     const resp=links.filter(l=>l.status==='respondido').length;
@@ -489,39 +489,39 @@ async function carregarCotacoes(){
     const itens=(todosItens||[]).filter(i=>i.cotacao_id===c.id).length;
     const aberta=(c.status||'aberta')!=='fechada';
     return `<div class="cot-card" onclick="abrirCotacao('${c.id}')">
-      <div class="cot-card-titulo">${c.titulo||'Sem t??tulo'}</div>
+      <div class="cot-card-titulo">${c.titulo||'Sem título'}</div>
       <div class="cot-card-info">${fmtData(c.created_at)}</div>
       <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px">
         <span class="badge ${aberta?'badge-verde':'badge-cinza'}">${aberta?'Aberta':'Fechada'}</span>
-        <button class="btn btn-outline btn-sm" style="color:${aberta?'#e8112d':'#15a563'};border-color:${aberta?'#e8112d':'#15a563'}" onclick="event.stopPropagation();fecharCotacaoById('${c.id}','${c.status||'aberta'}','${(c.titulo||'').replace(/'/g,"\\'")}')">${aberta?'???? Fechar':'???? Reabrir'}</button>
+        <button class="btn btn-outline btn-sm" style="color:${aberta?'#e8112d':'#15a563'};border-color:${aberta?'#e8112d':'#15a563'}" onclick="event.stopPropagation();fecharCotacaoById('${c.id}','${c.status||'aberta'}','${(c.titulo||'').replace(/'/g,"\\'")}')">${aberta?'🔒 Fechar':'🔓 Reabrir'}</button>
       </div>
-      <div class="cot-card-stats"><span>???? ${itens} produto(s)</span><span>??? ${resp}/${total} respostas</span></div>
+      <div class="cot-card-stats"><span>📦 ${itens} produto(s)</span><span>✅ ${resp}/${total} respostas</span></div>
       <div style="display:flex;justify-content:flex-end;margin-top:8px">
-        <button class="btn btn-outline btn-sm" style="color:#e8112d;border-color:#e8112d" onclick="event.stopPropagation();deletarCotacao('${c.id}','${(c.titulo||'').replace(/'/g,"\\'")}')">??????? Excluir</button>
+        <button class="btn btn-outline btn-sm" style="color:#e8112d;border-color:#e8112d" onclick="event.stopPropagation();deletarCotacao('${c.id}','${(c.titulo||'').replace(/'/g,"\\'")}')">🗑️ Excluir</button>
       </div>
     </div>`;
   }).join('');
 }
 function abrirCotacao(id){cotacaoId=id;irPara('detalhe');}
 async function deletarCotacao(id,titulo){
-  if(!confirm(`Excluir a cota????o "${titulo}"?\nIsso apagar?? todos os itens, links e respostas. Essa a????o n??o pode ser desfeita.`))return;
+  if(!confirm(`Excluir a cotação "${titulo}"?\nIsso apagará todos os itens, links e respostas. Essa ação não pode ser desfeita.`))return;
   await sb.from('cotacao_respostas').delete().eq('cotacao_id',id);
   await sb.from('cotacao_links').delete().eq('cotacao_id',id);
   await sb.from('cotacao_itens').delete().eq('cotacao_id',id);
   const{error}=await sb.from('cotacoes').delete().eq('id',id);
   if(error){toast('Erro ao excluir: '+error.message,'err');return;}
-  toast('Cota????o exclu??da!','ok');
+  toast('Cotação excluída!','ok');
   if(cotacaoId===id)cotacaoId=null;
   carregarCotacoes();
 }
 async function fecharCotacaoById(id,status,titulo){
   const fechada=status==='fechada';
-  const msg=fechada?`Reabrir a cota????o "${titulo}"?`:`Fechar a cota????o "${titulo}"?\nEla ficar?? somente para consulta.`;
+  const msg=fechada?`Reabrir a cotação "${titulo}"?`:`Fechar a cotação "${titulo}"?\nEla ficará somente para consulta.`;
   if(!confirm(msg))return;
   const novoStatus=fechada?'aberta':'fechada';
   const{error}=await sb.from('cotacoes').update({status:novoStatus}).eq('id',id);
   if(error){toast('Erro: '+error.message,'err');return;}
-  toast(fechada?'Cota????o reaberta!':'Cota????o fechada!','ok');
+  toast(fechada?'Cotação reaberta!':'Cotação fechada!','ok');
   if(cotacaoId===id)cotacaoStatus=novoStatus;
   carregarCotacoes();
 }
@@ -533,11 +533,11 @@ function initNova(){
 }
 function addLinha(desc='',ean='',qty='',preco=''){
   const d=document.createElement('div');d.className='item-row';
-  d.innerHTML=`<input class="inp-desc" type="text" placeholder="Descri????o do produto *" value="${desc}" oninput="contarLinhas()"/>
+  d.innerHTML=`<input class="inp-desc" type="text" placeholder="Descrição do produto *" value="${desc}" oninput="contarLinhas()"/>
     <input class="inp-ean" type="text" placeholder="EAN" value="${ean}"/>
     <input class="inp-qty" type="number" placeholder="1" min="1" value="${qty}"/>
     <input class="inp-preco" type="text" placeholder="0,00" value="${preco}" oninput="soPrecoValido(this)"/>
-    <button class="btn-del" onclick="this.closest('.item-row').remove();contarLinhas()" title="Remover">??</button>`;
+    <button class="btn-del" onclick="this.closest('.item-row').remove();contarLinhas()" title="Remover">×</button>`;
   document.getElementById('itens-lista').appendChild(d);contarLinhas();
 }
 function soPrecoValido(el){el.value=el.value.replace(/[^\d,]/g,'');}
@@ -555,7 +555,7 @@ async function importarExcel(inp){
       const rows=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});
       let dCol=0,eCol=-1,qCol=-1,pCol=-1,start=0;
       for(let r=0;r<Math.min(5,rows.length);r++){
-        const row=rows[r].map(c=>String(c).toLowerCase().normalize('NFD').replace(/[??-??]/g,''));let found=false;
+        const row=rows[r].map(c=>String(c).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,''));let found=false;
         row.forEach((c,i)=>{
           if(/desc|nome|produto|item|med/.test(c)){dCol=i;found=true;}
           if(/ean|cod|barra/.test(c))eCol=i;
@@ -581,7 +581,7 @@ async function importarExcel(inp){
 }
 async function salvarCotacao(){
   const titulo=document.getElementById('nc-titulo').value.trim();
-  if(!titulo){toast('Informe o t??tulo.','err');return;}
+  if(!titulo){toast('Informe o título.','err');return;}
   const rows=document.querySelectorAll('#itens-lista .item-row');const itens=[];
   rows.forEach(r=>{
     const desc=r.querySelector('.inp-desc').value.trim();if(!desc)return;
@@ -591,10 +591,10 @@ async function salvarCotacao(){
   });
   if(itens.length===0){toast('Adicione pelo menos 1 produto.','err');return;}
   const{data:cot,error:e1}=await sb.from('cotacoes').insert({titulo,status:'aberta'}).select().single();
-  if(e1){toast('Erro ao salvar cota????o: '+e1.message,'err');return;}
+  if(e1){toast('Erro ao salvar cotação: '+e1.message,'err');return;}
   const{error:e2}=await sb.from('cotacao_itens').insert(itens.map(i=>({...i,cotacao_id:cot.id})));
   if(e2){toast('Erro ao salvar produtos: '+e2.message,'err');return;}
-  toast(`??? Cota????o criada com ${itens.length} produto(s)!`,'ok');
+  toast(`✅ Cotação criada com ${itens.length} produto(s)!`,'ok');
   cotacaoId=cot.id;setTimeout(()=>irPara('detalhe'),700);
 }
 async function carregarDetalhe(id){
@@ -607,19 +607,19 @@ async function carregarDetalhe(id){
     sb.from('cotacao_respostas').select('*').eq('cotacao_id',id)
   ]);
   if(cot){
-    document.getElementById('det-titulo').textContent=cot.titulo||'Cota????o';
+    document.getElementById('det-titulo').textContent=cot.titulo||'Cotação';
     cotacaoStatus=cot.status||'aberta';
     const fechada=cotacaoStatus==='fechada';
-    document.getElementById('det-sub').textContent=`${itens?.length||0} produto(s) ?? ${fmtData(cot.created_at)}`;
+    document.getElementById('det-sub').textContent=`${itens?.length||0} produto(s) · ${fmtData(cot.created_at)}`;
     const btnF=document.getElementById('btn-fechar-cot');
-    if(btnF){btnF.style.display='inline-flex';btnF.textContent=fechada?'???? Reabrir Cota????o':'???? Fechar Cota????o';btnF.style.color=fechada?'#15a563':'#e8112d';btnF.style.borderColor=fechada?'#15a563':'#e8112d';}
+    if(btnF){btnF.style.display='inline-flex';btnF.textContent=fechada?'🔓 Reabrir Cotação':'🔒 Fechar Cotação';btnF.style.color=fechada?'#15a563':'#e8112d';btnF.style.borderColor=fechada?'#15a563':'#e8112d';}
     const btnD=document.getElementById('btn-disparar');
     if(btnD)btnD.style.display=fechada?'none':'inline-flex';
     const btnA=document.getElementById('btn-autocotar');
     if(btnA)btnA.style.display=fechada?'none':'inline-flex';
   }
   if(!links||links.length===0){
-    el.innerHTML=`<div class="empty" style="grid-column:1/-1">Nenhum fornecedor acionado ainda.<br>Clique em <b>???? Disparar</b> para enviar os links.</div>`;return;
+    el.innerHTML=`<div class="empty" style="grid-column:1/-1">Nenhum fornecedor acionado ainda.<br>Clique em <b>📲 Disparar</b> para enviar os links.</div>`;return;
   }
   const nItens=itens?.length||0;
   el.innerHTML=links.map(lnk=>{
@@ -630,26 +630,26 @@ async function carregarDetalhe(id){
     const pedMin=f.pedido_minimo||0;
     const atingiuMin=pedMin<=0||valorTotal>=pedMin;
     const pctMin=pedMin>0?Math.min(100,Math.round(valorTotal/pedMin*100)):100;
-    const STATUS={aguardando:['badge-cinza','??? Aguardando'],aberto:['badge-azul','???? Aberto'],rascunho:['badge-amarelo','?????? Rascunho'],respondido:['badge-verde','??? Respondido']};
+    const STATUS={aguardando:['badge-cinza','⏳ Aguardando'],aberto:['badge-azul','👁 Aberto'],rascunho:['badge-amarelo','✏️ Rascunho'],respondido:['badge-verde','✅ Respondido']};
     const[bc,bt]=STATUS[lnk.status]||STATUS.aguardando;
     const cardCls=['respondido','rascunho','aberto'].includes(lnk.status)?lnk.status:'';
     const pc=lnk.parceiro;
     return `<div class="forn-card ${cardCls}">
-      <div class="forn-card-nome">${f.nome||'???'}</div>
-      <div class="forn-card-dist">${f.contato?'???? '+f.contato+'<br>':''}${f.email?'??? '+f.email:''}</div>
+      <div class="forn-card-nome">${f.nome||'—'}</div>
+      <div class="forn-card-dist">${f.contato?'👤 '+f.contato+'<br>':''}${f.email?'✉ '+f.email:''}</div>
       <span class="badge ${bc}" style="margin-bottom:8px">${bt}</span>
-      <div class="forn-card-valor">${valorTotal>0?fmtR(valorTotal):'???'}</div>
-      <div class="forn-card-itens">???? ${preench}/${nItens} itens preenchidos</div>
-      ${pedMin>0?`<div class="progress-wrap"><div class="progress-info"><span>M??n: ${fmtR(pedMin)}</span><span>${pctMin}% ${atingiuMin?'???':'??????'}</span></div><div class="progress-bar"><div class="progress-fill ${atingiuMin?'prog-ok':'prog-warn'}" style="width:${pctMin}%"></div></div></div>`:''}
+      <div class="forn-card-valor">${valorTotal>0?fmtR(valorTotal):'—'}</div>
+      <div class="forn-card-itens">🗂 ${preench}/${nItens} itens preenchidos</div>
+      ${pedMin>0?`<div class="progress-wrap"><div class="progress-info"><span>Mín: ${fmtR(pedMin)}</span><span>${pctMin}% ${atingiuMin?'✅':'⚠️'}</span></div><div class="progress-bar"><div class="progress-fill ${atingiuMin?'prog-ok':'prog-warn'}" style="width:${pctMin}%"></div></div></div>`:''}
       <div class="parceiro-btns">
-        <button class="parc-btn ${pc===true?'sim':''}" onclick="toggleParceiro('${lnk.id}',true,this)">??? Parceiro</button>
-        <button class="parc-btn ${pc===false&&pc!==null?'nao':''}" onclick="toggleParceiro('${lnk.id}',false,this)">??? N??o parceiro</button>
+        <button class="parc-btn ${pc===true?'sim':''}" onclick="toggleParceiro('${lnk.id}',true,this)">✓ Parceiro</button>
+        <button class="parc-btn ${pc===false&&pc!==null?'nao':''}" onclick="toggleParceiro('${lnk.id}',false,this)">✗ Não parceiro</button>
       </div>
       <div class="forn-card-acoes">
         ${lnk.status!=='aguardando'?`<button class="btn btn-outline btn-sm" onclick="verRespostas('${lnk.id}','${(f.nome||'').replace(/'/g,"\\'")}')">Ver respostas</button>`:''}
-        ${['respondido','rascunho','aberto'].includes(lnk.status)?`<button class="btn btn-outline btn-sm" style="color:#f59e0b" onclick="reabrirLink('${lnk.id}')">???? Reabrir</button>`:''}
-        <button class="btn btn-outline btn-sm" onclick="copiarLink('${lnk.token}')">???? Link</button>
-        <button class="btn btn-outline btn-sm" style="color:#25d366" onclick="abrirWpp('${f.whatsapp||''}','${lnk.token}','${(f.nome||'').replace(/'/g,"\\'")}','${(cot?.titulo||'').replace(/'/g,"\\'")}')">???? WhatsApp</button>
+        ${['respondido','rascunho','aberto'].includes(lnk.status)?`<button class="btn btn-outline btn-sm" style="color:#f59e0b" onclick="reabrirLink('${lnk.id}')">🔄 Reabrir</button>`:''}
+        <button class="btn btn-outline btn-sm" onclick="copiarLink('${lnk.token}')">📋 Link</button>
+        <button class="btn btn-outline btn-sm" style="color:#25d366" onclick="abrirWpp('${f.whatsapp||''}','${lnk.token}','${(f.nome||'').replace(/'/g,"\\'")}','${(cot?.titulo||'').replace(/'/g,"\\'")}')">💬 WhatsApp</button>
       </div>
     </div>`;
   }).join('');
@@ -657,16 +657,16 @@ async function carregarDetalhe(id){
 async function toggleFecharCotacao(){
   const fechada=cotacaoStatus==='fechada';
   const titulo=document.getElementById('det-titulo').textContent;
-  const msg=fechada?`Reabrir a cota????o "${titulo}"?`:`Fechar a cota????o "${titulo}"?\nEla ficar?? somente para consulta.`;
+  const msg=fechada?`Reabrir a cotação "${titulo}"?`:`Fechar a cotação "${titulo}"?\nEla ficará somente para consulta.`;
   if(!confirm(msg))return;
   const novoStatus=fechada?'aberta':'fechada';
   const{error}=await sb.from('cotacoes').update({status:novoStatus}).eq('id',cotacaoId);
   if(error){toast('Erro: '+error.message,'err');return;}
-  toast(fechada?'Cota????o reaberta!':'Cota????o fechada!','ok');
+  toast(fechada?'Cotação reaberta!':'Cotação fechada!','ok');
   carregarDetalhe(cotacaoId);
 }
 async function reabrirLink(linkId){
-  if(!confirm('Reabrir este link? O fornecedor poder?? preencher novamente.'))return;
+  if(!confirm('Reabrir este link? O fornecedor poderá preencher novamente.'))return;
   const{data:lnk}=await sb.from('cotacao_links').select('fornecedor_id').eq('id',linkId).single();
   await sb.from('cotacao_links').update({status:'aguardando',respondido_em:null}).eq('id',linkId);
   if(lnk?.fornecedor_id)await sb.from('cotacao_respostas').delete().eq('cotacao_id',cotacaoId).eq('fornecedor_id',lnk.fornecedor_id);
@@ -681,12 +681,12 @@ async function toggleParceiro(linkId,valor,btn){
 function copiarLink(token){const url=`${BASE}?t=${token}`;navigator.clipboard.writeText(url).then(()=>toast('Link copiado!','ok'));}
 function abrirWpp(wpp,token,nome,titulo){
   const url=`${BASE}?t=${token}`;
-  const msg=encodeURIComponent(`Ol?? ${nome}! Temos uma cota????o aguardando sua resposta.\n\n*Cota????o:* ${titulo}\n\n*Link para preenchimento:*\n${url}\n\nPor favor, preencha os pre??os com v??rgula (ex: 12,50) e clique em Enviar. Obrigado! ????`);
+  const msg=encodeURIComponent(`Olá ${nome}! Temos uma cotação aguardando sua resposta.\n\n*Cotação:* ${titulo}\n\n*Link para preenchimento:*\n${url}\n\nPor favor, preencha os preços com vírgula (ex: 12,50) e clique em Enviar. Obrigado! 🙏`);
   const num=wpp.replace(/\D/g,'');
   window.open(num?`https://wa.me/55${num}?text=${msg}`:`https://wa.me/?text=${msg}`,'_blank');
 }
 async function verRespostas(linkId,nomeForn){
-  document.getElementById('mr-titulo').textContent=`Respostas ??? ${nomeForn}`;
+  document.getElementById('mr-titulo').textContent=`Respostas — ${nomeForn}`;
   document.getElementById('mr-corpo').innerHTML='<div class="loading-box"><div class="spin"></div></div>';
   abrirModal('modal-resp');
   const{data:lnk}=await sb.from('cotacao_links').select('fornecedor_id,cotacao_id').eq('id',linkId).single();
@@ -701,7 +701,7 @@ async function verRespostas(linkId,nomeForn){
     const r=resps.find(x=>x.item_id===item.id);const preco=r?.preco;
     return `<tr><td style="font-weight:600">${item.descricao}</td><td style="text-align:center;color:#64748b">${item.quantidade||1}</td><td style="text-align:right;font-weight:700;color:${preco?'#15a563':'#cbd5e1'}">${fmtR(preco)}</td></tr>`;
   }).join('');
-  document.getElementById('mr-corpo').innerHTML=`<div style="overflow:auto;max-height:420px"><table class="comp-table"><thead><tr><th>Produto</th><th class="num" style="text-align:center">Qtd</th><th class="num">Pre??o unit.</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+  document.getElementById('mr-corpo').innerHTML=`<div style="overflow:auto;max-height:420px"><table class="comp-table"><thead><tr><th>Produto</th><th class="num" style="text-align:center">Qtd</th><th class="num">Preço unit.</th></tr></thead><tbody>${rows}</tbody></table></div>`;
 }
 let _dispForn=[];
 async function abrirDisparar(){
@@ -713,7 +713,7 @@ async function abrirDisparar(){
     const ja=jaEnv.has(f.id);
     return `<div class="check-item ${ja?'ja sel':''}" onclick="${ja?'':'toggleCheck(this)'}">
       <input type="checkbox" value="${f.id}" ${ja?'checked disabled':''}/>
-      <div><div style="font-weight:600;font-size:13px">${f.nome}</div><div style="font-size:11px;color:#64748b">${f.distribuidora||''} ${ja?'?? j?? enviado':''}</div></div>
+      <div><div style="font-weight:600;font-size:13px">${f.nome}</div><div style="font-size:11px;color:#64748b">${f.distribuidora||''} ${ja?'· já enviado':''}</div></div>
     </div>`;
   }).join('');
   abrirModal('modal-disparar');
@@ -742,18 +742,18 @@ async function carregarComparacao(id){
   document.getElementById('comp-sub').textContent=cot?.titulo||'';
   const comResp=(links||[]).filter(l=>['respondido','rascunho'].includes(l.status));
   if(comResp.length===0){document.getElementById('comp-corpo').innerHTML='<div class="empty">Nenhuma resposta recebida ainda.</div>';return;}
-  const nomes=comResp.map(l=>l.fornecedores?.nome||'???');
+  const nomes=comResp.map(l=>l.fornecedores?.nome||'—');
   const rows=(itens||[]).map(item=>{
     const precos=comResp.map(lnk=>{const r=(resps||[]).find(x=>x.item_id===item.id&&x.fornecedor_id===lnk.fornecedor_id);return r?.preco??null;});
     const validos=precos.filter(p=>p!=null&&p>0);const menor=validos.length?Math.min(...validos):null;
     const cells=precos.map(p=>{
-      if(p==null)return '<td style="text-align:right"><span class="preco-sem">???</span></td>';
+      if(p==null)return '<td style="text-align:right"><span class="preco-sem">—</span></td>';
       const cls=p===menor?'preco-melhor':'preco-normal';
       return `<td style="text-align:right"><span class="${cls}">${fmtR(p)}</span></td>`;
     }).join('');
-    return `<tr><td style="font-weight:600;max-width:220px">${item.descricao}</td><td style="text-align:center;color:#64748b">${item.quantidade||1}</td><td style="color:#64748b">${item.ultimo_preco?fmtR(item.ultimo_preco):'???'}</td>${cells}</tr>`;
+    return `<tr><td style="font-weight:600;max-width:220px">${item.descricao}</td><td style="text-align:center;color:#64748b">${item.quantidade||1}</td><td style="color:#64748b">${item.ultimo_preco?fmtR(item.ultimo_preco):'—'}</td>${cells}</tr>`;
   }).join('');
-  document.getElementById('comp-corpo').innerHTML=`<div style="overflow-x:auto"><table class="comp-table"><thead><tr><th style="min-width:180px">Produto</th><th class="num" style="text-align:center">Qtd</th><th>??lt. Pre??o</th>${nomes.map(n=>`<th class="num">${n}</th>`).join('')}</tr></thead><tbody>${rows}</tbody></table></div><div style="padding:12px 14px;font-size:11px;color:#94a3b8">???? Menor pre??o para cada produto</div>`;
+  document.getElementById('comp-corpo').innerHTML=`<div style="overflow-x:auto"><table class="comp-table"><thead><tr><th style="min-width:180px">Produto</th><th class="num" style="text-align:center">Qtd</th><th>Últ. Preço</th>${nomes.map(n=>`<th class="num">${n}</th>`).join('')}</tr></thead><tbody>${rows}</tbody></table></div><div style="padding:12px 14px;font-size:11px;color:#94a3b8">🟢 Menor preço para cada produto</div>`;
 }
 async function carregarPedido(id){
   document.getElementById('ped-corpo').innerHTML='<div class="loading-box"><div class="spin"></div></div>';
@@ -782,7 +782,7 @@ async function carregarPedido(id){
 function renderPedido(){
   const{itens,comResp,resps}=pedidoData;
   const grupos={};
-  comResp.forEach(lnk=>{grupos[lnk.fornecedor_id]={nome:lnk.fornecedores?.nome||'???',itens:[]};});
+  comResp.forEach(lnk=>{grupos[lnk.fornecedor_id]={nome:lnk.fornecedores?.nome||'—',itens:[]};});
   itens.forEach(item=>{const fId=pedidoState[item.id];if(fId&&grupos[fId])grupos[fId].itens.push(item.id);});
   const html=Object.entries(grupos).filter(([,g])=>g.itens.length>0).map(([fornId,g])=>{
     let totalForn=0;
@@ -792,20 +792,20 @@ function renderPedido(){
       const preco=r?.preco||0;const qty=item.quantidade||1;const subtotal=preco*qty;totalForn+=subtotal;
       const alts=comResp.map(lnk=>{
         const ar=resps.find(x=>x.item_id===itemId&&x.fornecedor_id===lnk.fornecedor_id);
-        return{fornId:lnk.fornecedor_id,nome:lnk.fornecedores?.nome||'???',preco:ar?.preco??null};
+        return{fornId:lnk.fornecedor_id,nome:lnk.fornecedores?.nome||'—',preco:ar?.preco??null};
       }).filter(a=>a.preco!=null&&a.preco>0).sort((a,b)=>a.preco-b.preco);
       const altsHtml=alts.map(a=>`<div class="ped-alt-opt ${a.fornId===fornId?'ativo':''}" onclick="${a.fornId!==fornId?`trocarVencedor('${itemId}','${a.fornId}')`:''}">`+
         `<span>${a.nome}</span><span>${fmtR(a.preco)}</span></div>`).join('');
-      return `<tr><td><div style="display:flex;align-items:center;gap:6px"><button class="btn-alt" onclick="toggleAlt('${itemId}')" title="Trocar fornecedor">???</button><span>${item.descricao}</span></div>`+
+      return `<tr><td><div style="display:flex;align-items:center;gap:6px"><button class="btn-alt" onclick="toggleAlt('${itemId}')" title="Trocar fornecedor">⇄</button><span>${item.descricao}</span></div>`+
         `<div class="ped-alt-panel" id="pedalt-${itemId}"><div style="font-size:11px;color:#64748b;margin-bottom:5px;font-weight:600">SELECIONE O FORNECEDOR:</div>${altsHtml}</div></td>`+
-        `<td style="color:#64748b;font-size:12px">${item.ean||'???'}</td><td style="text-align:center">${qty}</td>`+
+        `<td style="color:#64748b;font-size:12px">${item.ean||'—'}</td><td style="text-align:center">${qty}</td>`+
         `<td style="text-align:right">${fmtR(preco)}</td><td style="text-align:right;font-weight:600">${fmtR(subtotal)}</td></tr>`;
     }).join('');
     return `<div class="ped-forn-section"><div class="ped-forn-header">`+
-      `<div class="ped-forn-nome">???? ${g.nome} <span style="font-size:12px;font-weight:400;color:#64748b;margin-left:6px">${g.itens.length} item(ns)</span></div>`+
+      `<div class="ped-forn-nome">🚚 ${g.nome} <span style="font-size:12px;font-weight:400;color:#64748b;margin-left:6px">${g.itens.length} item(ns)</span></div>`+
       `<div style="display:flex;align-items:center;gap:12px"><span style="font-size:14px;font-weight:700;color:#15a563">Total: ${fmtR(totalForn)}</span>`+
-      `<button class="btn btn-outline btn-sm" onclick="exportarExcelForn('${fornId}','${g.nome.replace(/'/g,"\\'")}')">???? Exportar Excel</button></div></div>`+
-      `<table class="ped-table"><thead><tr><th>Produto</th><th>EAN/C??d.</th><th style="text-align:center">Qtd</th><th style="text-align:right">Pre??o Unit.</th><th style="text-align:right">Total</th></tr></thead>`+
+      `<button class="btn btn-outline btn-sm" onclick="exportarExcelForn('${fornId}','${g.nome.replace(/'/g,"\\'")}')">📥 Exportar Excel</button></div></div>`+
+      `<table class="ped-table"><thead><tr><th>Produto</th><th>EAN/Cód.</th><th style="text-align:center">Qtd</th><th style="text-align:right">Preço Unit.</th><th style="text-align:right">Total</th></tr></thead>`+
       `<tbody>${rows}</tbody><tfoot><tr class="ped-total-row"><td colspan="4" style="text-align:right;padding:10px">Total do pedido:</td><td style="text-align:right;padding:10px">${fmtR(totalForn)}</td></tr></tfoot></table></div>`;
   }).join('');
   document.getElementById('ped-corpo').innerHTML=html||'<div class="empty">Nenhum item com proposta recebida.</div>';
@@ -832,15 +832,15 @@ function exportarExcelForn(fornId,fornNome){
   const sCtr=(par)=>({fill:{fgColor:{rgb:par?'F0FDF4':'FFFFFF'}},alignment:{horizontal:'center',vertical:'center'}});
   const sTotLbl={font:{bold:true,sz:11,color:{rgb:'155724'}},fill:{fgColor:{rgb:'D4EDDA'}},alignment:{horizontal:'right'}};
   const sTotVal={font:{bold:true,sz:11,color:{rgb:'155724'}},fill:{fgColor:{rgb:'D4EDDA'}},alignment:{horizontal:'right'},numFmt:'#,##0.00'};
-  // cabe??alho do documento
-  ws['A1']={v:`Pedido ??? ${cotTitulo}`,t:'s',s:sTitle};
+  // cabeçalho do documento
+  ws['A1']={v:`Pedido — ${cotTitulo}`,t:'s',s:sTitle};
   ws['A2']={v:`Fornecedor: ${fornNome}`,t:'s',s:sSub};
   ws['A3']={v:`Gerado em: ${new Date().toLocaleString('pt-BR')}`,t:'s',s:sInfo};
   // linha de headers (linha 5)
-  ws['A5']={v:'Descri????o',t:'s',s:sHdr(true)};
-  ws['B5']={v:'EAN/C??d.',t:'s',s:sHdr(false)};
+  ws['A5']={v:'Descrição',t:'s',s:sHdr(true)};
+  ws['B5']={v:'EAN/Cód.',t:'s',s:sHdr(false)};
   ws['C5']={v:'Qtd',t:'s',s:sHdr(false)};
-  ws['D5']={v:'Pre??o Unit. (R$)',t:'s',s:sHdr(false)};
+  ws['D5']={v:'Preço Unit. (R$)',t:'s',s:sHdr(false)};
   ws['E5']={v:'Total (R$)',t:'s',s:sHdr(false)};
   // dados
   let totalGeral=0,row=6;
@@ -877,17 +877,17 @@ async function carregarFornecedores(){
   document.getElementById('forn-tbody').innerHTML=data.map(f=>{
     const olDate=olMap[f.id];
     const olCell=olDate
-      ?`<span style="font-size:11px;color:#15a563;font-weight:600">??? ${fmtData(olDate)}</span>`
-      :`<span style="font-size:11px;color:#94a3b8">???</span>`;
+      ?`<span style="font-size:11px;color:#15a563;font-weight:600">✓ ${fmtData(olDate)}</span>`
+      :`<span style="font-size:11px;color:#94a3b8">—</span>`;
     return `<tr>
       <td><div style="font-weight:600">${f.nome}</div><div style="font-size:11px;color:#64748b">${f.distribuidora||''}</div></td>
-      <td>${f.contato||'???'}</td><td>${f.whatsapp||'???'}</td>
-      <td>${f.pedido_minimo?fmtR(f.pedido_minimo):'???'}</td>
+      <td>${f.contato||'—'}</td><td>${f.whatsapp||'—'}</td>
+      <td>${f.pedido_minimo?fmtR(f.pedido_minimo):'—'}</td>
       <td><span class="badge ${f.ativo!==false?'badge-verde':'badge-cinza'}">${f.ativo!==false?'Ativo':'Inativo'}</span></td>
       <td>${olCell}</td>
       <td style="display:flex;gap:5px">
         <button class="btn btn-outline btn-sm" onclick='editarForn(${JSON.stringify(f)})'>Editar</button>
-        <button class="btn btn-outline btn-sm" style="color:#15a563" onclick="abrirModalOL('${f.id}','${(f.nome||'').replace(/'/g,"\\'")}')">???? OL</button>
+        <button class="btn btn-outline btn-sm" style="color:#15a563" onclick="abrirModalOL('${f.id}','${(f.nome||'').replace(/'/g,"\\'")}')">📥 OL</button>
       </td>
     </tr>`;
   }).join('');
@@ -920,11 +920,11 @@ async function salvarFornecedor(){
 }
 async function initFornecedor(token){
   const{data:lnk,error}=await sb.from('cotacao_links').select('*,cotacoes(*),fornecedores(*)').eq('token',token).single();
-  if(error||!lnk){document.getElementById('tf-itens').innerHTML='<div class="empty">Link inv??lido ou expirado. Solicite um novo link.</div>';return;}
+  if(error||!lnk){document.getElementById('tf-itens').innerHTML='<div class="empty">Link inválido ou expirado. Solicite um novo link.</div>';return;}
   fornState={token,lnk,itens:[],cotacaoId:lnk.cotacao_id,fornecedorId:lnk.fornecedor_id};
   const cot=lnk.cotacoes||{};const forn=lnk.fornecedores||{};
-  document.getElementById('tf-titulo-cot').textContent=cot.titulo||'Cota????o';
-  document.getElementById('tf-nome-forn').textContent=[forn.nome,forn.distribuidora].filter(Boolean).join(' ??? ');
+  document.getElementById('tf-titulo-cot').textContent=cot.titulo||'Cotação';
+  document.getElementById('tf-nome-forn').textContent=[forn.nome,forn.distribuidora].filter(Boolean).join(' — ');
   if(lnk.status==='aguardando')await sb.from('cotacao_links').update({status:'aberto',aberto_em:new Date().toISOString()}).eq('token',token);
   const[{data:itens},{data:respostas}]=await Promise.all([
     sb.from('cotacao_itens').select('*').eq('cotacao_id',lnk.cotacao_id).order('descricao'),
@@ -933,13 +933,13 @@ async function initFornecedor(token){
   fornState.itens=itens||[];
   const respostaMap={};(respostas||[]).forEach(r=>{respostaMap[r.item_id]=r.preco;});
   const jaRespondeu=lnk.status==='respondido';const rascunho=lnk.status==='rascunho';
-  if(jaRespondeu)document.getElementById('tf-aviso').innerHTML='<div class="aviso-box aviso-verde">??? <strong>Respostas enviadas!</strong> Voc?? j?? respondeu esta cota????o. Abaixo est??o os valores enviados.</div>';
-  else if(rascunho)document.getElementById('tf-aviso').innerHTML='<div class="aviso-box aviso-amarelo">?????? <strong>Rascunho salvo.</strong> Continue preenchendo e clique em "Enviar respostas" quando terminar.</div>';
-  if(!itens||itens.length===0){document.getElementById('tf-itens').innerHTML='<div class="empty">Nenhum produto nesta cota????o.</div>';return;}
-  document.getElementById('tf-itens').innerHTML=`<div class="tf-box"><h4>Produtos para cotar ??? use v??rgula para decimais (ex: 12,50)</h4>${
+  if(jaRespondeu)document.getElementById('tf-aviso').innerHTML='<div class="aviso-box aviso-verde">✅ <strong>Respostas enviadas!</strong> Você já respondeu esta cotação. Abaixo estão os valores enviados.</div>';
+  else if(rascunho)document.getElementById('tf-aviso').innerHTML='<div class="aviso-box aviso-amarelo">✏️ <strong>Rascunho salvo.</strong> Continue preenchendo e clique em "Enviar respostas" quando terminar.</div>';
+  if(!itens||itens.length===0){document.getElementById('tf-itens').innerHTML='<div class="empty">Nenhum produto nesta cotação.</div>';return;}
+  document.getElementById('tf-itens').innerHTML=`<div class="tf-box"><h4>Produtos para cotar — use vírgula para decimais (ex: 12,50)</h4>${
     itens.map(item=>{
       const precoEx=respostaMap[item.id];const precoFmt=precoEx!=null?String(precoEx).replace('.',','):'';
-      return `<div class="prod-item ${precoEx!=null?'ok':''}" id="row-${item.id}"><div class="prod-desc"><strong title="${item.descricao}">${item.descricao}</strong><span>Qtd: ${item.quantidade||1}${item.ean?' ?? EAN: '+item.ean:''}</span></div>`+
+      return `<div class="prod-item ${precoEx!=null?'ok':''}" id="row-${item.id}"><div class="prod-desc"><strong title="${item.descricao}">${item.descricao}</strong><span>Qtd: ${item.quantidade||1}${item.ean?' · EAN: '+item.ean:''}</span></div>`+
         `<div class="prod-input-wrap"><label>R$</label><input type="text" class="preco-inp ${precoEx!=null?'ok':''}" id="pi-${item.id}" value="${precoFmt}" placeholder="0,00" inputmode="decimal" ${jaRespondeu?'readonly':''} oninput="onPrInput(this,'${item.id}')"/></div></div>`;
     }).join('')}</div>`;
   document.getElementById('tf-total').textContent=itens.length;atualizarProgForn();
@@ -952,17 +952,17 @@ function onPrInput(el,itemId){
 function atualizarProgForn(){document.getElementById('tf-preench').textContent=document.querySelectorAll('.preco-inp.ok').length;}
 async function salvarRascunho(){
   await _salvarRespostas('rascunho',false);toast('Rascunho salvo!','ok');
-  document.getElementById('tf-aviso').innerHTML='<div class="aviso-box aviso-amarelo">?????? <strong>Rascunho salvo.</strong> Continue preenchendo e clique em "Enviar respostas" quando terminar.</div>';
+  document.getElementById('tf-aviso').innerHTML='<div class="aviso-box aviso-amarelo">✏️ <strong>Rascunho salvo.</strong> Continue preenchendo e clique em "Enviar respostas" quando terminar.</div>';
 }
 async function enviarRespostas(){
   const preench=document.querySelectorAll('.preco-inp.ok').length;const total=fornState.itens.length;
-  if(preench===0){toast('Preencha pelo menos um pre??o.','err');return;}
-  const msg=preench<total?`Voc?? preencheu ${preench} de ${total} produto(s). Deseja enviar assim mesmo?`:`Enviar ${preench} resposta(s)?`;
+  if(preench===0){toast('Preencha pelo menos um preço.','err');return;}
+  const msg=preench<total?`Você preencheu ${preench} de ${total} produto(s). Deseja enviar assim mesmo?`:`Enviar ${preench} resposta(s)?`;
   if(!confirm(msg))return;
-  await _salvarRespostas('respondido',false);toast('??? Respostas enviadas com sucesso!','ok');
+  await _salvarRespostas('respondido',false);toast('✅ Respostas enviadas com sucesso!','ok');
   document.getElementById('tf-footer').style.display='none';
   document.querySelectorAll('.preco-inp').forEach(el=>el.readOnly=true);
-  document.getElementById('tf-aviso').innerHTML='<div class="aviso-box aviso-verde">??? <strong>Respostas enviadas!</strong> Obrigado. Sua participa????o foi registrada com sucesso.</div>';
+  document.getElementById('tf-aviso').innerHTML='<div class="aviso-box aviso-verde">✅ <strong>Respostas enviadas!</strong> Obrigado. Sua participação foi registrada com sucesso.</div>';
 }
 async function _salvarRespostas(novoStatus,silencioso){
   const{token,cotacaoId,fornecedorId,itens}=fornState;
@@ -973,11 +973,11 @@ async function _salvarRespostas(novoStatus,silencioso){
   await sb.from('cotacao_links').update(upd).eq('token',token);
   if(!silencioso)fornState.lnk.status=novoStatus;
 }
-// ?????? OL IMPORT ??????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????
+// ── OL IMPORT ──────────────────────────────────────────
 let olState={fornId:null,fornNome:'',itens:[]};
 function abrirModalOL(fornId,fornNome){
   olState={fornId,fornNome,itens:[]};
-  document.getElementById('mol-titulo').textContent=`Importar OL ??? ${fornNome}`;
+  document.getElementById('mol-titulo').textContent=`Importar OL — ${fornNome}`;
   document.getElementById('mol-preview').innerHTML='';
   document.getElementById('mol-inp').value='';
   document.getElementById('mol-info').textContent='';
@@ -993,7 +993,7 @@ function lerOL(inp){
       const rows=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});
       let dCol=0,eCol=-1,pCol=-1,start=0;
       for(let r=0;r<Math.min(5,rows.length);r++){
-        const row=rows[r].map(c=>String(c).toLowerCase().normalize('NFD').replace(/[??-??]/g,''));
+        const row=rows[r].map(c=>String(c).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,''));
         let found=false;
         row.forEach((c,i)=>{
           if(/desc|nome|produto|item|med/.test(c)){dCol=i;found=true;}
@@ -1013,7 +1013,7 @@ function lerOL(inp){
       }
       document.getElementById('mol-info').textContent=`${olState.itens.length} produto(s) encontrado(s)`;
       const prev=olState.itens.slice(0,10);
-      document.getElementById('mol-preview').innerHTML=`<div style="overflow:auto;max-height:220px;margin-top:10px"><table class="comp-table"><thead><tr><th>Descri????o</th><th>EAN</th><th class="num">Pre??o</th></tr></thead><tbody>${prev.map(i=>`<tr><td>${i.descricao}</td><td style="color:#64748b">${i.ean||'???'}</td><td style="text-align:right">${i.preco!=null?fmtR(i.preco):'???'}</td></tr>`).join('')}</tbody></table>${olState.itens.length>10?`<div style="font-size:11px;color:#94a3b8;padding:8px 0">...e mais ${olState.itens.length-10} produto(s)</div>`:''}</div>`;
+      document.getElementById('mol-preview').innerHTML=`<div style="overflow:auto;max-height:220px;margin-top:10px"><table class="comp-table"><thead><tr><th>Descrição</th><th>EAN</th><th class="num">Preço</th></tr></thead><tbody>${prev.map(i=>`<tr><td>${i.descricao}</td><td style="color:#64748b">${i.ean||'—'}</td><td style="text-align:right">${i.preco!=null?fmtR(i.preco):'—'}</td></tr>`).join('')}</tbody></table>${olState.itens.length>10?`<div style="font-size:11px;color:#94a3b8;padding:8px 0">...e mais ${olState.itens.length-10} produto(s)</div>`:''}</div>`;
     }catch(err){toast('Erro ao ler o arquivo.','err');}
     inp.value='';
   };
@@ -1035,11 +1035,11 @@ async function salvarOL(){
   carregarFornecedores();
 }
 
-// ?????? AUTO-COTAR ???????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????
+// ── AUTO-COTAR ─────────────────────────────────────────
 let autoState={itens:[],fornecedores:{},matches:{}};
 function normDesc(s){
   return String(s).toLowerCase()
-    .normalize('NFD').replace(/[??-??]/g,'')
+    .normalize('NFD').replace(/[̀-ͯ]/g,'')
     .replace(/\b(comprimido[s]?|comp)\b/g,'cpr')
     .replace(/\b(capsula[s]?|caps)\b/g,'cap')
     .replace(/\b(pomada)\b/g,'pom')
@@ -1059,13 +1059,13 @@ async function abrirAutoCotar(){
   ]);
   const fornComOL=(ols||[]).map(o=>o.fornecedor_id);
   if(!fornComOL.length){
-    document.getElementById('mac-corpo').innerHTML='<div class="empty">Nenhum fornecedor com OL importada.<br>V?? em <b>???? Fornecedores</b> e clique em <b>???? OL</b> para importar.</div>';
+    document.getElementById('mac-corpo').innerHTML='<div class="empty">Nenhum fornecedor com OL importada.<br>Vá em <b>🚚 Fornecedores</b> e clique em <b>📥 OL</b> para importar.</div>';
     return;
   }
   const{data:olItensData}=await sb.from('fornecedor_ol_itens').select('*').in('fornecedor_id',fornComOL);
   const olPorForn={};
   fornComOL.forEach(fId=>{
-    const fNome=(fornecedores||[]).find(f=>f.id===fId)?.nome||'???';
+    const fNome=(fornecedores||[]).find(f=>f.id===fId)?.nome||'—';
     olPorForn[fId]={nome:fNome,itens:(olItensData||[]).filter(i=>i.fornecedor_id===fId).map(i=>({...i,_norm:normDesc(i.descricao)}))};
   });
   autoState={itens:itens||[],fornecedores:olPorForn,matches:{}};
@@ -1098,11 +1098,11 @@ function renderAutoCotar(){
       const m=im[fId];
       if(!m)return `<div class="mac-card mac-sem"><div class="mac-forn">${fornecedores[fId].nome}</div><div class="mac-prod" style="color:#94a3b8;font-style:italic">sem match</div></div>`;
       const cor=m.confidence>=80?'#15a563':m.confidence>=60?'#f59e0b':'#e8112d';
-      const badge=m.fonte==='ean'?`<span style="font-size:10px;font-weight:700;color:#15a563">???? EAN</span>`:`<span style="font-size:10px;font-weight:700;color:${cor}">${m.confidence}%</span>`;
+      const badge=m.fonte==='ean'?`<span style="font-size:10px;font-weight:700;color:#15a563">🔒 EAN</span>`:`<span style="font-size:10px;font-weight:700;color:${cor}">${m.confidence}%</span>`;
       const ativo=m.ativo!==false;
-      return `<div class="mac-card ${ativo?'mac-ativo':'mac-inativo'}" onclick="toggleMatch('${item.id}','${fId}')"><div class="mac-forn">${fornecedores[fId].nome}</div><div class="mac-prod">${m.item.descricao}</div><div style="display:flex;justify-content:space-between;align-items:center;margin-top:5px">${m.item.preco!=null?`<span style="font-weight:700;color:#15a563;font-size:12px">${fmtR(m.item.preco)}</span>`:'<span style="color:#94a3b8;font-size:12px">???</span>'}${badge}</div></div>`;
+      return `<div class="mac-card ${ativo?'mac-ativo':'mac-inativo'}" onclick="toggleMatch('${item.id}','${fId}')"><div class="mac-forn">${fornecedores[fId].nome}</div><div class="mac-prod">${m.item.descricao}</div><div style="display:flex;justify-content:space-between;align-items:center;margin-top:5px">${m.item.preco!=null?`<span style="font-weight:700;color:#15a563;font-size:12px">${fmtR(m.item.preco)}</span>`:'<span style="color:#94a3b8;font-size:12px">—</span>'}${badge}</div></div>`;
     }).join('');
-    return `<div class="mac-item"><div class="mac-item-desc">${item.descricao} <span style="color:#94a3b8;font-size:11px;font-weight:400">?? Qtd ${item.quantidade||1}</span></div><div class="mac-cards">${cards}</div></div>`;
+    return `<div class="mac-item"><div class="mac-item-desc">${item.descricao} <span style="color:#94a3b8;font-size:11px;font-weight:400">· Qtd ${item.quantidade||1}</span></div><div class="mac-cards">${cards}</div></div>`;
   }).join('');
 }
 function toggleMatch(itemId,fornId){
@@ -1134,7 +1134,7 @@ async function confirmarAutoCotar(){
     total++;
   }
   fecharModal('modal-autocotar');
-  toast(total>0?`??? ${total} fornecedor(es) lan??ados no ranking!`:'Nenhum match ativo para lan??ar.','ok');
+  toast(total>0?`✅ ${total} fornecedor(es) lançados no ranking!`:'Nenhum match ativo para lançar.','ok');
   carregarDetalhe(cotacaoId);
 }
 
@@ -1142,4 +1142,3 @@ init();
 </script>
 </body>
 </html>
-
