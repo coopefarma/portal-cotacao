@@ -435,7 +435,7 @@ async function init(){
   const token=params.get('t')||params.get('token');
   if(token){document.getElementById('tela-fornecedor').style.display='block';await initFornecedor(token);return;}
   const{data:{session}}=await sb.auth.getSession();
-  if(session){document.getElementById('u-email').textContent=session.user.email;document.getElementById('tela-app').style.display='flex';irPara('cotacoes');}
+  if(session){const uel=document.getElementById('u-email');if(uel)uel.textContent=session.user.email;document.getElementById('tela-app').style.display='flex';irPara('cotacoes');}
   else{document.getElementById('tela-login').style.display='flex';}
 }
 
@@ -459,7 +459,7 @@ async function fazerLogin(){
   document.getElementById('l-erro').textContent='';
   const{data,error}=await sb.auth.signInWithPassword({email,password:senha});
   if(error){document.getElementById('l-erro').textContent='E-mail ou senha incorretos.';return;}
-  document.getElementById('u-email').textContent=data.user.email;
+  const uel2=document.getElementById('u-email');if(uel2)uel2.textContent=data.user.email;
   document.getElementById('tela-login').style.display='none';
   document.getElementById('tela-app').style.display='flex';
   irPara('cotacoes');
@@ -492,7 +492,7 @@ async function carregarCotacoes(){
       <div class="cot-card-info">${fmtData(c.created_at)}</div>
       <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px">
         <span class="badge ${aberta?'badge-verde':'badge-cinza'}">${aberta?'Aberta':'Fechada'}</span>
-        <button class="btn btn-outline btn-sm" style="color:${aberta?'#e8112d':'#15a563'};border-color:${aberta?'#e8112d':'#15a563'}" onclick="event.stopPropagation();fecharCotacaoById('${c.id}','${c.status||'aberta'}','${(c.titulo||'').replace(/'/g,"\\'")}')">${aberta?'🔒 Fechar':'🔓 Reabrir'}</button>
+        <button class="btn btn-outline btn-sm" style="color:${aberta?'#e8112d':'#15a563'};border-color:${aberta?'#e8112d':'#15a563'}" onclick="event.stopPropagation();fecharCotacaoById('${c.id}','${c.status||'aberta'}','${(c.titulo||'').replace(/'/g,"\\'")}'">${aberta?'🔒 Fechar':'🔓 Reabrir'}</button>
       </div>
       <div class="cot-card-stats"><span>📦 ${itens} produto(s)</span><span>✅ ${resp}/${total} respostas</span></div>
       <div style="display:flex;justify-content:flex-end;margin-top:8px">
@@ -821,7 +821,6 @@ function exportarExcelForn(fornId,fornNome){
   if(itensForn.length===0){toast('Nenhum item para exportar.','err');return;}
   const wb=XLSX.utils.book_new();
   const ws={};
-  // estilos
   const sTitle={font:{bold:true,sz:14,color:{rgb:'1A1A2E'}}};
   const sSub={font:{bold:true,sz:11,color:{rgb:'15A563'}}};
   const sInfo={font:{sz:10,color:{rgb:'94A3B8'},italic:true}};
@@ -831,17 +830,14 @@ function exportarExcelForn(fornId,fornNome){
   const sCtr=(par)=>({fill:{fgColor:{rgb:par?'F0FDF4':'FFFFFF'}},alignment:{horizontal:'center',vertical:'center'}});
   const sTotLbl={font:{bold:true,sz:11,color:{rgb:'155724'}},fill:{fgColor:{rgb:'D4EDDA'}},alignment:{horizontal:'right'}};
   const sTotVal={font:{bold:true,sz:11,color:{rgb:'155724'}},fill:{fgColor:{rgb:'D4EDDA'}},alignment:{horizontal:'right'},numFmt:'#,##0.00'};
-  // cabeçalho do documento
   ws['A1']={v:`Pedido — ${cotTitulo}`,t:'s',s:sTitle};
   ws['A2']={v:`Fornecedor: ${fornNome}`,t:'s',s:sSub};
   ws['A3']={v:`Gerado em: ${new Date().toLocaleString('pt-BR')}`,t:'s',s:sInfo};
-  // linha de headers (linha 5)
   ws['A5']={v:'Descrição',t:'s',s:sHdr(true)};
   ws['B5']={v:'EAN/Cód.',t:'s',s:sHdr(false)};
   ws['C5']={v:'Qtd',t:'s',s:sHdr(false)};
   ws['D5']={v:'Preço Unit. (R$)',t:'s',s:sHdr(false)};
   ws['E5']={v:'Total (R$)',t:'s',s:sHdr(false)};
-  // dados
   let totalGeral=0,row=6;
   itensForn.forEach((item,idx)=>{
     const r=resps.find(x=>x.item_id===item.id&&x.fornecedor_id===fornId);
@@ -854,7 +850,6 @@ function exportarExcelForn(fornId,fornNome){
     ws[`E${row}`]={v:sub,t:'n',s:sNum(par)};
     row++;
   });
-  // linha de total
   ws[`D${row}`]={v:'TOTAL:',t:'s',s:sTotLbl};
   ws[`E${row}`]={v:totalGeral,t:'n',s:sTotVal};
   ws['!ref']=`A1:E${row}`;
@@ -972,7 +967,7 @@ async function _salvarRespostas(novoStatus,silencioso){
   await sb.from('cotacao_links').update(upd).eq('token',token);
   if(!silencioso)fornState.lnk.status=novoStatus;
 }
-// ── OL IMPORT ──────────────────────────────────────────
+// OL IMPORT
 let olState={fornId:null,fornNome:'',itens:[]};
 function abrirModalOL(fornId,fornNome){
   olState={fornId,fornNome,itens:[]};
@@ -1004,7 +999,6 @@ function lerOL(inp){
         });
         if(found){start=r+1;headerRowRaw=rows[r];break;}
       }
-      // Detectar colunas extras de estoque por local (ex: Germed — ACRIPEL, NAZARIA...)
       const knownCols=new Set([dCol,eCol,pCol,condCol,estoqueCol].filter(i=>i>=0));
       const extraCols=[];
       if(headerRowRaw){
@@ -1014,7 +1008,6 @@ function lerOL(inp){
           if(hn&&hn.length>=2&&hn.length<=20&&/^[A-Za-z]/.test(hn))extraCols.push({idx:i,nome:hn});
         });
       }
-      // Ler linhas brutas
       const rawRows=[];
       for(let r=start;r<rows.length;r++){
         const row=rows[r];
@@ -1029,7 +1022,6 @@ function lerOL(inp){
         extraCols.forEach(ec=>{const v=row[ec.idx];if(v!=null&&v!==''){const n=parseInt(String(v).replace(/[^\d]/g,''));if(!isNaN(n))estoqLocais[ec.nome]=n;}});
         rawRows.push({descricao:desc,ean:ean||null,preco:(!isNaN(precoNum)&&precoNum!=null)?precoNum:null,cond,estoque:(!isNaN(estNum)&&estNum!=null)?estNum:null,estoqLocais});
       }
-      // Agrupar por EAN (ou descrição) para suporte a faixas de preço (Ranbaxy)
       const grouped=new Map();
       rawRows.forEach(r=>{
         const key=(r.ean||r.descricao).toLowerCase();
@@ -1056,7 +1048,7 @@ function lerOL(inp){
       document.getElementById('mol-preview').innerHTML=`<div style="overflow:auto;max-height:220px;margin-top:10px"><table class="comp-table"><thead><tr><th>Descrição</th><th>EAN</th><th class="num">Preço</th><th>Estoque / Condições</th></tr></thead><tbody>${prev.map(i=>{
         let extra='&mdash;';
         if(i.estoque!=null)extra=`<span style="color:${i.estoque===0?'#e8112d':'#15a563'}">${i.estoque}</span>`;
-        else if(i.condicoes){try{const c=JSON.parse(i.condicoes);if(c.tiers)extra=c.tiers.map(t=>`${t.label}: ${fmtR(t.preco)}`).join(' | ');else if(c.estoques)extra=Object.entries(c.estoques).map(([k,v])=>`${k}:${v}`).join(' &middot; ');}catch{}}
+        else if(i.condicoes){try{const c=JSON.parse(i.condicoes);if(c.tiers)extra=c.tiers.map(t=>`${t.label}: ${fmtR(t.preco)}`).join(' | ');else if(c.estoques)extra=Object.entries(c.estoques).map(([k,v])=>`${k}:${v}`).join(' · ');}catch{}}
         return `<tr><td>${i.descricao}</td><td style="color:#64748b">${i.ean||'&mdash;'}</td><td style="text-align:right">${i.preco!=null?fmtR(i.preco):'&mdash;'}</td><td style="font-size:10px;color:#64748b">${extra}</td></tr>`;
       }).join('')}</tbody></table>${olState.itens.length>10?`<div style="font-size:11px;color:#94a3b8;padding:8px 0">...e mais ${olState.itens.length-10} produto(s)</div>`:''}</div>`;
     }catch(err){toast('Erro ao ler o arquivo: '+err.message,'err');}
@@ -1080,7 +1072,7 @@ async function salvarOL(){
   carregarFornecedores();
 }
 
-// ── AUTO-COTAR ─────────────────────────────────────────
+// AUTO-COTAR
 let autoState={itens:[],fornecedores:{},matches:{}};
 function getBestTier(olItem,qty){
   if(!olItem.condicoes)return{preco:olItem.preco,label:null,idx:-1};
@@ -1170,13 +1162,11 @@ function renderAutoCotar(){
       const badge=m.fonte==='ean'?`<span style="font-size:10px;font-weight:700;color:#15a563">EAN</span>`:`<span style="font-size:10px;font-weight:700;color:${cor}">${m.confidence}%</span>`;
       const ativo=m.ativo!==false;
       const precoAtual=m.precoEfetivo??m.item.preco;
-      // Estoque simples (EMS)
       let estoqueHtml='';
       if(m.item.estoque!=null){
         const ec=m.item.estoque===0?'#e8112d':m.item.estoque<10?'#f59e0b':'#64748b';
         estoqueHtml=`<div style="font-size:10px;color:${ec};font-weight:600;margin-top:3px">Estoque: ${m.item.estoque}${m.item.estoque===0?' — sem estoque':''}</div>`;
       }
-      // Tiers de preço (Ranbaxy) e estoques por local (Germed)
       let extrasHtml='';
       if(m.item.condicoes){try{
         const c=JSON.parse(m.item.condicoes);
