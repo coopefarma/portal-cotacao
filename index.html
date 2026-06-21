@@ -279,7 +279,8 @@ body{font-family:'Inter',sans-serif;background:#f5f7fa;color:#1a1a2e}
         <div><div class="page-title" id="det-titulo">Cotação</div><div class="page-sub" id="det-sub"></div></div>
         <div class="page-header-btns">
           <button class="btn btn-outline" onclick="irPara('cotacoes')">← Voltar</button>
-          <button class="btn btn-outline" onclick="abrirDisparar()">📲 Disparar</button>
+          <button class="btn btn-outline" id="btn-disparar" onclick="abrirDisparar()">📲 Disparar</button>
+          <button class="btn btn-outline" id="btn-fechar-cot" style="display:none" onclick="toggleFecharCotacao()"></button>
           <button class="btn btn-primary" onclick="irPara('comparacao')">📊 Ranking</button>
         </div>
       </div>
@@ -379,7 +380,7 @@ const SB_KEY='sb_publishable_SQ0x7RDU9B0u5lqvn2pr1Q_4NwoJMY9';
 const {createClient}=supabase;
 const sb=createClient(SB_URL,SB_KEY);
 const BASE=location.origin+location.pathname;
-let cotacaoId=null,fornState={},pedidoState={},pedidoData=null;
+let cotacaoId=null,cotacaoStatus=null,fornState={},pedidoState={},pedidoData=null;
 
 const fmtR=v=>(v!=null&&v!==''&&!isNaN(v))?'R$ '+Number(v).toFixed(2).replace('.',','):'—';
 function parsePreco(s){if(!s||String(s).trim()==='')return null;const n=parseFloat(String(s).replace(/\./g,'').replace(',','.'));return isNaN(n)?null:n;}
@@ -535,7 +536,13 @@ async function carregarDetalhe(id){
   ]);
   if(cot){
     document.getElementById('det-titulo').textContent=cot.titulo||'Cotação';
+    cotacaoStatus=cot.status||'aberta';
+    const fechada=cotacaoStatus==='fechada';
     document.getElementById('det-sub').textContent=`${itens?.length||0} produto(s) · ${fmtData(cot.created_at)}`;
+    const btnF=document.getElementById('btn-fechar-cot');
+    if(btnF){btnF.style.display='inline-flex';btnF.textContent=fechada?'🔓 Reabrir Cotação':'🔒 Fechar Cotação';btnF.style.color=fechada?'#15a563':'#e8112d';btnF.style.borderColor=fechada?'#15a563':'#e8112d';}
+    const btnD=document.getElementById('btn-disparar');
+    if(btnD)btnD.style.display=fechada?'none':'inline-flex';
   }
   if(!links||links.length===0){
     el.innerHTML=`<div class="empty" style="grid-column:1/-1">Nenhum fornecedor acionado ainda.<br>Clique em <b>📲 Disparar</b> para enviar os links.</div>`;return;
@@ -572,6 +579,16 @@ async function carregarDetalhe(id){
       </div>
     </div>`;
   }).join('');
+}
+async function toggleFecharCotacao(){
+  const fechada=cotacaoStatus==='fechada';
+  const msg=fechada?'Reabrir esta cotação?':'Fechar esta cotação? Ela ficará somente para consulta.';
+  if(!confirm(msg))return;
+  const novoStatus=fechada?'aberta':'fechada';
+  const{error}=await sb.from('cotacoes').update({status:novoStatus}).eq('id',cotacaoId);
+  if(error){toast('Erro: '+error.message,'err');return;}
+  toast(fechada?'Cotação reaberta!':'Cotação fechada!','ok');
+  carregarDetalhe(cotacaoId);
 }
 async function reabrirLink(linkId){
   if(!confirm('Reabrir este link? O fornecedor poderá preencher novamente.'))return;
