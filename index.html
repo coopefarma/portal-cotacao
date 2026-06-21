@@ -496,10 +496,24 @@ async function carregarCotacoes(){
         <button class="btn btn-outline btn-sm" style="color:${aberta?'#e8112d':'#15a563'};border-color:${aberta?'#e8112d':'#15a563'}" onclick="event.stopPropagation();fecharCotacaoById('${c.id}','${c.status||'aberta'}','${(c.titulo||'').replace(/'/g,"\\'")}')">${aberta?'???? Fechar':'???? Reabrir'}</button>
       </div>
       <div class="cot-card-stats"><span>???? ${itens} produto(s)</span><span>??? ${resp}/${total} respostas</span></div>
+      <div style="display:flex;justify-content:flex-end;margin-top:8px">
+        <button class="btn btn-outline btn-sm" style="color:#e8112d;border-color:#e8112d" onclick="event.stopPropagation();deletarCotacao('${c.id}','${(c.titulo||'').replace(/'/g,"\\'")}')">??????? Excluir</button>
+      </div>
     </div>`;
   }).join('');
 }
 function abrirCotacao(id){cotacaoId=id;irPara('detalhe');}
+async function deletarCotacao(id,titulo){
+  if(!confirm(`Excluir a cota????o "${titulo}"?\nIsso apagar?? todos os itens, links e respostas. Essa a????o n??o pode ser desfeita.`))return;
+  await sb.from('cotacao_respostas').delete().eq('cotacao_id',id);
+  await sb.from('cotacao_links').delete().eq('cotacao_id',id);
+  await sb.from('cotacao_itens').delete().eq('cotacao_id',id);
+  const{error}=await sb.from('cotacoes').delete().eq('id',id);
+  if(error){toast('Erro ao excluir: '+error.message,'err');return;}
+  toast('Cota????o exclu??da!','ok');
+  if(cotacaoId===id)cotacaoId=null;
+  carregarCotacoes();
+}
 async function fecharCotacaoById(id,status,titulo){
   const fechada=status==='fechada';
   const msg=fechada?`Reabrir a cota????o "${titulo}"?`:`Fechar a cota????o "${titulo}"?\nEla ficar?? somente para consulta.`;
