@@ -497,9 +497,9 @@ async function importarExcel(inp){
       const wb=XLSX.read(e.target.result,{type:'binary'});
       const ws=wb.Sheets[wb.SheetNames[0]];
       const rows=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});
-      let dCol=0,eCol=1,qCol=2,pCol=-1,start=0;
+      let dCol=0,eCol=-1,qCol=-1,pCol=-1,start=0;
       for(let r=0;r<Math.min(5,rows.length);r++){
-        const row=rows[r].map(c=>String(c).toLowerCase());let found=false;
+        const row=rows[r].map(c=>String(c).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,''));let found=false;
         row.forEach((c,i)=>{
           if(/desc|nome|produto|item|med/.test(c)){dCol=i;found=true;}
           if(/ean|cod|barra/.test(c))eCol=i;
@@ -511,8 +511,10 @@ async function importarExcel(inp){
       document.getElementById('itens-lista').innerHTML='';let n=0;
       for(let r=start;r<rows.length;r++){
         const row=rows[r];const desc=String(row[dCol]||'').trim();if(!desc)continue;
-        const ean=String(row[eCol]||'').trim();const qty=String(row[qCol]||'').trim();
-        const preco=pCol>=0&&row[pCol]?String(row[pCol]).replace('.',','):'';
+        const ean=eCol>=0?String(row[eCol]||'').trim():'';
+        const qty=qCol>=0?String(row[qCol]||'').trim():'';
+        const precoRaw=pCol>=0&&row[pCol]!=null&&row[pCol]!==''?row[pCol]:'';
+        const preco=precoRaw!==''?String(precoRaw).replace(/[^\d,\.]/g,'').replace('.',','):'';
         addLinha(desc,ean,qty,preco);n++;
       }
       toast(n>0?`${n} produto(s) importado(s)!`:'Nenhum produto encontrado.',n>0?'ok':'err');
