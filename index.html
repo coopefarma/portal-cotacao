@@ -1016,17 +1016,21 @@ function lerOL(inp){
       const rows=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});
       let dCol=0,eCol=-1,pCol=-1,condCol=-1,estoqueCol=-1,start=0;
       let headerRowRaw=null;
-      for(let r=0;r<Math.min(6,rows.length);r++){
+      let bestScore=-1;
+      for(let r=0;r<Math.min(8,rows.length);r++){
         const norm=rows[r].map(c=>String(c).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,''));
-        let found=false;
+        let score=0,tmpD=-1,tmpE=-1,tmpP=-1,tmpCond=-1,tmpEst=-1;
         norm.forEach((c,i)=>{
-          if(/desc|nome|produto|item|med/.test(c)){dCol=i;found=true;}
-          if(/ean|cod|barra/.test(c))eCol=i;
-          if(/prec|valor|custo/.test(c))pCol=i;
-          if(/quant|acima|condi|faixa/.test(c))condCol=i;
-          if(/estoque|saldo|dispon/.test(c))estoqueCol=i;
+          if(/produto|descri|nome do|^item$|medicamento/.test(c)){tmpD=i;score+=3;}
+          if(/ean|cod.*barra|barra/.test(c)){tmpE=i;score+=2;}
+          if(/prec|valor|custo/.test(c)){tmpP=i;score+=3;}
+          if(/quant|acima|condi|faixa/.test(c)){tmpCond=i;score+=1;}
+          if(/estoque|saldo|dispon/.test(c)){tmpEst=i;score+=1;}
         });
-        if(found){start=r+1;headerRowRaw=rows[r];break;}
+        if(score>bestScore&&tmpD>=0){
+          bestScore=score;dCol=tmpD;eCol=tmpE;pCol=tmpP;condCol=tmpCond;estoqueCol=tmpEst;
+          start=r+1;headerRowRaw=rows[r];
+        }
       }
       const knownCols=new Set([dCol,eCol,pCol,condCol,estoqueCol].filter(i=>i>=0));
       const extraCols=[];
