@@ -1041,10 +1041,21 @@ function lerOL(inp){
           if(hn&&hn.length>=2&&hn.length<=20&&/^[A-Za-z]/.test(hn))extraCols.push({idx:i,nome:hn});
         });
       }
+      // Se pCol não detectado, tenta achar coluna com valores numéricos/monetários nas primeiras linhas de dados
+      if(pCol<0){
+        const sample=rows.slice(start,start+5);
+        const colCount=sample[0]?sample[0].length:0;
+        for(let ci=0;ci<colCount;ci++){
+          if(ci===dCol||ci===eCol)continue;
+          const vals=sample.map(r=>String(r[ci]||'').replace(/[^\d,.]/g,'').replace(',','.')).filter(v=>v&&parseFloat(v)>0);
+          if(vals.length>=2){pCol=ci;break;}
+        }
+      }
       const rawRows=[];
+      const SKIP_DESC=/^(r[oó]tulos|row label|total|grand total)/i;
       for(let r=start;r<rows.length;r++){
         const row=rows[r];
-        const desc=String(row[dCol]||'').trim();if(!desc)continue;
+        const desc=String(row[dCol]||'').trim();if(!desc||SKIP_DESC.test(desc))continue;
         const ean=eCol>=0?String(row[eCol]||'').trim():'';
         const precoRaw=pCol>=0&&row[pCol]!=null&&row[pCol]!==''?row[pCol]:'';
         const precoNum=precoRaw!==''?parseFloat(String(precoRaw).replace(/[^\d,.]/g,'').replace(',','.')):null;
