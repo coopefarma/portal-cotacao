@@ -731,19 +731,21 @@ function atualizarManual(inp){
 }
 async function salvarManual(){
   const{linkId,fornId,itens,resps}=_manualState;
-  const algumPreco=resps.some(r=>r.preco>0);
-  // Upsert individual: preserva o que já existe, atualiza só o que foi digitado
-  const upserts=itens.map(item=>{
-    const r=resps.find(x=>x.item_id===item.id);
-    return{cotacao_id:cotacaoId,fornecedor_id:fornId,item_id:item.id,preco:r?.preco??null};
-  });
-  await sb.from('cotacao_respostas').delete().eq('cotacao_id',cotacaoId).eq('fornecedor_id',fornId);
-  await sb.from('cotacao_respostas').insert(upserts);
-  // Atualiza status do link
+  // Só insere itens com preço preenchido (evita null em batch e falhas silenciosas)
+  const toInsert=itens
+    .map(item=>{const r=resps.find(x=>x.item_id===item.id);return r?.preco>0?{cotacao_id:cotacaoId,fornecedor_id:fornId,item_id:item.id,preco:r.preco}:null;})
+    .filter(Boolean);
+  const algumPreco=toInsert.length>0;
+  const{error:delErr}=await sb.from('cotacao_respostas').delete().eq('cotacao_id',cotacaoId).eq('fornecedor_id',fornId);
+  if(delErr){toast('Erro ao salvar: '+delErr.message,'err');return;}
+  if(algumPreco){
+    const{error:insErr}=await sb.from('cotacao_respostas').insert(toInsert);
+    if(insErr){toast('Erro ao salvar: '+insErr.message,'err');return;}
+  }
   const novoStatus=algumPreco?'respondido':'aguardando';
   await sb.from('cotacao_links').update({status:novoStatus,respondido_em:algumPreco?new Date().toISOString():null}).eq('id',linkId);
   fecharModal('modal-manual');
-  toast('Preços salvos com sucesso!','ok');
+  toast(`Preços salvos! ${toInsert.length} ite${toInsert.length===1?'m':'ns'} preenchido${toInsert.length===1?'':'s'}.`,'ok');
   carregarDetalhe(cotacaoId);
 }
 async function toggleFecharCotacao(){
