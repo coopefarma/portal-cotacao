@@ -186,6 +186,16 @@ body{font-family:'Inter',sans-serif;background:#f5f7fa;color:#1a1a2e}
 </head>
 <body>
 <!-- TELA FORNECEDOR -->
+<style>
+#tela-fornecedor{display:none;flex-direction:column;min-height:100vh;background:#f5f7fa}
+.tf-topbar{background:#15a563;color:#fff;padding:0 24px;height:56px;display:flex;align-items:center;gap:14px;box-shadow:0 2px 8px rgba(0,0,0,.15);flex-shrink:0}
+.tf-topbar img{height:36px;object-fit:contain;border-radius:4px;background:#fff;padding:3px 6px}
+.tf-topbar-info h3{font-size:15px;font-weight:700;margin:0}
+.tf-topbar-info p{font-size:12px;opacity:.85;margin:0}
+.tf-content{flex:1;padding:20px;max-width:860px;width:100%;margin:0 auto}
+.tf-footer{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1.5px solid #e2e8f0;padding:12px 24px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 -2px 8px rgba(0,0,0,.07)}
+.tf-prog{font-size:13px;color:#64748b}
+</style>
 <div id="tela-fornecedor">
   <div class="tf-topbar">
     <img src="https://raw.githubusercontent.com/coopefarma/portal-cotacao/main/Coopefarma_Marca_1.jpg" alt="Coopefarma"/>
@@ -413,6 +423,19 @@ body{font-family:'Inter',sans-serif;background:#f5f7fa;color:#1a1a2e}
     <div class="modal-titulo" id="mr-titulo">Respostas</div>
     <div id="mr-corpo"></div>
     <div class="modal-btns"><button class="btn btn-outline" onclick="fecharModal('modal-resp')">Fechar</button></div>
+  </div>
+</div>
+<!-- MODAL LANÇAR MANUAL -->
+<div class="modal-overlay" id="modal-manual">
+  <div class="modal" style="max-width:700px">
+    <div class="modal-titulo" id="mm-titulo">✏️ Lançar preços manualmente</div>
+    <p style="font-size:12px;color:#64748b;margin-bottom:12px">Preços já preenchidos pelo auto-cotar aparecem em verde. Preencha os campos em branco e clique em Salvar.</p>
+    <div id="mm-corpo" style="max-height:55vh;overflow-y:auto"></div>
+    <div style="font-size:12px;color:#64748b;margin-top:8px"><span id="mm-contador">0</span> preenchidos / <span id="mm-total">0</span> itens</div>
+    <div class="modal-btns">
+      <button class="btn btn-outline" onclick="fecharModal('modal-manual')">Cancelar</button>
+      <button class="btn btn-primary" onclick="salvarManual()">💾 Salvar</button>
+    </div>
   </div>
 </div>
 <script>
@@ -646,12 +669,79 @@ async function carregarDetalhe(id){
       </div>
       <div class="forn-card-acoes">
         ${lnk.status!=='aguardando'?`<button class="btn btn-outline btn-sm" onclick="verRespostas('${lnk.id}','${(f.nome||'').replace(/'/g,"\\'")}')">Ver respostas</button>`:''}
+        <button class="btn btn-outline btn-sm" style="color:#6366f1" onclick="abrirManual('${lnk.id}','${lnk.fornecedor_id}','${(f.nome||'').replace(/'/g,"\\'")}')">✏️ Lançar manual</button>
         ${['respondido','rascunho','aberto'].includes(lnk.status)?`<button class="btn btn-outline btn-sm" style="color:#f59e0b" onclick="reabrirLink('${lnk.id}')">🔄 Reabrir</button>`:''}
         <button class="btn btn-outline btn-sm" onclick="copiarLink('${lnk.token}')">📋 Link</button>
         <button class="btn btn-outline btn-sm" style="color:#25d366" onclick="abrirWpp('${f.whatsapp||''}','${lnk.token}','${(f.nome||'').replace(/'/g,"\\'")}','${(cot?.titulo||'').replace(/'/g,"\\'")}')">💬 WhatsApp</button>
       </div>
     </div>`;
   }).join('');
+}
+let _manualState={linkId:null,fornId:null,itens:[],resps:[]};
+async function abrirManual(linkId,fornId,nomeForn){
+  _manualState={linkId,fornId,itens:[],resps:[]};
+  document.getElementById('mm-titulo').textContent=`✏️ Lançar preços — ${nomeForn}`;
+  document.getElementById('mm-corpo').innerHTML='<div class="loading-box"><div class="spin"></div></div>';
+  abrirModal('modal-manual');
+  const[{data:itens},{data:resps}]=await Promise.all([
+    sb.from('cotacao_itens').select('*').eq('cotacao_id',cotacaoId).order('descricao'),
+    sb.from('cotacao_respostas').select('*').eq('cotacao_id',cotacaoId).eq('fornecedor_id',fornId)
+  ]);
+  _manualState.itens=itens||[];
+  _manualState.resps=resps||[];
+  renderManual();
+}
+function renderManual(){
+  const{itens,resps}=_manualState;
+  const preench=itens.filter(i=>{const r=resps.find(x=>x.item_id===i.id);return r?.preco>0;}).length;
+  document.getElementById('mm-contador').textContent=preench;
+  document.getElementById('mm-total').textContent=itens.length;
+  document.getElementById('mm-corpo').innerHTML=`<table class="comp-table" style="width:100%">
+    <thead><tr><th>Produto</th><th style="text-align:center;width:60px">Qtd</th><th style="width:140px">Preço unit. (R$)</th></tr></thead>
+    <tbody>${itens.map(item=>{
+      const r=resps.find(x=>x.item_id===item.id);
+      const preco=r?.preco??null;
+      const temPreco=preco!=null&&preco>0;
+      const val=temPreco?String(preco).replace('.',','):'';
+      return `<tr style="${temPreco?'background:#f0fdf4':''}">
+        <td style="font-weight:${temPreco?'600':'400'};color:${temPreco?'#15a563':'#1a1a2e'}">${item.descricao}</td>
+        <td style="text-align:center;color:#64748b">${item.quantidade||1}</td>
+        <td><input type="text" data-item="${item.id}" value="${val}" placeholder="0,00"
+          style="width:100%;padding:5px 8px;border:1.5px solid ${temPreco?'#15a563':'#e2e8f0'};border-radius:6px;font-size:13px;text-align:right;font-family:inherit"
+          oninput="atualizarManual(this)" onfocus="this.select()"/></td>
+      </tr>`;
+    }).join('')}</tbody>
+  </table>`;
+}
+function atualizarManual(inp){
+  const itemId=inp.dataset.item;
+  const val=parsePreco(inp.value);
+  const idx=_manualState.resps.findIndex(x=>x.item_id===itemId);
+  if(idx>=0)_manualState.resps[idx].preco=val;
+  else _manualState.resps.push({item_id:itemId,preco:val,cotacao_id:cotacaoId,fornecedor_id:_manualState.fornId});
+  const temPreco=val!=null&&val>0;
+  inp.style.borderColor=temPreco?'#15a563':'#e2e8f0';
+  inp.closest('tr').style.background=temPreco?'#f0fdf4':'';
+  inp.closest('tr').querySelector('td').style.color=temPreco?'#15a563':'#1a1a2e';
+  const preench=_manualState.itens.filter(i=>{const r=_manualState.resps.find(x=>x.item_id===i.id);return r?.preco>0;}).length;
+  document.getElementById('mm-contador').textContent=preench;
+}
+async function salvarManual(){
+  const{linkId,fornId,itens,resps}=_manualState;
+  const algumPreco=resps.some(r=>r.preco>0);
+  // Upsert individual: preserva o que já existe, atualiza só o que foi digitado
+  const upserts=itens.map(item=>{
+    const r=resps.find(x=>x.item_id===item.id);
+    return{cotacao_id:cotacaoId,fornecedor_id:fornId,item_id:item.id,preco:r?.preco??null};
+  });
+  await sb.from('cotacao_respostas').delete().eq('cotacao_id',cotacaoId).eq('fornecedor_id',fornId);
+  await sb.from('cotacao_respostas').insert(upserts);
+  // Atualiza status do link
+  const novoStatus=algumPreco?'respondido':'aguardando';
+  await sb.from('cotacao_links').update({status:novoStatus,respondido_em:algumPreco?new Date().toISOString():null}).eq('id',linkId);
+  fecharModal('modal-manual');
+  toast('Preços salvos com sucesso!','ok');
+  carregarDetalhe(cotacaoId);
 }
 async function toggleFecharCotacao(){
   const fechada=cotacaoStatus==='fechada';
