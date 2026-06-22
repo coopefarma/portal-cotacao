@@ -646,7 +646,10 @@ async function carregarDetalhe(id){
   const nItens=itens?.length||0;
   el.innerHTML=links.map(lnk=>{
     const f=lnk.fornecedores||{};
-    const resps=(respostas||[]).filter(r=>r.fornecedor_id===lnk.fornecedor_id);
+    const respsRaw=(respostas||[]).filter(r=>r.fornecedor_id===lnk.fornecedor_id);
+    // Deduplica por item_id (mantém o de maior preço em caso de duplicata)
+    const respMap={};respsRaw.forEach(r=>{if(!respMap[r.item_id]||r.preco>respMap[r.item_id].preco)respMap[r.item_id]=r;});
+    const resps=Object.values(respMap);
     const preench=resps.filter(r=>r.preco!=null&&r.preco>0).length;
     const valorTotal=resps.reduce((s,r)=>{const item=(itens||[]).find(i=>i.id===r.item_id);return s+(r.preco||0)*(item?.quantidade||1);},0);
     const pedMin=f.pedido_minimo||0;
@@ -794,7 +797,7 @@ async function verRespostas(linkId,nomeForn){
 }
 let _dispForn=[];
 async function abrirDisparar(){
-  const{data:forn}=await sb.from('fornecedores').select('*').eq('ativo',true).order('nome');
+  const{data:forn}=await sb.from('fornecedores').select('*').neq('ativo',false).order('nome');
   const{data:existentes}=await sb.from('cotacao_links').select('fornecedor_id').eq('cotacao_id',cotacaoId);
   const jaEnv=new Set((existentes||[]).map(e=>e.fornecedor_id));
   _dispForn=forn||[];
