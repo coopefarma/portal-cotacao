@@ -907,9 +907,10 @@ async function carregarFornecedores(){
       <td>${f.pedido_minimo?fmtR(f.pedido_minimo):'—'}</td>
       <td><span class="badge ${f.ativo!==false?'badge-verde':'badge-cinza'}">${f.ativo!==false?'Ativo':'Inativo'}</span></td>
       <td>${olCell}</td>
-      <td style="display:flex;gap:5px">
+      <td style="display:flex;gap:5px;flex-wrap:wrap">
         <button class="btn btn-outline btn-sm" onclick='editarForn(${JSON.stringify(f)})'>Editar</button>
         <button class="btn btn-outline btn-sm" style="color:#15a563" onclick="abrirModalOL('${f.id}','${(f.nome||'').replace(/'/g,"\\'")}')">📥 OL</button>
+        ${olDate?`<button class="btn btn-outline btn-sm" style="color:#e8112d;border-color:#e8112d" onclick="deletarOL('${f.id}','${(f.nome||'').replace(/'/g,"\\'")}')">🗑️ OL</button>`:''}
       </td>
     </tr>`;
   }).join('');
@@ -1098,6 +1099,15 @@ async function salvarOL(){
   }
   fecharModal('modal-ol');
   toast(`OL de ${olState.fornNome} salva com ${olState.itens.length} produto(s)!`,'ok');
+  carregarFornecedores();
+}
+
+async function deletarOL(fornId, fornNome){
+  if(!confirm(`Excluir a OL de "${fornNome}"?\nIsso removerá todos os itens da lista de preços importada. Essa ação não pode ser desfeita.`))return;
+  await sb.from('fornecedor_ol_itens').delete().eq('fornecedor_id',fornId);
+  const{error}=await sb.from('fornecedor_ols').delete().eq('fornecedor_id',fornId);
+  if(error){toast('Erro ao excluir OL: '+error.message,'err');return;}
+  toast(`OL de ${fornNome} excluída com sucesso.`,'ok');
   carregarFornecedores();
 }
 
