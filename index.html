@@ -299,6 +299,7 @@ body{font-family:'Inter',sans-serif;background:#f5f7fa;color:#1a1a2e}
         <div><div class="page-title" id="det-titulo">Cotação</div><div class="page-sub" id="det-sub"></div></div>
         <div class="page-header-btns">
           <button class="btn btn-outline" onclick="irPara('cotacoes')">← Voltar</button>
+          <button class="btn btn-outline" onclick="carregarDetalhe(cotacaoId)" title="Atualizar contagens">🔄</button>
           <button class="btn btn-outline" id="btn-disparar" onclick="abrirDisparar()">📲 Disparar</button>
           <button class="btn btn-outline" id="btn-fechar-cot" style="display:none" onclick="toggleFecharCotacao()"></button>
           <button class="btn btn-outline" id="btn-autocotar" style="display:none" onclick="abrirAutoCotar()">⚡ Auto-cotar</button>
@@ -1100,6 +1101,11 @@ async function salvarFornecedor(){
 async function initFornecedor(token){
   const{data:lnk,error}=await sb.from('cotacao_links').select('*,cotacoes(*),fornecedores(*)').eq('token',token).single();
   if(error||!lnk){document.getElementById('tf-itens').innerHTML='<div class="empty">Link inválido ou expirado. Solicite um novo link.</div>';return;}
+  // Aviso se estiver no browser do WhatsApp/Instagram
+  const ua=navigator.userAgent||'';
+  if(/FBAN|FBAV|Instagram|WhatsApp/.test(ua)){
+    document.getElementById('tf-aviso').innerHTML='<div class="aviso-box aviso-amarelo">⚠️ <strong>Atenção:</strong> Você está usando o navegador interno do WhatsApp ou Instagram. Para garantir o envio, abra este link no <strong>Chrome</strong> ou <strong>Safari</strong>. Copie o endereço da barra acima e cole em outro navegador.</div>';
+  }
   fornState={token,lnk,itens:[],cotacaoId:lnk.cotacao_id,fornecedorId:lnk.fornecedor_id};
   const cot=lnk.cotacoes||{};const forn=lnk.fornecedores||{};
   document.getElementById('tf-titulo-cot').textContent=cot.titulo||'Cotação';
