@@ -961,7 +961,7 @@ function renderPedido(){
         `<span>${a.nome}</span><span>${fmtR(a.preco)}</span></div>`).join('');
       return `<tr><td><div style="display:flex;align-items:center;gap:6px"><button class="btn-alt" onclick="toggleAlt('${itemId}')" title="Trocar fornecedor">⇄</button><span>${item.descricao}</span></div>`+
         `<div class="ped-alt-panel" id="pedalt-${itemId}"><div style="font-size:11px;color:#64748b;margin-bottom:5px;font-weight:600">SELECIONE O FORNECEDOR:</div>${altsHtml}</div></td>`+
-        `<td style="color:#64748b;font-size:12px">${item.ean||'—'}</td><td style="text-align:center">${qty}</td>`+
+        `<td style="color:#64748b;font-size:12px">${item.ean||'—'}</td><td style="text-align:center"><input type="number" min="1" value="${qty}" style="width:56px;text-align:center;border:1.5px solid #e0e0e0;border-radius:6px;padding:3px 4px;font-size:12px;font-family:'Inter',sans-serif" onchange="atualizarQtd('${item.id}',this.value)" onclick="event.stopPropagation()"/></td>`+
         `<td style="text-align:right">${fmtR(preco)}</td><td style="text-align:right;font-weight:600">${fmtR(subtotal)}</td></tr>`;
     }).join('');
     return `<div class="ped-forn-section"><div class="ped-forn-header">`+
@@ -1135,7 +1135,7 @@ async function initFornecedor(token){
         `<div class="prod-input-wrap"><label>R$</label><input type="text" class="preco-inp ${precoEx!=null?'ok':''}" id="pi-${item.id}" value="${precoFmt}" placeholder="0,00" inputmode="decimal" ${jaRespondeu?'readonly':''} oninput="onPrInput(this,'${item.id}')"/></div></div>`;
     }).join('')}</div>`;
   document.getElementById('tf-total').textContent=itens.length;atualizarProgForn();
-  if(!jaRespondeu){document.getElementById('tf-footer').style.display='flex';setInterval(()=>_salvarRespostas('rascunho',true),90000);}
+  if(!jaRespondeu){document.getElementById('tf-footer').style.display='flex';fornState._autoSave=setInterval(()=>_salvarRespostas('rascunho',true),90000);}
 }
 function onPrInput(el,itemId){
   el.value=el.value.replace(/[^\d,]/g,'');const temValor=el.value.trim()!=='';
@@ -1168,6 +1168,8 @@ async function enviarRespostas(){
 async function _enviarFinal(){
   try{
     await _salvarRespostas('respondido',false);
+    // Parar o auto-save — respostas já foram enviadas
+    if(fornState._autoSave){clearInterval(fornState._autoSave);fornState._autoSave=null;}
     toast('✅ Respostas enviadas com sucesso!','ok');
     document.getElementById('tf-footer').style.display='none';
     document.querySelectorAll('.preco-inp').forEach(el=>el.readOnly=true);
@@ -1457,6 +1459,17 @@ async function confirmarAutoCotar(){
   carregarDetalhe(cotacaoId);
 }
 
+async function atualizarQtd(itemId, novaQtd){
+  const qty=Math.max(1,parseInt(novaQtd)||1);
+  const{error}=await sb.from('cotacao_itens').update({quantidade:qty}).eq('id',itemId);
+  if(error){toast('Erro ao salvar quantidade: '+error.message,'err');return;}
+  // Atualizar localmente no pedidoData sem recarregar tudo
+  if(pedidoData?.itens){
+    const item=pedidoData.itens.find(i=>i.id===itemId);
+    if(item)item.quantidade=qty;
+    renderPedido();
+  }
+}
 let _refreshTimer=null;
 function iniciarAutoRefresh(){
   pararAutoRefresh();
