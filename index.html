@@ -981,65 +981,73 @@ async function carregarPedido(id){
   pedidoData={itens:itens||[],comResp,resps:resps||[],cotTitulo:cot?.titulo||'',cotacaoId:id};
   renderPedido();
 }
+// Estado persistente do pedido (faturado, excluídos) por cotação
+function _pedLsKey(){return'ped_estado_'+(pedidoData?.cotacaoId||cotacaoId);}
+function _pedGetEstado(){try{return JSON.parse(localStorage.getItem(_pedLsKey())||'{}')}catch{return{}};}
+function _pedSaveEstado(est){localStorage.setItem(_pedLsKey(),JSON.stringify(est));}
+function toggleFaturado(itemId){
+  const est=_pedGetEstado();
+  est.faturado=est.faturado||{};
+  est.faturado[itemId]=!est.faturado[itemId];
+  _pedSaveEstado(est);renderPedido();
+}
+function excluirItemPedido(itemId){
+  if(!confirm('Excluir este produto do pedido?'))return;
+  const est=_pedGetEstado();
+  est.excluidos=est.excluidos||[];
+  if(!est.excluidos.includes(itemId))est.excluidos.push(itemId);
+  _pedSaveEstado(est);renderPedido();
+}
+function restaurarExcluidos(){
+  const est=_pedGetEstado();est.excluidos=[];_pedSaveEstado(est);renderPedido();
+}
 function renderPedido(){
   const{itens,comResp,resps}=pedidoData;
+  const est=_pedGetEstado();
+  const faturado=est.faturado||{};
+  const excluidos=new Set(est.excluidos||[]);
+  const itensAtivos=itens.filter(i=>!excluidos.has(i.id));
   const grupos={};
   comResp.forEach(lnk=>{grupos[lnk.fornecedor_id]={nome:lnk.fornecedores?.nome||'—',itens:[]};});
-  itens.forEach(item=>{const fId=pedidoState[item.id];if(fId&&grupos[fId])grupos[fId].itens.push(item.id);});
+  itensAtivos.forEach(item=>{const fId=pedidoState[item.id];if(fId&&grupos[fId])grupos[fId].itens.push(item.id);});
   const html=Object.entries(grupos).filter(([,g])=>g.itens.length>0).map(([fornId,g])=>{
-    let totalForn=0;
+    let totalForn=0;let totalFat=0;let contFat=0;
     const rows=g.itens.map(itemId=>{
-      const item=itens.find(i=>i.id===itemId);
+      const item=itensAtivos.find(i=>i.id===itemId);
       const r=resps.find(x=>x.item_id===itemId&&x.fornecedor_id===fornId);
       const preco=r?.preco||0;const qty=item.quantidade||1;const subtotal=preco*qty;totalForn+=subtotal;
+      const fat=!!faturado[itemId];if(fat){totalFat+=subtotal;contFat++;}
+      const ultPreco=item.ultimo_preco;
+      const varPct=ultPreco&&preco>0?Math.round((preco-ultPreco)/ultPreco*100):null;
+      const varHtml=varPct!=null?`<span style="font-size:11px;font-weight:700;color:${varPct<=0?'#15a563':'#ef4444'}">${varPct>0?'+':''  }${varPct}%</span>`:`<span style="color:#94a3b8">—</span>`;
       const alts=comResp.map(lnk=>{
         const ar=resps.find(x=>x.item_id===itemId&&x.fornecedor_id===lnk.fornecedor_id);
         return{fornId:lnk.fornecedor_id,nome:lnk.fornecedores?.nome||'—',preco:ar?.preco??null};
       }).filter(a=>a.preco!=null&&a.preco>0).sort((a,b)=>a.preco-b.preco);
       const altsHtml=alts.map(a=>`<div class="ped-alt-opt ${a.fornId===fornId?'ativo':''}" onclick="${a.fornId!==fornId?`trocarVencedor('${itemId}','${a.fornId}')`:''}">`+
         `<span>${a.nome}</span><span>${fmtR(a.preco)}</span></div>`).join('');
-      return `<tr><td><div style="display:flex;align-items:center;gap:6px"><button class="btn-alt" onclick="toggleAlt('${itemId}')" title="Trocar fornecedor">⇄</button><span>${item.descricao}</span></div>`+
+      const rowStyle=fat?'background:#f0fdf4;opacity:.8;':''  ;
+      return `<tr style="${rowStyle}"><td style="text-align:center;width:36px"><input type="checkbox" ${fat?'checked':''} title="Faturado" style="width:16px;height:16px;cursor:pointer;accent-color:#15a563" onchange="toggleFaturado('${itemId}')"></td>`+
+        `<td><div style="display:flex;align-items:center;gap:6px"><button class="btn-alt" onclick="toggleAlt('${itemId}')" title="Trocar fornecedor">⇄</button><span style="${fat?'text-decoration:line-through;color:#94a3b8;':''}">${item.descricao}</span></div>`+
         `<div class="ped-alt-panel" id="pedalt-${itemId}"><div style="font-size:11px;color:#64748b;margin-bottom:5px;font-weight:600">SELECIONE O FORNECEDOR:</div>${altsHtml}</div></td>`+
-        `<td style="color:#64748b;font-size:12px">${item.ean||'—'}</td><td style="text-align:center"><input type="number" min="1" value="${qty}" style="width:56px;text-align:center;border:1.5px solid #e0e0e0;border-radius:6px;padding:3px 4px;font-size:12px;font-family:'Inter',sans-serif" onchange="atualizarQtd('${item.id}',this.value)" onclick="event.stopPropagation()"/></td>`+
-        `<td style="text-align:right">${fmtR(preco)}</td><td style="text-align:right;font-weight:600">${fmtR(subtotal)}</td></tr>`;
+        `<td style="color:#64748b;font-size:12px">${item.ean||'—'}</td>`+
+        `<td style="text-align:center"><input type="number" min="1" value="${qty}" style="width:56px;text-align:center;border:1.5px solid #e0e0e0;border-radius:6px;padding:3px 4px;font-size:12px;font-family:'Inter',sans-serif" onchange="atualizarQtd('${item.id}',this.value)" onclick="event.stopPropagation()"/></td>`+
+        `<td style="text-align:right;color:#64748b;font-size:12px">${ultPreco?fmtR(ultPreco):'—'}</td>`+
+        `<td style="text-align:center">${varHtml}</td>`+
+        `<td style="text-align:right">${fmtR(preco)}</td><td style="text-align:right;font-weight:600">${fmtR(subtotal)}</td>`+
+        `<td style="text-align:center;width:32px"><button onclick="excluirItemPedido('${itemId}')" title="Excluir do pedido" style="background:none;border:none;cursor:pointer;color:#ef4444;font-size:15px;padding:2px 4px">🗑</button></td></tr>`;
     }).join('');
+    const fatInfo=contFat>0?`<span style="font-size:12px;color:#15a563;margin-left:10px">✅ ${contFat} faturado(s): ${fmtR(totalFat)}</span>`:''  ;
     return `<div class="ped-forn-section"><div class="ped-forn-header">`+
-      `<div class="ped-forn-nome">🚚 ${g.nome} <span style="font-size:12px;font-weight:400;color:#64748b;margin-left:6px">${g.itens.length} item(ns)</span></div>`+
+      `<div class="ped-forn-nome">🚚 ${g.nome} <span style="font-size:12px;font-weight:400;color:#64748b;margin-left:6px">${g.itens.length} item(ns)</span>${fatInfo}</div>`+
       `<div style="display:flex;align-items:center;gap:12px"><span style="font-size:14px;font-weight:700;color:#15a563">Total: ${fmtR(totalForn)}</span>`+
-      `<button class="btn btn-outline btn-sm" onclick="exportarExcelForn('${fornId}','${g.nome.replace(/'/g,"\\'")}')">📥 Exportar Excel</button></div></div>`+
-      `<table class="ped-table"><thead><tr><th>Produto</th><th>EAN/Cód.</th><th style="text-align:center">Qtd</th><th style="text-align:right">Preço Unit.</th><th style="text-align:right">Total</th></tr></thead>`+
-      `<tbody>${rows}</tbody><tfoot><tr class="ped-total-row"><td colspan="4" style="text-align:right;padding:10px">Total do pedido:</td><td style="text-align:right;padding:10px">${fmtR(totalForn)}</td></tr></tfoot></table></div>`;
+      `<button class="btn btn-outline btn-sm" onclick="exportarExcelForn('${fornId}','${g.nome.replace(/'/g,"\\'")}')" >📥 Exportar Excel</button></div></div>`+
+      `<table class="ped-table"><thead><tr><th style="width:36px" title="Marcar faturado">✅</th><th>Produto</th><th>EAN/Cód.</th><th style="text-align:center">Qtd</th><th style="text-align:right">Últ. Preço</th><th style="text-align:center">Var%</th><th style="text-align:right">Preço Unit.</th><th style="text-align:right">Total</th><th style="width:32px"></th></tr></thead>`+
+      `<tbody>${rows}</tbody><tfoot><tr class="ped-total-row"><td colspan="7" style="text-align:right;padding:10px">Total do pedido:</td><td style="text-align:right;padding:10px">${fmtR(totalForn)}</td><td></td></tr></tfoot></table></div>`;
   }).join('');
-  // Calcular os três totalizadores
-  let totalMinimo=0,totalMaximo=0,totalPedido=0;
-  itens.forEach(item=>{
-    const qty=item.quantidade||1;
-    const precos=comResp.map(lnk=>{const r=resps.find(x=>x.item_id===item.id&&x.fornecedor_id===lnk.fornecedor_id);return r?.preco??null;}).filter(p=>p!=null&&p>0);
-    if(precos.length){totalMinimo+=Math.min(...precos)*qty;totalMaximo+=Math.max(...precos)*qty;}
-    const fornEsc=pedidoState[item.id];
-    if(fornEsc){const r=resps.find(x=>x.item_id===item.id&&x.fornecedor_id===fornEsc);if(r?.preco)totalPedido+=r.preco*qty;}
-  });
-  const economia=totalMaximo-totalMinimo;
-  const pctEco=totalMaximo>0?Math.round(economia/totalMaximo*100):0;
-  const resumoHtml=`<div style="background:#fff;border-radius:12px;padding:18px 22px;margin-bottom:20px;box-shadow:0 1px 4px rgba(0,0,0,.08);display:flex;gap:24px;flex-wrap:wrap;align-items:center;border-left:5px solid #15a563">
-    <div style="flex:1;min-width:160px">
-      <div style="font-size:11px;font-weight:700;color:#15a563;text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px">Total pelo menor preço</div>
-      <div style="font-size:26px;font-weight:800;color:#15a563;font-family:'Poppins',sans-serif">${fmtR(totalMinimo)}</div>
-      <div style="font-size:11px;color:#64748b;margin-top:2px">valor a ser pago</div>
-    </div>
-    <div style="flex:1;min-width:140px">
-      <div style="font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px">Maior preço encontrado</div>
-      <div style="font-size:17px;font-weight:700;color:#94a3b8">${fmtR(totalMaximo)}</div>
-      <div style="font-size:11px;color:#94a3b8;margin-top:2px">se fossem os maiores preços</div>
-    </div>
-    <div style="flex:1;min-width:140px;background:#f0fdf4;border-radius:10px;padding:12px 16px">
-      <div style="font-size:11px;font-weight:700;color:#15a563;text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px">💰 Economia da cotação</div>
-      <div style="font-size:22px;font-weight:800;color:#15a563;font-family:'Poppins',sans-serif">${fmtR(economia)}</div>
-      <div style="font-size:11px;color:#15a563;margin-top:2px">${pctEco}% de economia vs. maior preço</div>
-    </div>
-  </div>`;
-  document.getElementById('ped-corpo').innerHTML=(html?(resumoHtml+html):'<div class="empty">Nenhum item com proposta recebida.</div>');
-}
+  const nExcluidos=excluidos.size;
+  const btnRestaurar=nExcluidos>0?`<div style="text-align:center;margin-bottom:12px"><button class="btn btn-outline btn-sm" onclick="restaurarExcluidos()">↩ Restaurar ${nExcluidos} produto(s) excluído(s)</button></div>`:''  ;
+
 function toggleAlt(itemId){const panel=document.getElementById('pedalt-'+itemId);if(panel)panel.classList.toggle('aberto');}
 function trocarVencedor(itemId,novoFornId){
   pedidoState[itemId]=novoFornId;renderPedido();
