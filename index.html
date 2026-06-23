@@ -463,7 +463,13 @@ async function init(){
   const token=params.get('t')||params.get('token');
   if(token){document.getElementById('tela-fornecedor').style.display='block';await initFornecedor(token);return;}
   const{data:{session}}=await sb.auth.getSession();
-  if(session){const uel=document.getElementById('u-email');if(uel)uel.textContent=session.user.email;document.getElementById('tela-app').style.display='flex';irPara('cotacoes');}
+  if(session){
+    const uel=document.getElementById('u-email');if(uel)uel.textContent=session.user.email;
+    document.getElementById('tela-app').style.display='flex';
+    // Restaurar cotação aberta após F5
+    const saved=sessionStorage.getItem('cotacaoId');
+    if(saved){cotacaoId=saved;irPara('detalhe');}else{irPara('cotacoes');}
+  }
   else{document.getElementById('tela-login').style.display='flex';}
 }
 
@@ -529,7 +535,7 @@ async function carregarCotacoes(){
     </div>`;
   }).join('');
 }
-function abrirCotacao(id){cotacaoId=id;irPara('detalhe');}
+function abrirCotacao(id){cotacaoId=id;sessionStorage.setItem('cotacaoId',id);irPara('detalhe');}
 async function deletarCotacao(id,titulo){
   if(!confirm(`Excluir a cotação "${titulo}"?\nIsso apagará todos os itens, links e respostas. Essa ação não pode ser desfeita.`))return;
   await sb.from('cotacao_respostas').delete().eq('cotacao_id',id);
@@ -765,11 +771,11 @@ async function toggleFecharCotacao(){
   carregarDetalhe(cotacaoId);
 }
 async function reabrirLink(linkId){
-  if(!confirm('Reabrir este link? O fornecedor poderá preencher novamente.'))return;
-  const{data:lnk}=await sb.from('cotacao_links').select('fornecedor_id').eq('id',linkId).single();
-  await sb.from('cotacao_links').update({status:'aguardando',respondido_em:null}).eq('id',linkId);
-  if(lnk?.fornecedor_id)await sb.from('cotacao_respostas').delete().eq('cotacao_id',cotacaoId).eq('fornecedor_id',lnk.fornecedor_id);
-  toast('Link reaberto!','ok');carregarDetalhe(cotacaoId);
+  if(!confirm('Reabrir este link? O fornecedor poderá editar e reenviar as respostas.'))return;
+  // Apenas reseta o status — NÃO apaga respostas (ficam como rascunho para edição)
+  await sb.from('cotacao_links').update({status:'rascunho',respondido_em:null}).eq('id',linkId);
+  toast('Link reaberto! As respostas anteriores foram mantidas.','ok');
+  carregarDetalhe(cotacaoId);
 }
 async function toggleParceiro(linkId,valor,btn){
   await sb.from('cotacao_links').update({parceiro:valor}).eq('id',linkId);
