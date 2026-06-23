@@ -1046,8 +1046,37 @@ function renderPedido(){
       `<tbody>${rows}</tbody><tfoot><tr class="ped-total-row"><td colspan="7" style="text-align:right;padding:10px">Total do pedido:</td><td style="text-align:right;padding:10px">${fmtR(totalForn)}</td><td></td></tr></tfoot></table></div>`;
   }).join('');
   const nExcluidos=excluidos.size;
-  const btnRestaurar=nExcluidos>0?`<div style="text-align:center;margin-bottom:12px"><button class="btn btn-outline btn-sm" onclick="restaurarExcluidos()">↩ Restaurar ${nExcluidos} produto(s) excluído(s)</button></div>`:''  ;
-
+  const btnRestaurar=nExcluidos>0?`<div style="text-align:center;margin-bottom:12px"><button class="btn btn-outline btn-sm" onclick="restaurarExcluidos()">↩ Restaurar ${nExcluidos} produto(s) excluído(s)</button></div>`:'';
+  // Calcular os três totalizadores
+  let totalMinimo=0,totalMaximo=0,totalPedido=0;
+  itensAtivos.forEach(item=>{
+    const qty=item.quantidade||1;
+    const precos=comResp.map(lnk=>{const r=resps.find(x=>x.item_id===item.id&&x.fornecedor_id===lnk.fornecedor_id);return r?.preco??null;}).filter(p=>p!=null&&p>0);
+    if(precos.length){totalMinimo+=Math.min(...precos)*qty;totalMaximo+=Math.max(...precos)*qty;}
+    const fornEsc=pedidoState[item.id];
+    if(fornEsc){const r=resps.find(x=>x.item_id===item.id&&x.fornecedor_id===fornEsc);if(r?.preco)totalPedido+=r.preco*qty;}
+  });
+  const economia=totalMaximo-totalMinimo;
+  const pctEco=totalMaximo>0?Math.round(economia/totalMaximo*100):0;
+  const resumoHtml=`<div style="background:#fff;border-radius:12px;padding:18px 22px;margin-bottom:20px;box-shadow:0 1px 4px rgba(0,0,0,.08);display:flex;gap:24px;flex-wrap:wrap;align-items:center;border-left:5px solid #15a563">
+    <div style="flex:1;min-width:160px">
+      <div style="font-size:11px;font-weight:700;color:#15a563;text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px">Total pelo menor preço</div>
+      <div style="font-size:26px;font-weight:800;color:#15a563;font-family:'Poppins',sans-serif">${fmtR(totalMinimo)}</div>
+      <div style="font-size:11px;color:#64748b;margin-top:2px">valor a ser pago</div>
+    </div>
+    <div style="flex:1;min-width:140px">
+      <div style="font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px">Maior preço encontrado</div>
+      <div style="font-size:17px;font-weight:700;color:#94a3b8">${fmtR(totalMaximo)}</div>
+      <div style="font-size:11px;color:#94a3b8;margin-top:2px">se fossem os maiores preços</div>
+    </div>
+    <div style="flex:1;min-width:140px;background:#f0fdf4;border-radius:10px;padding:12px 16px">
+      <div style="font-size:11px;font-weight:700;color:#15a563;text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px">💰 Economia da cotação</div>
+      <div style="font-size:22px;font-weight:800;color:#15a563;font-family:'Poppins',sans-serif">${fmtR(economia)}</div>
+      <div style="font-size:11px;color:#15a563;margin-top:2px">${pctEco}% de economia vs. maior preço</div>
+    </div>
+  </div>`;
+  document.getElementById('ped-corpo').innerHTML=(html?(resumoHtml+btnRestaurar+html):'<div class="empty">Nenhum item com proposta recebida.</div>');
+}
 function toggleAlt(itemId){const panel=document.getElementById('pedalt-'+itemId);if(panel)panel.classList.toggle('aberto');}
 function trocarVencedor(itemId,novoFornId){
   pedidoState[itemId]=novoFornId;renderPedido();
