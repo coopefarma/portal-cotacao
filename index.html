@@ -638,7 +638,7 @@ async function carregarDetalhe(id){
     sb.from('cotacoes').select('*').eq('id',id).single(),
     sb.from('cotacao_itens').select('*').eq('cotacao_id',id),
     sb.from('cotacao_links').select('*,fornecedores(*)').eq('cotacao_id',id),
-    sb.from('cotacao_respostas').select('*').eq('cotacao_id',id)
+    sb.from('cotacao_respostas').select('*').eq('cotacao_id',id).limit(10000)
   ]);
   if(cot){
     document.getElementById('det-titulo').textContent=cot.titulo||'Cotação';
@@ -937,7 +937,7 @@ async function carregarComparacao(id){
     sb.from('cotacoes').select('titulo').eq('id',id).single(),
     sb.from('cotacao_itens').select('*').eq('cotacao_id',id),
     sb.from('cotacao_links').select('*,fornecedores(nome)').eq('cotacao_id',id),
-    sb.from('cotacao_respostas').select('*').eq('cotacao_id',id)
+    sb.from('cotacao_respostas').select('*').eq('cotacao_id',id).limit(10000)
   ]);
   document.getElementById('comp-sub').textContent=cot?.titulo||'';
   const fornComDados=new Set((resps||[]).filter(r=>r.preco>0).map(r=>r.fornecedor_id));
@@ -962,7 +962,7 @@ async function carregarPedido(id){
     sb.from('cotacoes').select('titulo').eq('id',id).single(),
     sb.from('cotacao_itens').select('*').eq('cotacao_id',id),
     sb.from('cotacao_links').select('*,fornecedores(nome)').eq('cotacao_id',id),
-    sb.from('cotacao_respostas').select('*').eq('cotacao_id',id)
+    sb.from('cotacao_respostas').select('*').eq('cotacao_id',id).limit(10000)
   ]);
   document.getElementById('ped-sub').textContent=cot?.titulo||'';
   const fornComDados=new Set((resps||[]).filter(r=>r.preco>0).map(r=>r.fornecedor_id));
@@ -1508,57 +1508,4 @@ function renderAutoCotar(){
 }
 function toggleMatch(itemId,fornId){
   if(!autoState.matches[itemId]?.[fornId])return;
-  autoState.matches[itemId][fornId].ativo=!autoState.matches[itemId][fornId].ativo;
-  renderAutoCotar();
-}
-async function confirmarAutoCotar(){
-  const{itens,fornecedores,matches}=autoState;
-  const{data:linksExist}=await sb.from('cotacao_links').select('id,fornecedor_id,status').eq('cotacao_id',cotacaoId);
-  const linkMap={};(linksExist||[]).forEach(l=>linkMap[l.fornecedor_id]={id:l.id,status:l.status});
-  const fornIds=Object.keys(fornecedores);
-  let total=0;
-  for(const fornId of fornIds){
-    const ativos=itens.filter(i=>matches[i.id]?.[fornId]?.ativo&&matches[i.id][fornId].item.preco!=null);
-    if(!ativos.length)continue;
-    if(linkMap[fornId]?.status==='respondido'){continue;}
-    if(linkMap[fornId]){
-      await sb.from('cotacao_links').update({status:'respondido',respondido_em:new Date().toISOString()}).eq('id',linkMap[fornId].id);
-    }else{
-      await sb.from('cotacao_links').insert({cotacao_id:cotacaoId,fornecedor_id:fornId,token:crypto.randomUUID(),status:'respondido',parceiro:null,respondido_em:new Date().toISOString()});
-    }
-    await sb.from('cotacao_respostas').delete().eq('cotacao_id',cotacaoId).eq('fornecedor_id',fornId);
-    const respostas=itens.map(item=>{
-      const m=matches[item.id]?.[fornId];
-      const preco=m?.ativo?(m.precoEfetivo??m.item.preco??null):null;
-      return{cotacao_id:cotacaoId,fornecedor_id:fornId,item_id:item.id,preco};
-    });
-    await sb.from('cotacao_respostas').insert(respostas);
-    total++;
-  }
-  fecharModal('modal-autocotar');
-  toast(total>0?`✅ ${total} fornecedor(es) lançados no ranking!`:'Nenhum match ativo para lançar.','ok');
-  carregarDetalhe(cotacaoId);
-}
-
-async function atualizarQtd(itemId, novaQtd){
-  const qty=Math.max(1,parseInt(novaQtd)||1);
-  const{error}=await sb.from('cotacao_itens').update({quantidade:qty}).eq('id',itemId);
-  if(error){toast('Erro ao salvar quantidade: '+error.message,'err');return;}
-  // Atualizar localmente no pedidoData sem recarregar tudo
-  if(pedidoData?.itens){
-    const item=pedidoData.itens.find(i=>i.id===itemId);
-    if(item)item.quantidade=qty;
-    renderPedido();
-  }
-}
-let _refreshTimer=null;
-function iniciarAutoRefresh(){
-  pararAutoRefresh();
-  _refreshTimer=setInterval(()=>{if(cotacaoId&&document.getElementById('pg-detalhe').classList.contains('ativo'))carregarDetalhe(cotacaoId);},45000);
-}
-function pararAutoRefresh(){if(_refreshTimer){clearInterval(_refreshTimer);_refreshTimer=null;}}
-
-init();
-</script>
-</body>
-</html>
+  autoState.matches[itemId][fornId].ativo=!autoState.matches[itemId][for
