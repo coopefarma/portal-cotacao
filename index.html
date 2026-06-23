@@ -1508,4 +1508,35 @@ function renderAutoCotar(){
 }
 function toggleMatch(itemId,fornId){
   if(!autoState.matches[itemId]?.[fornId])return;
-  autoState.matches[itemId][fornId].ativo=!autoState.matches[itemId][for
+  autoState.matches[itemId][fornId].ativo=!autoState.matches[itemId][fornId].ativo;
+  renderAutoCotar();
+}
+async function confirmarAutoCotar(){
+  let total=0;
+  for(const[fornId,matchesForForn]of Object.entries(autoState.matches)){
+    const toInsert=Object.entries(matchesForForn)
+      .filter(([,m])=>m.ativo&&m.preco>0)
+      .map(([itemId,m])=>({cotacao_id:cotacaoId,fornecedor_id:fornId,item_id:itemId,preco:m.preco}));
+    if(toInsert.length===0)continue;
+    await sb.from('cotacao_respostas').upsert(toInsert,{onConflict:'cotacao_id,fornecedor_id,item_id',ignoreDuplicates:false});
+    total++;
+  }
+  fecharModal('modal-autocotar');
+  toast(total>0?`✅ ${total} fornecedor(es) lançados no ranking!`:'Nenhum match ativo para lançar.','ok');
+  carregarDetalhe(cotacaoId);
+}
+async function atualizarQtd(itemId,novaQtd){
+  const qty=Math.max(1,parseInt(novaQtd)||1);
+  const{error}=await sb.from('cotacao_itens').update({quantidade:qty}).eq('id',itemId);
+  if(error){toast('Erro ao salvar quantidade: '+error.message,'err');return;}
+  if(pedidoData?.itens){const item=pedidoData.itens.find(i=>i.id===itemId);if(item)item.quantidade=qty;renderPedido();}
+}
+let _refreshTimer=null;
+function iniciarAutoRefresh(){
+  pararAutoRefresh();
+  _refreshTimer=setInterval(()=>{if(cotacaoId&&document.getElementById('pg-detalhe').classList.contains('ativo'))carregarDetalhe(cotacaoId);},45000);
+}
+function pararAutoRefresh(){if(_refreshTimer){clearInterval(_refreshTimer);_refreshTimer=null;}}
+
+init();
+</script></body></html>
