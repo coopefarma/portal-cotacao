@@ -656,6 +656,14 @@ async function carregarDetalhe(id){
     el.innerHTML=`<div class="empty" style="grid-column:1/-1">Nenhum fornecedor acionado ainda.<br>Clique em <b>📲 Disparar</b> para enviar os links.</div>`;return;
   }
   const nItens=itens?.length||0;
+  // Auto-sincroniza status: se tem respostas mas status está errado, corrige silenciosamente
+  const autoFixPromises=[];
+  (links||[]).forEach(lnk=>{
+    const respsLnk=(respostas||[]).filter(r=>r.fornecedor_id===lnk.fornecedor_id&&r.preco>0);
+    if(respsLnk.length>0&&lnk.status==='aguardando'){
+      lnk.status='rascunho'; // tem dados mas nunca marcou como aberto — corrige local
+    }
+  });
   el.innerHTML=links.map(lnk=>{
     const f=lnk.fornecedores||{};
     const respsRaw=(respostas||[]).filter(r=>r.fornecedor_id===lnk.fornecedor_id);
@@ -670,6 +678,7 @@ async function carregarDetalhe(id){
     const STATUS={aguardando:['badge-cinza','⏳ Aguardando'],aberto:['badge-azul','👁 Aberto'],rascunho:['badge-amarelo','✏️ Rascunho'],respondido:['badge-verde','✅ Respondido']};
     let[bc,bt]=STATUS[lnk.status]||STATUS.aguardando;
     if(lnk.status==='respondido'&&preench===0){bc='badge-amarelo';bt='⚠️ Sem dados';}
+    else if(lnk.status==='rascunho'&&preench>0){bc='badge-amarelo';bt='📝 Incompleto ('+preench+' itens)';}
     const cardCls=['respondido','rascunho','aberto'].includes(lnk.status)?lnk.status:'';
     const pc=lnk.parceiro;
     return `<div class="forn-card ${cardCls}">
@@ -910,7 +919,8 @@ async function carregarComparacao(id){
     sb.from('cotacao_respostas').select('*').eq('cotacao_id',id)
   ]);
   document.getElementById('comp-sub').textContent=cot?.titulo||'';
-  const comResp=(links||[]).filter(l=>['respondido','rascunho'].includes(l.status));
+  const fornComDados=new Set((respostas||[]).filter(r=>r.preco>0).map(r=>r.fornecedor_id));
+  const comResp=(links||[]).filter(l=>['respondido','rascunho'].includes(l.status)||fornComDados.has(l.fornecedor_id));
   if(comResp.length===0){document.getElementById('comp-corpo').innerHTML='<div class="empty">Nenhuma resposta recebida ainda.</div>';return;}
   const nomes=comResp.map(l=>l.fornecedores?.nome||'—');
   const rows=(itens||[]).map(item=>{
@@ -934,7 +944,8 @@ async function carregarPedido(id){
     sb.from('cotacao_respostas').select('*').eq('cotacao_id',id)
   ]);
   document.getElementById('ped-sub').textContent=cot?.titulo||'';
-  const comResp=(links||[]).filter(l=>['respondido','rascunho'].includes(l.status));
+  const fornComDados=new Set((respostas||[]).filter(r=>r.preco>0).map(r=>r.fornecedor_id));
+  const comResp=(links||[]).filter(l=>['respondido','rascunho'].includes(l.status)||fornComDados.has(l.fornecedor_id));
   if(comResp.length===0){document.getElementById('ped-corpo').innerHTML='<div class="empty">Nenhuma resposta recebida ainda.</div>';return;}
   if(pedidoData?.cotacaoId!==id)pedidoState={};
   (itens||[]).forEach(item=>{
@@ -1170,6 +1181,7 @@ async function _enviarFinal(){
   try{
     await _salvarRespostas('respondido',false);
     // Parar o auto-save — respostas já foram enviadas
+    fornState._jaEnviou=true;
     if(fornState._autoSave){clearInterval(fornState._autoSave);fornState._autoSave=null;}
     toast('✅ Respostas enviadas com sucesso!','ok');
     document.getElementById('tf-footer').style.display='none';
@@ -1179,9 +1191,19 @@ async function _enviarFinal(){
 }
 async function _salvarRespostas(novoStatus,silencioso){
   const{token,cotacaoId,fornecedorId,itens}=fornState;
-  const respostas=itens.map(item=>({cotacao_id:cotacaoId,fornecedor_id:fornecedorId,item_id:item.id,preco:parsePreco(document.getElementById('pi-'+item.id)?.value||'')}));
-  await sb.from('cotacao_respostas').delete().eq('cotacao_id',cotacaoId).eq('fornecedor_id',fornecedorId);
-  await sb.from('cotacao_respostas').insert(respostas);
+  // Nunca rebaixar de 'respondido' para 'rascunho'
+  if(novoStatus==='rascunho'&&fornState._jaEnviou)return;
+  // Separa itens com preço dos sem preço
+  const comPreco=[];const semPreco=[];
+  itens.forEach(item=>{
+    const preco=parsePreco(document.getElementById('pi-'+item.id)?.value||'');
+    if(preco>0)comPreco.push({cotacao_id:cotacaoId,fornecedor_id:fornecedorId,item_id:item.id,preco});
+    else semPreco.push(item.id);
+  });
+  // UPSERT os que têm preço (sem apagar os que não foram tocados)
+  if(comPreco.length>0)await sb.from('cotacao_respostas').upsert(comPreco,{onConflict:'cotacao_id,fornecedor_id,item_id',ignoreDuplicates:false});
+  // Remove apenas os que foram explicitamente zerados
+  if(semPreco.length>0)await sb.from('cotacao_respostas').delete().eq('cotacao_id',cotacaoId).eq('fornecedor_id',fornecedorId).in('item_id',semPreco);
   const upd={status:novoStatus};if(novoStatus==='respondido')upd.respondido_em=new Date().toISOString();
   await sb.from('cotacao_links').update(upd).eq('token',token);
   if(!silencioso)fornState.lnk.status=novoStatus;
