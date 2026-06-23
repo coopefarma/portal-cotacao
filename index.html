@@ -685,6 +685,7 @@ async function carregarDetalhe(id){
       <div class="forn-card-acoes">
         <button class="btn btn-outline btn-sm" onclick="verRespostas('${lnk.id}','${(f.nome||'').replace(/'/g,"\\'")}')">Ver respostas</button>
         <button class="btn btn-outline btn-sm" style="color:#6366f1" onclick="abrirManual('${lnk.id}','${lnk.fornecedor_id}','${(f.nome||'').replace(/'/g,"\\'")}')">✏️ Lançar manual</button>
+        ${lnk.status==='rascunho'?`<button class="btn btn-outline btn-sm" style="color:#15a563;border-color:#15a563" onclick="marcarRespondido('${lnk.id}')">✅ Marcar respondido</button>`:''}
         ${lnk.status!=='aguardando'?`<button class="btn btn-outline btn-sm" style="color:#f59e0b" onclick="reabrirLink('${lnk.id}')">🔄 Reabrir</button>`:''}
         <button class="btn btn-outline btn-sm" onclick="copiarLink('${lnk.token}')">📋 Link</button>
         <button class="btn btn-outline btn-sm" style="color:#25d366" onclick="abrirWpp('${f.whatsapp||''}','${lnk.token}','${(f.nome||'').replace(/'/g,"\\'")}','${(cot?.titulo||'').replace(/'/g,"\\'")}')">💬 WhatsApp</button>
@@ -770,6 +771,11 @@ async function toggleFecharCotacao(){
   if(error){toast('Erro: '+error.message,'err');return;}
   toast(fechada?'Cotação reaberta!':'Cotação fechada!','ok');
   carregarDetalhe(cotacaoId);
+}
+async function marcarRespondido(linkId){
+  if(!confirm('Marcar este fornecedor como Respondido?'))return;
+  await sb.from('cotacao_links').update({status:'respondido',respondido_em:new Date().toISOString()}).eq('id',linkId);
+  toast('Marcado como Respondido!','ok');carregarDetalhe(cotacaoId);
 }
 async function reabrirLink(linkId){
   if(!confirm('Reabrir este link? O fornecedor poderá editar e reenviar as respostas.'))return;
@@ -1149,18 +1155,12 @@ async function salvarRascunho(){
 async function enviarRespostas(){
   const preench=document.querySelectorAll('.preco-inp.ok').length;const total=fornState.itens.length;
   if(preench===0){toast('Preencha pelo menos um preço.','err');return;}
-  const btnEnv=document.querySelector('#tf-footer .btn-primary');
-  if(btnEnv){
-    if(btnEnv.dataset.confirmando==='1'){
-      btnEnv.dataset.confirmando='';btnEnv.textContent='✅ Enviar respostas';btnEnv.style.background='';
-      await _enviarFinal();
-    } else {
-      const faltam=total-preench;
-      btnEnv.dataset.confirmando='1';
-      btnEnv.textContent=faltam>0?`⚠️ Confirmar (${faltam} sem preço) — clique novamente`:'✅ Confirmar envio — clique novamente';
-      btnEnv.style.background='#f59e0b';
-      setTimeout(()=>{if(btnEnv.dataset.confirmando==='1'){btnEnv.dataset.confirmando='';btnEnv.textContent='✅ Enviar respostas';btnEnv.style.background='';}},5000);
-    }
+  const faltam=total-preench;
+  if(faltam>0){
+    const aviso=document.getElementById('tf-aviso');
+    if(aviso.dataset.confirmando==='1'){aviso.dataset.confirmando='';await _enviarFinal();return;}
+    aviso.dataset.confirmando='1';
+    aviso.innerHTML='<div class="aviso-box aviso-amarelo">⚠️ <strong>'+faltam+' produto(s) sem preço.</strong> Clique em <b>Enviar respostas</b> novamente para confirmar o envio assim mesmo.</div>';
     return;
   }
   await _enviarFinal();
