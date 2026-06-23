@@ -679,9 +679,11 @@ async function carregarDetalhe(id){
     let[bc,bt]=STATUS[lnk.status]||STATUS.aguardando;
     if(lnk.status==='respondido'&&preench===0){bc='badge-amarelo';bt='⚠️ Sem dados';}
     else if(lnk.status==='rascunho'&&preench>0){bc='badge-amarelo';bt='📝 Incompleto ('+preench+' itens)';}
+    // Agenda re-verificação direta se "Sem dados" — pode ser falso negativo
+    if(lnk.status==='respondido'&&preench===0){setTimeout(()=>recontarRespostas(lnk.id,lnk.fornecedor_id),500);}
     const cardCls=['respondido','rascunho','aberto'].includes(lnk.status)?lnk.status:'';
     const pc=lnk.parceiro;
-    return `<div class="forn-card ${cardCls}">
+    return `<div class="forn-card ${cardCls}" data-link-id="${lnk.id}">
       <div class="forn-card-nome">${f.nome||'—'}</div>
       <div class="forn-card-dist">${f.contato?'👤 '+f.contato+'<br>':''}${f.email?'✉ '+f.email:''}</div>
       <span class="badge ${bc}" style="margin-bottom:8px">${bt}</span>
@@ -781,6 +783,25 @@ async function toggleFecharCotacao(){
   if(error){toast('Erro: '+error.message,'err');return;}
   toast(fechada?'Cotação reaberta!':'Cotação fechada!','ok');
   carregarDetalhe(cotacaoId);
+}
+async function recontarRespostas(linkId,fornecedorId){
+  // Busca diretamente do banco para confirmar se existem respostas
+  const{data:lnk2}=await sb.from('cotacao_links').select('cotacao_id').eq('id',linkId).single();
+  if(!lnk2)return;
+  const{data:resps2}=await sb.from('cotacao_respostas').select('id,preco').eq('cotacao_id',lnk2.cotacao_id).eq('fornecedor_id',fornecedorId);
+  const count=(resps2||[]).filter(r=>r.preco>0).length;
+  if(count>0){
+    // Tem dados! Atualiza o card visualmente e corrige o status
+    const card=document.querySelector(`[data-link-id="${linkId}"]`);
+    if(card){
+      const badge=card.querySelector('.badge');
+      if(badge){badge.className='badge badge-verde';badge.textContent='✅ Respondido';}
+      const itensEl=card.querySelector('.forn-card-itens');
+      if(itensEl)itensEl.textContent='🗂 '+count+'/'+itensEl.textContent.split('/')[1];
+    }
+    // Garante que status no banco está correto
+    await sb.from('cotacao_links').update({status:'respondido'}).eq('id',linkId);
+  }
 }
 async function marcarRespondido(linkId){
   if(!confirm('Marcar este fornecedor como Respondido?'))return;
