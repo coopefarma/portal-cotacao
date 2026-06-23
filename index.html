@@ -638,7 +638,7 @@ async function carregarDetalhe(id){
     sb.from('cotacoes').select('*').eq('id',id).single(),
     sb.from('cotacao_itens').select('*').eq('cotacao_id',id),
     sb.from('cotacao_links').select('*,fornecedores(*)').eq('cotacao_id',id),
-    sb.from('cotacao_respostas').select('*').eq('cotacao_id',id).limit(10000)
+    sb.from('cotacao_respostas').select('*').eq('cotacao_id',id).range(0,9999)
   ]);
   if(cot){
     document.getElementById('det-titulo').textContent=cot.titulo||'Cotação';
@@ -840,7 +840,7 @@ async function verRespostas(linkId,nomeForn){
   _respEditState.cotacaoId=lnk.cotacao_id;
   _respEditState.fornId=lnk.fornecedor_id;
   const[{data:resps},{data:itens}]=await Promise.all([
-    sb.from('cotacao_respostas').select('*').eq('cotacao_id',lnk.cotacao_id).eq('fornecedor_id',lnk.fornecedor_id),
+    sb.from('cotacao_respostas').select('*').eq('cotacao_id',lnk.cotacao_id).eq('fornecedor_id',lnk.fornecedor_id).limit(500),
     sb.from('cotacao_itens').select('*').eq('cotacao_id',lnk.cotacao_id).order('descricao')
   ]);
   _respEditState.itens=itens||[];
@@ -937,7 +937,7 @@ async function carregarComparacao(id){
     sb.from('cotacoes').select('titulo').eq('id',id).single(),
     sb.from('cotacao_itens').select('*').eq('cotacao_id',id),
     sb.from('cotacao_links').select('*,fornecedores(nome)').eq('cotacao_id',id),
-    sb.from('cotacao_respostas').select('*').eq('cotacao_id',id).limit(10000)
+    sb.from('cotacao_respostas').select('*').eq('cotacao_id',id).range(0,9999)
   ]);
   document.getElementById('comp-sub').textContent=cot?.titulo||'';
   const fornComDados=new Set((resps||[]).filter(r=>r.preco>0).map(r=>r.fornecedor_id));
@@ -962,7 +962,7 @@ async function carregarPedido(id){
     sb.from('cotacoes').select('titulo').eq('id',id).single(),
     sb.from('cotacao_itens').select('*').eq('cotacao_id',id),
     sb.from('cotacao_links').select('*,fornecedores(nome)').eq('cotacao_id',id),
-    sb.from('cotacao_respostas').select('*').eq('cotacao_id',id).limit(10000)
+    sb.from('cotacao_respostas').select('*').eq('cotacao_id',id).range(0,9999)
   ]);
   document.getElementById('ped-sub').textContent=cot?.titulo||'';
   const fornComDados=new Set((resps||[]).filter(r=>r.preco>0).map(r=>r.fornecedor_id));
@@ -1196,7 +1196,7 @@ async function initFornecedor(token){
   if(lnk.status==='aguardando')await sb.from('cotacao_links').update({status:'aberto',aberto_em:new Date().toISOString()}).eq('token',token);
   const[{data:itens},{data:respostas}]=await Promise.all([
     sb.from('cotacao_itens').select('*').eq('cotacao_id',lnk.cotacao_id).order('descricao'),
-    sb.from('cotacao_respostas').select('*').eq('cotacao_id',lnk.cotacao_id).eq('fornecedor_id',lnk.fornecedor_id)
+    sb.from('cotacao_respostas').select('*').eq('cotacao_id',lnk.cotacao_id).eq('fornecedor_id',lnk.fornecedor_id).limit(500)
   ]);
   fornState.itens=itens||[];
   const respostaMap={};(respostas||[]).forEach(r=>{respostaMap[r.item_id]=r.preco;});
