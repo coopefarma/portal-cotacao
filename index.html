@@ -421,8 +421,12 @@ body{font-family:'Inter',sans-serif;background:#f5f7fa;color:#1a1a2e}
 <div class="modal-overlay" id="modal-resp">
   <div class="modal" style="max-width:660px">
     <div class="modal-titulo" id="mr-titulo">Respostas</div>
+    <p style="font-size:12px;color:#64748b;margin-bottom:10px">Clique em qualquer preço para corrigir. Salve quando terminar.</p>
     <div id="mr-corpo"></div>
-    <div class="modal-btns"><button class="btn btn-outline" onclick="fecharModal('modal-resp')">Fechar</button></div>
+    <div class="modal-btns">
+      <button class="btn btn-outline" onclick="fecharModal('modal-resp')">Fechar</button>
+      <button class="btn btn-primary" id="mr-btn-salvar" onclick="salvarEdicaoRespostas()" style="display:none">💾 Salvar alterações</button>
+    </div>
   </div>
 </div>
 <!-- MODAL LANÇAR MANUAL -->
@@ -779,23 +783,80 @@ function abrirWpp(wpp,token,nome,titulo){
   const num=wpp.replace(/\D/g,'');
   window.open(num?`https://wa.me/55${num}?text=${msg}`:`https://wa.me/?text=${msg}`,'_blank');
 }
+let _respEditState={linkId:null,cotacaoId:null,fornId:null,itens:[],resps:[]};
 async function verRespostas(linkId,nomeForn){
+  _respEditState={linkId,cotacaoId:null,fornId:null,itens:[],resps:[]};
   document.getElementById('mr-titulo').textContent=`Respostas — ${nomeForn}`;
   document.getElementById('mr-corpo').innerHTML='<div class="loading-box"><div class="spin"></div></div>';
+  document.getElementById('mr-btn-salvar').style.display='none';
   abrirModal('modal-resp');
   const{data:lnk}=await sb.from('cotacao_links').select('fornecedor_id,cotacao_id').eq('id',linkId).single();
+  if(!lnk)return;
+  _respEditState.cotacaoId=lnk.cotacao_id;
+  _respEditState.fornId=lnk.fornecedor_id;
   const[{data:resps},{data:itens}]=await Promise.all([
     sb.from('cotacao_respostas').select('*').eq('cotacao_id',lnk.cotacao_id).eq('fornecedor_id',lnk.fornecedor_id),
-    sb.from('cotacao_itens').select('*').eq('cotacao_id',lnk.cotacao_id)
+    sb.from('cotacao_itens').select('*').eq('cotacao_id',lnk.cotacao_id).order('descricao')
   ]);
-  if(!resps||resps.length===0){
-    document.getElementById('mr-corpo').innerHTML='<p style="color:#94a3b8;padding:20px 0;text-align:center">Nenhuma resposta registrada.</p>';return;
-  }
-  const rows=(itens||[]).map(item=>{
-    const r=resps.find(x=>x.item_id===item.id);const preco=r?.preco;
-    return `<tr><td style="font-weight:600">${item.descricao}</td><td style="text-align:center;color:#64748b">${item.quantidade||1}</td><td style="text-align:right;font-weight:700;color:${preco?'#15a563':'#cbd5e1'}">${fmtR(preco)}</td></tr>`;
+  _respEditState.itens=itens||[];
+  // Deduplica por item_id (mantém o maior preço)
+  const respMap={};(resps||[]).forEach(r=>{if(!respMap[r.item_id]||r.preco>respMap[r.item_id].preco)respMap[r.item_id]=r;});
+  _respEditState.resps=Object.values(respMap);
+  renderEdicaoRespostas();
+}
+function renderEdicaoRespostas(){
+  const{itens,resps}=_respEditState;
+  const preenchidos=resps.filter(r=>r.preco>0).length;
+  const rows=itens.map(item=>{
+    const r=resps.find(x=>x.item_id===item.id);
+    const preco=r?.preco>0?r.preco:null;
+    const val=preco!=null?String(preco).replace('.',','):'';
+    return `<tr id="rr-${item.id}">
+      <td style="font-weight:600;font-size:13px">${item.descricao}</td>
+      <td style="text-align:center;color:#64748b;font-size:12px">${item.quantidade||1}</td>
+      <td style="text-align:right;padding:4px 6px">
+        <input type="text" inputmode="decimal" data-item="${item.id}" value="${val}" placeholder="—"
+          style="width:100px;padding:5px 8px;border:1.5px solid ${preco?'#15a563':'#e2e8f0'};border-radius:6px;font-size:13px;text-align:right;font-family:inherit;background:${preco?'#f0fdf4':'#fff'}"
+          oninput="onRespEditInput(this)" onfocus="this.select()"/>
+      </td>
+    </tr>`;
   }).join('');
-  document.getElementById('mr-corpo').innerHTML=`<div style="overflow:auto;max-height:420px"><table class="comp-table"><thead><tr><th>Produto</th><th class="num" style="text-align:center">Qtd</th><th class="num">Preço unit.</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+  document.getElementById('mr-corpo').innerHTML=`
+    <div style="font-size:12px;color:#64748b;margin-bottom:8px">${preenchidos} de ${itens.length} itens com preço</div>
+    <div style="overflow:auto;max-height:400px">
+      <table class="comp-table"><thead><tr><th>Produto</th><th style="text-align:center">Qtd</th><th style="text-align:right">Preço unit. (R$)</th></tr></thead>
+      <tbody>${rows}</tbody></table>
+    </div>`;
+  document.getElementById('mr-btn-salvar').style.display='inline-flex';
+}
+function onRespEditInput(inp){
+  const val=inp.value.replace(/[^\d,]/g,'');
+  inp.value=val;
+  const itemId=inp.dataset.item;
+  const preco=parsePreco(val);
+  const temPreco=preco!=null&&preco>0;
+  inp.style.borderColor=temPreco?'#15a563':'#e2e8f0';
+  inp.style.background=temPreco?'#f0fdf4':'#fff';
+  const idx=_respEditState.resps.findIndex(x=>x.item_id===itemId);
+  if(idx>=0)_respEditState.resps[idx].preco=preco;
+  else _respEditState.resps.push({item_id:itemId,preco,cotacao_id:_respEditState.cotacaoId,fornecedor_id:_respEditState.fornId});
+}
+async function salvarEdicaoRespostas(){
+  const{linkId,cotacaoId:cId,fornId,itens,resps}=_respEditState;
+  const toInsert=itens
+    .map(item=>{const r=resps.find(x=>x.item_id===item.id);return r?.preco>0?{cotacao_id:cId,fornecedor_id:fornId,item_id:item.id,preco:r.preco}:null;})
+    .filter(Boolean);
+  const{error:delErr}=await sb.from('cotacao_respostas').delete().eq('cotacao_id',cId).eq('fornecedor_id',fornId);
+  if(delErr){toast('Erro ao salvar: '+delErr.message,'err');return;}
+  if(toInsert.length){
+    const{error:insErr}=await sb.from('cotacao_respostas').insert(toInsert);
+    if(insErr){toast('Erro ao salvar: '+insErr.message,'err');return;}
+  }
+  const novoStatus=toInsert.length>0?'respondido':'aguardando';
+  await sb.from('cotacao_links').update({status:novoStatus,respondido_em:toInsert.length>0?new Date().toISOString():null}).eq('id',linkId);
+  fecharModal('modal-resp');
+  toast(`Respostas atualizadas! ${toInsert.length} ite${toInsert.length===1?'m':'ns'} com preço.`,'ok');
+  carregarDetalhe(cId);
 }
 let _dispForn=[];
 async function abrirDisparar(){
