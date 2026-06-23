@@ -675,9 +675,9 @@ async function carregarDetalhe(id){
         <button class="parc-btn ${pc===false&&pc!==null?'nao':''}" onclick="toggleParceiro('${lnk.id}',false,this)">✗ Não parceiro</button>
       </div>
       <div class="forn-card-acoes">
-        ${lnk.status!=='aguardando'?`<button class="btn btn-outline btn-sm" onclick="verRespostas('${lnk.id}','${(f.nome||'').replace(/'/g,"\\'")}')">Ver respostas</button>`:''}
+        <button class="btn btn-outline btn-sm" onclick="verRespostas('${lnk.id}','${(f.nome||'').replace(/'/g,"\\'")}')">Ver respostas</button>
         <button class="btn btn-outline btn-sm" style="color:#6366f1" onclick="abrirManual('${lnk.id}','${lnk.fornecedor_id}','${(f.nome||'').replace(/'/g,"\\'")}')">✏️ Lançar manual</button>
-        ${['respondido','rascunho','aberto'].includes(lnk.status)?`<button class="btn btn-outline btn-sm" style="color:#f59e0b" onclick="reabrirLink('${lnk.id}')">🔄 Reabrir</button>`:''}
+        ${lnk.status!=='aguardando'?`<button class="btn btn-outline btn-sm" style="color:#f59e0b" onclick="reabrirLink('${lnk.id}')">🔄 Reabrir</button>`:''}
         <button class="btn btn-outline btn-sm" onclick="copiarLink('${lnk.token}')">📋 Link</button>
         <button class="btn btn-outline btn-sm" style="color:#25d366" onclick="abrirWpp('${f.whatsapp||''}','${lnk.token}','${(f.nome||'').replace(/'/g,"\\'")}','${(cot?.titulo||'').replace(/'/g,"\\'")}')">💬 WhatsApp</button>
       </div>
@@ -1136,12 +1136,30 @@ async function salvarRascunho(){
 async function enviarRespostas(){
   const preench=document.querySelectorAll('.preco-inp.ok').length;const total=fornState.itens.length;
   if(preench===0){toast('Preencha pelo menos um preço.','err');return;}
-  const msg=preench<total?`Você preencheu ${preench} de ${total} produto(s). Deseja enviar assim mesmo?`:`Enviar ${preench} resposta(s)?`;
-  if(!confirm(msg))return;
-  await _salvarRespostas('respondido',false);toast('✅ Respostas enviadas com sucesso!','ok');
-  document.getElementById('tf-footer').style.display='none';
-  document.querySelectorAll('.preco-inp').forEach(el=>el.readOnly=true);
-  document.getElementById('tf-aviso').innerHTML='<div class="aviso-box aviso-verde">✅ <strong>Respostas enviadas!</strong> Obrigado. Sua participação foi registrada com sucesso.</div>';
+  const btnEnv=document.querySelector('#tf-footer .btn-primary');
+  if(btnEnv){
+    if(btnEnv.dataset.confirmando==='1'){
+      btnEnv.dataset.confirmando='';btnEnv.textContent='✅ Enviar respostas';btnEnv.style.background='';
+      await _enviarFinal();
+    } else {
+      const faltam=total-preench;
+      btnEnv.dataset.confirmando='1';
+      btnEnv.textContent=faltam>0?`⚠️ Confirmar (${faltam} sem preço) — clique novamente`:'✅ Confirmar envio — clique novamente';
+      btnEnv.style.background='#f59e0b';
+      setTimeout(()=>{if(btnEnv.dataset.confirmando==='1'){btnEnv.dataset.confirmando='';btnEnv.textContent='✅ Enviar respostas';btnEnv.style.background='';}},5000);
+    }
+    return;
+  }
+  await _enviarFinal();
+}
+async function _enviarFinal(){
+  try{
+    await _salvarRespostas('respondido',false);
+    toast('✅ Respostas enviadas com sucesso!','ok');
+    document.getElementById('tf-footer').style.display='none';
+    document.querySelectorAll('.preco-inp').forEach(el=>el.readOnly=true);
+    document.getElementById('tf-aviso').innerHTML='<div class="aviso-box aviso-verde">✅ <strong>Respostas enviadas!</strong> Obrigado. Sua participação foi registrada com sucesso.</div>';
+  }catch(err){toast('Erro ao enviar: '+err.message,'err');}
 }
 async function _salvarRespostas(novoStatus,silencioso){
   const{token,cotacaoId,fornecedorId,itens}=fornState;
