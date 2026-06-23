@@ -299,7 +299,7 @@ body{font-family:'Inter',sans-serif;background:#f5f7fa;color:#1a1a2e}
         <div><div class="page-title" id="det-titulo">Cotação</div><div class="page-sub" id="det-sub"></div></div>
         <div class="page-header-btns">
           <button class="btn btn-outline" onclick="irPara('cotacoes')">← Voltar</button>
-          <button class="btn btn-outline" onclick="carregarDetalhe(cotacaoId)" title="Atualizar contagens">🔄</button>
+          <button class="btn btn-outline" onclick="if(cotacaoId)carregarDetalhe(cotacaoId);else irPara('detalhe')" title="Atualizar contagens">🔄 Atualizar</button>
           <button class="btn btn-outline" id="btn-disparar" onclick="abrirDisparar()">📲 Disparar</button>
           <button class="btn btn-outline" id="btn-fechar-cot" style="display:none" onclick="toggleFecharCotacao()"></button>
           <button class="btn btn-outline" id="btn-autocotar" style="display:none" onclick="abrirAutoCotar()">⚡ Auto-cotar</button>
@@ -481,7 +481,8 @@ function irPara(pag){
   if(pg)pg.classList.add('ativo');
   if(pag==='cotacoes')carregarCotacoes();
   if(pag==='nova')initNova();
-  if(pag==='detalhe'&&cotacaoId)carregarDetalhe(cotacaoId);
+  if(pag==='detalhe'&&cotacaoId){carregarDetalhe(cotacaoId);iniciarAutoRefresh();}
+  if(pag!=='detalhe')pararAutoRefresh();
   if(pag==='comparacao'&&cotacaoId)carregarComparacao(cotacaoId);
   if(pag==='pedido'&&cotacaoId)carregarPedido(cotacaoId);
   if(pag==='fornecedores')carregarFornecedores();
@@ -1455,6 +1456,13 @@ async function confirmarAutoCotar(){
   toast(total>0?`✅ ${total} fornecedor(es) lançados no ranking!`:'Nenhum match ativo para lançar.','ok');
   carregarDetalhe(cotacaoId);
 }
+
+let _refreshTimer=null;
+function iniciarAutoRefresh(){
+  pararAutoRefresh();
+  _refreshTimer=setInterval(()=>{if(cotacaoId&&document.getElementById('pg-detalhe').classList.contains('ativo'))carregarDetalhe(cotacaoId);},45000);
+}
+function pararAutoRefresh(){if(_refreshTimer){clearInterval(_refreshTimer);_refreshTimer=null;}}
 
 init();
 </script>
