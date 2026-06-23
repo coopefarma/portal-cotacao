@@ -919,7 +919,7 @@ async function carregarComparacao(id){
     sb.from('cotacao_respostas').select('*').eq('cotacao_id',id)
   ]);
   document.getElementById('comp-sub').textContent=cot?.titulo||'';
-  const fornComDados=new Set((respostas||[]).filter(r=>r.preco>0).map(r=>r.fornecedor_id));
+  const fornComDados=new Set((resps||[]).filter(r=>r.preco>0).map(r=>r.fornecedor_id));
   const comResp=(links||[]).filter(l=>['respondido','rascunho'].includes(l.status)||fornComDados.has(l.fornecedor_id));
   if(comResp.length===0){document.getElementById('comp-corpo').innerHTML='<div class="empty">Nenhuma resposta recebida ainda.</div>';return;}
   const nomes=comResp.map(l=>l.fornecedores?.nome||'—');
@@ -944,7 +944,7 @@ async function carregarPedido(id){
     sb.from('cotacao_respostas').select('*').eq('cotacao_id',id)
   ]);
   document.getElementById('ped-sub').textContent=cot?.titulo||'';
-  const fornComDados=new Set((respostas||[]).filter(r=>r.preco>0).map(r=>r.fornecedor_id));
+  const fornComDados=new Set((resps||[]).filter(r=>r.preco>0).map(r=>r.fornecedor_id));
   const comResp=(links||[]).filter(l=>['respondido','rascunho'].includes(l.status)||fornComDados.has(l.fornecedor_id));
   if(comResp.length===0){document.getElementById('ped-corpo').innerHTML='<div class="empty">Nenhuma resposta recebida ainda.</div>';return;}
   if(pedidoData?.cotacaoId!==id)pedidoState={};
