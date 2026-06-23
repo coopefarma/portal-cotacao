@@ -668,7 +668,8 @@ async function carregarDetalhe(id){
     const atingiuMin=pedMin<=0||valorTotal>=pedMin;
     const pctMin=pedMin>0?Math.min(100,Math.round(valorTotal/pedMin*100)):100;
     const STATUS={aguardando:['badge-cinza','⏳ Aguardando'],aberto:['badge-azul','👁 Aberto'],rascunho:['badge-amarelo','✏️ Rascunho'],respondido:['badge-verde','✅ Respondido']};
-    const[bc,bt]=STATUS[lnk.status]||STATUS.aguardando;
+    let[bc,bt]=STATUS[lnk.status]||STATUS.aguardando;
+    if(lnk.status==='respondido'&&preench===0){bc='badge-amarelo';bt='⚠️ Sem dados';}
     const cardCls=['respondido','rascunho','aberto'].includes(lnk.status)?lnk.status:'';
     const pc=lnk.parceiro;
     return `<div class="forn-card ${cardCls}">
