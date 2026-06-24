@@ -700,7 +700,7 @@ async function carregarDetalhe(id){
       <div class="forn-card-acoes">
         <button class="btn btn-outline btn-sm" onclick="verRespostas('${lnk.id}','${(f.nome||'').replace(/'/g,"\\'")}')">Ver respostas</button>
         <button class="btn btn-outline btn-sm" style="color:#6366f1" onclick="abrirManual('${lnk.id}','${lnk.fornecedor_id}','${(f.nome||'').replace(/'/g,"\\'")}')">✏️ Lançar manual</button>
-        ${lnk.status==='rascunho'?`<button class="btn btn-outline btn-sm" style="color:#15a563;border-color:#15a563" onclick="marcarRespondido('${lnk.id}')">✅ Marcar respondido</button>`:''}
+        ${(lnk.status==='rascunho'||(lnk.status==='aberto'&&preench>0))?`<button class="btn btn-outline btn-sm" style="color:#15a563;border-color:#15a563" onclick="marcarRespondido('${lnk.id}')">✅ Marcar respondido</button>`:''}
         ${lnk.status!=='aguardando'?`<button class="btn btn-outline btn-sm" style="color:#f59e0b" onclick="reabrirLink('${lnk.id}')">🔄 Reabrir</button>`:''}
         <button class="btn btn-outline btn-sm" onclick="copiarLink('${lnk.token}')">📋 Link</button>
         <button class="btn btn-outline btn-sm" style="color:#25d366" onclick="abrirWpp('${f.whatsapp||''}','${lnk.token}','${(f.nome||'').replace(/'/g,"\\'")}','${(cot?.titulo||'').replace(/'/g,"\\'")}')">💬 WhatsApp</button>
