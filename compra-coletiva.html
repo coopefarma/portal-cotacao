@@ -135,7 +135,7 @@ body{font-family:'Inter',sans-serif;background:#f5f7fa;color:#1a1a2e}
 ════════════════════════════════════════════════ */
 #tela-form{display:none;flex-direction:column;min-height:100vh;background:#f0f4f0}
 .form-header{background:linear-gradient(135deg,#1B5E20,#2E7D32 60%,#388E3C);color:#fff;padding:28px 20px;text-align:center;box-shadow:0 3px 12px rgba(0,0,0,.25)}
-.form-header .logo-img{height:60px;object-fit:contain;margin-bottom:12px;filter:brightness(0) invert(1)}
+.form-header .logo-img{height:60px;object-fit:contain;margin-bottom:12px;background:#fff;border-radius:8px;padding:4px 10px}
 .form-header h1{font-family:'Poppins',sans-serif;font-size:1.4rem;font-weight:800;margin-bottom:4px}
 .form-header p{font-size:.88rem;opacity:.88}
 .form-container{max-width:800px;margin:28px auto;padding:0 16px 60px;width:100%}
@@ -869,13 +869,13 @@ function renderFormProdutos(){
         </div>
       </td>
     </tr>`;
-    // Linha de bonificação (oculta quando qty=0)
+    // Linha de bonificação (sempre visível quando produto tem bonif)
     if(p.bonif_descricao){
-      rows+=`<tr class="bonif-row" id="bonif-row-${i}" style="display:none">
+      rows+=`<tr class="bonif-row" id="bonif-row-${i}">
         <td colspan="3">
           <div class="bonif-calc" id="bonif-calc-${i}">
             <span>🎁</span>
-            <span class="zero">Informe a quantidade para ver a bonificação</span>
+            <span class="zero">A cada unidade de <strong>${esc(p.descricao)}</strong> comprada, você gera <strong>R$ ${fmtN(p.bonif_valor_unit)}</strong> em bonificação para receber <strong>${esc(p.bonif_descricao)}</strong> (R$ ${fmtN(p.bonif_prod_valor)}/un). Informe a quantidade acima para ver o cálculo.</span>
           </div>
         </td>
       </tr>`;
@@ -911,11 +911,9 @@ function onQtyChange(i){
   if(!row||!calc)return;
 
   if(v<=0){
-    row.style.display='none';
-    calc.innerHTML='<span>🎁</span><span class="zero">Informe a quantidade para ver a bonificação</span>';
+    calc.innerHTML=`<span>🎁</span><span class="zero">A cada unidade de <strong>${esc(p.descricao)}</strong> comprada, você gera <strong>R$ ${fmtN(p.bonif_valor_unit)}</strong> em bonificação para receber <strong>${esc(p.bonif_descricao)}</strong> (R$ ${fmtN(p.bonif_prod_valor)}/un). Informe a quantidade acima para ver o cálculo.</span>`;
     return;
   }
-  row.style.display='';
   const totalBonif=v*p.bonif_valor_unit;
   const qtdBonif=totalBonif/p.bonif_prod_valor;
   const qtdBonifInt=Math.floor(qtdBonif);
