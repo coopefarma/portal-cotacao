@@ -90,6 +90,17 @@ body{font-family:'Inter',sans-serif;background:#f5f7fa;color:#1a1a2e}
 .bonif-tag{display:inline-flex;align-items:center;gap:5px;background:#fff3cd;color:#856404;border-radius:6px;padding:3px 8px;font-size:11px;font-weight:700;margin-top:4px}
 
 /* ── BONIFICAÇÃO EXPAND ── */
+/* Imagem produto */
+.prod-img-thumb{width:48px;height:48px;object-fit:contain;border-radius:6px;border:1px solid #e2e8f0;background:#f8fafc}
+.prod-img-form{width:80px;height:80px;object-fit:contain;border-radius:8px;border:1px solid #e2e8f0;background:#f8fafc}
+.prod-img-upload{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.img-preview{width:64px;height:64px;object-fit:contain;border-radius:8px;border:2px solid #e2e8f0;background:#f8fafc;display:none}
+.img-label{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;background:#f1f5f9;border:1.5px dashed #cbd5e1;border-radius:8px;cursor:pointer;font-size:12px;font-weight:600;color:#475569;transition:all .2s}
+.img-label:hover{border-color:#15a563;color:#15a563;background:#f0faf5}
+.img-status{font-size:11px;color:#64748b}
+/* Imagem no formulário público */
+.form-prod-img{width:90px;height:90px;object-fit:contain;border-radius:10px;border:1px solid #e8f5e9;background:#f8fdf8;flex-shrink:0}
+.form-prod-cell{display:flex;align-items:center;gap:12px}
 .bonif-toggle{display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;font-weight:600;color:#15a563;margin-top:10px;user-select:none}
 .bonif-toggle input[type=checkbox]{width:16px;height:16px;accent-color:#15a563;cursor:pointer}
 .bonif-fields{background:#fffdf0;border:1.5px dashed #f0c040;border-radius:10px;padding:16px;margin-top:10px;display:none}
@@ -290,6 +301,15 @@ body{font-family:'Inter',sans-serif;background:#f5f7fa;color:#1a1a2e}
           <div class="field" style="flex:1"><label>Valor Unit. (R$)</label><input type="number" id="n-valor" placeholder="3.99" min="0" step="0.01"/></div>
           <div class="field" style="flex:1"><label>Qtd. Mínima</label><input type="number" id="n-qtdmin" placeholder="0" min="0"/></div>
         </div>
+        <div class="field" style="margin-top:4px">
+          <label>Imagem do produto (opcional)</label>
+          <div class="prod-img-upload">
+            <label class="img-label" for="n-imagem">📷 Escolher imagem</label>
+            <input type="file" id="n-imagem" accept="image/*" style="display:none" onchange="previewImagem(this)"/>
+            <img id="n-img-preview" class="img-preview" alt="preview"/>
+            <span class="img-status" id="n-img-status">Nenhuma imagem selecionada</span>
+          </div>
+        </div>
 
         <!-- CONDIÇÃO ESPECIAL -->
         <label class="bonif-toggle">
@@ -315,7 +335,7 @@ body{font-family:'Inter',sans-serif;background:#f5f7fa;color:#1a1a2e}
 
         <div style="margin-top:20px;overflow-x:auto;border-radius:8px;border:1px solid #e2e8f0">
           <table class="prod-table">
-            <thead><tr><th>#</th><th>Descrição</th><th>EAN</th><th>Valor</th><th>Qtd Mín.</th><th>Condição Especial</th><th></th></tr></thead>
+            <thead><tr><th>#</th><th>Img</th><th>Descrição</th><th>EAN</th><th>Valor</th><th>Qtd Mín.</th><th>Condição Especial</th><th></th></tr></thead>
             <tbody id="n-tbody"></tbody>
           </table>
         </div>
@@ -369,7 +389,7 @@ body{font-family:'Inter',sans-serif;background:#f5f7fa;color:#1a1a2e}
         <h3>📦 Produtos desta campanha</h3>
         <div style="overflow-x:auto;border-radius:8px;border:1px solid #e2e8f0">
           <table class="prod-table">
-            <thead><tr><th>#</th><th>Descrição</th><th>EAN</th><th>Valor</th><th>Qtd Mín.</th><th>Condição Especial</th></tr></thead>
+            <thead><tr><th>#</th><th>Img</th><th>Descrição</th><th>EAN</th><th>Valor</th><th>Qtd Mín.</th><th>Condição Especial</th></tr></thead>
             <tbody id="d-tbody-prod"></tbody>
           </table>
         </div>
@@ -526,13 +546,15 @@ async function carregarDetalhe(id){
   // Produtos (com info de bonificação)
   document.getElementById('d-tbody-prod').innerHTML=_produtosCache.length
     ?_produtosCache.map((p,i)=>`<tr>
-        <td style="color:#aaa">${i+1}</td><td>${esc(p.descricao)}</td>
+        <td style="color:#aaa">${i+1}</td>
+        <td>${p.imagem_url?`<img src="${p.imagem_url}" class="prod-img-thumb" alt="img"/>`:'<span style="color:#ddd;font-size:18px">📷</span>'}</td>
+        <td>${esc(p.descricao)}</td>
         <td class="mono">${esc(p.ean)}</td>
         <td>${p.valor_unit!=null?'R$ '+fmtN(p.valor_unit):'—'}</td>
         <td>${p.qtd_min||'—'}</td>
         <td>${p.bonif_descricao?`<span class="bonif-tag">🎁 R$${fmtN(p.bonif_valor_unit)}/un → ${esc(p.bonif_descricao)} (R$${fmtN(p.bonif_prod_valor)})</span>`:'—'}</td>
       </tr>`).join('')
-    :'<tr><td colspan="6" style="text-align:center;color:#aaa;padding:20px">Nenhum produto</td></tr>';
+    :'<tr><td colspan="7" style="text-align:center;color:#aaa;padding:20px">Nenhum produto</td></tr>';
 
   await renderPedidos();
   await renderConsolidado();
@@ -660,7 +682,36 @@ function initNova(){
   document.getElementById('n-tem-bonif').checked=false;
   document.getElementById('n-bonif-fields').classList.remove('show');
   document.getElementById('n-bonif-preview').textContent='';
+  limparImagem();
   renderNovaProdutos();
+}
+
+function previewImagem(input){
+  const file=input.files[0];
+  const prev=document.getElementById('n-img-preview');
+  const status=document.getElementById('n-img-status');
+  if(!file){prev.style.display='none';status.textContent='Nenhuma imagem selecionada';return;}
+  prev.src=URL.createObjectURL(file);
+  prev.style.display='block';
+  status.textContent=file.name+' ('+Math.round(file.size/1024)+' KB)';
+}
+
+function limparImagem(){
+  const inp=document.getElementById('n-imagem');
+  const prev=document.getElementById('n-img-preview');
+  const status=document.getElementById('n-img-status');
+  if(inp)inp.value='';
+  if(prev){prev.src='';prev.style.display='none';}
+  if(status)status.textContent='Nenhuma imagem selecionada';
+}
+
+async function uploadImagem(file){
+  const ext=file.name.split('.').pop();
+  const nome='produto_'+Date.now()+'.'+ext;
+  const{data,error}=await sb.storage.from('cc-imagens').upload('produtos/'+nome,file,{upsert:true,contentType:file.type});
+  if(error){toast('Erro no upload da imagem: '+error.message,'err');return null;}
+  const{data:{publicUrl}}=sb.storage.from('cc-imagens').getPublicUrl('produtos/'+nome);
+  return publicUrl;
 }
 
 function toggleBonif(cb){
@@ -686,7 +737,7 @@ function atualizarPreviewBonif(){
   }else{prev.textContent='';}
 }
 
-function addProdNova(){
+async function addProdNova(){
   const desc=document.getElementById('n-desc').value.trim();
   const ean=document.getElementById('n-ean').value.trim();
   const valor=parseFloat(document.getElementById('n-valor').value)||null;
@@ -695,9 +746,18 @@ function addProdNova(){
   if(!desc){toast('Informe a descrição.','err');return;}
   if(!ean){toast('Informe o código EAN.','err');return;}
 
+  // Upload de imagem se houver
+  const imgInput=document.getElementById('n-imagem');
+  let imagemUrl=null;
+  if(imgInput.files[0]){
+    toast('Enviando imagem...','ok');
+    imagemUrl=await uploadImagem(imgInput.files[0]);
+    if(!imagemUrl)return;
+  }
+
   const prod={
     id:Date.now(),descricao:desc,ean,valor_unit:valor,qtd_min:qtdmin,
-    ordem:_novaProdutos.length,
+    ordem:_novaProdutos.length,imagem_url:imagemUrl,
     bonif_descricao:null,bonif_ean:null,bonif_prod_valor:null,bonif_valor_unit:null
   };
 
@@ -717,8 +777,10 @@ function addProdNova(){
   document.getElementById('n-tem-bonif').checked=false;
   document.getElementById('n-bonif-fields').classList.remove('show');
   document.getElementById('n-bonif-preview').textContent='';
+  limparImagem();
   document.getElementById('n-desc').focus();
   renderNovaProdutos();
+  toast('Produto adicionado!','ok');
 }
 
 function removerProdNova(id){_novaProdutos=_novaProdutos.filter(p=>p.id!==id);renderNovaProdutos();}
@@ -729,7 +791,9 @@ function renderNovaProdutos(){
   if(!_novaProdutos.length){tbody.innerHTML='';empty.style.display='block';return;}
   empty.style.display='none';
   tbody.innerHTML=_novaProdutos.map((p,i)=>`<tr>
-    <td style="color:#aaa">${i+1}</td><td>${esc(p.descricao)}</td>
+    <td style="color:#aaa">${i+1}</td>
+    <td>${p.imagem_url?`<img src="${p.imagem_url}" class="prod-img-thumb" alt="img"/>`:'<span style="color:#ddd;font-size:18px">📷</span>'}</td>
+    <td>${esc(p.descricao)}</td>
     <td class="mono">${esc(p.ean)}</td>
     <td>${p.valor_unit!=null?'R$ '+fmtN(p.valor_unit):'—'}</td>
     <td>${p.qtd_min||'—'}</td>
@@ -748,7 +812,7 @@ async function salvarCampanha(){
   const{error:e2}=await sb.from('cc_produtos').insert(
     _novaProdutos.map((p,i)=>({
       campanha_id:camp.id,descricao:p.descricao,ean:p.ean,
-      valor_unit:p.valor_unit,qtd_min:p.qtd_min,ordem:i,
+      valor_unit:p.valor_unit,qtd_min:p.qtd_min,ordem:i,imagem_url:p.imagem_url||null,
       bonif_descricao:p.bonif_descricao,bonif_ean:p.bonif_ean,
       bonif_prod_valor:p.bonif_prod_valor,bonif_valor_unit:p.bonif_valor_unit
     }))
@@ -792,9 +856,10 @@ function renderFormProdutos(){
   _formProdutos.forEach((p,i)=>{
     const valorStr=p.valor_unit!=null?`<br><small style="color:#999">R$ ${fmtN(p.valor_unit)}/unidade</small>`:'';
     const qtdMinStr=p.qtd_min?`<small style="color:#aaa;font-size:11px"> · Qtd mín: ${p.qtd_min}</small>`:'';
+    const imgStr=p.imagem_url?`<img src="${p.imagem_url}" class="form-prod-img" alt="${esc(p.descricao)}"/>`:'';
     // Linha do produto
     rows+=`<tr>
-      <td><strong>${esc(p.descricao)}</strong>${valorStr}${qtdMinStr}</td>
+      <td><div class="form-prod-cell">${imgStr}<div><strong>${esc(p.descricao)}</strong>${valorStr}${qtdMinStr}</div></div></td>
       <td class="mono" style="font-size:.8rem;color:#666">${esc(p.ean)}</td>
       <td>
         <div class="qty-wrap">
