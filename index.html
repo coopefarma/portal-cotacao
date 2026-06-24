@@ -933,14 +933,17 @@ async function confirmarDisparar(){
 }
 async function carregarComparacao(id){
   document.getElementById('comp-corpo').innerHTML='<div class="loading-box"><div class="spin"></div></div>';
-  const[{data:cot},{data:itens},{data:links},{data:resps}]=await Promise.all([
+  const[{data:cot},{data:itens},{data:links}]=await Promise.all([
     sb.from('cotacoes').select('titulo').eq('id',id).single(),
     sb.from('cotacao_itens').select('*').eq('cotacao_id',id),
-    sb.from('cotacao_links').select('*,fornecedores(nome)').eq('cotacao_id',id),
-    sb.from('cotacao_respostas').select('*').eq('cotacao_id',id).range(0,9999)
+    sb.from('cotacao_links').select('*,fornecedores(nome)').eq('cotacao_id',id)
   ]);
   document.getElementById('comp-sub').textContent=cot?.titulo||'';
-  const fornComDados=new Set((resps||[]).filter(r=>r.preco>0).map(r=>r.fornecedor_id));
+  const todosLinks=(links||[]).filter(l=>['respondido','rascunho','aberto'].includes(l.status));
+  // Busca respostas por fornecedor (evita limite de 1000 linhas do Supabase)
+  const respsArrays=await Promise.all(todosLinks.map(l=>sb.from('cotacao_respostas').select('*').eq('cotacao_id',id).eq('fornecedor_id',l.fornecedor_id)));
+  const resps=respsArrays.flatMap(({data})=>data||[]);
+  const fornComDados=new Set(resps.filter(r=>r.preco>0).map(r=>r.fornecedor_id));
   const comResp=(links||[]).filter(l=>['respondido','rascunho'].includes(l.status)||fornComDados.has(l.fornecedor_id));
   if(comResp.length===0){document.getElementById('comp-corpo').innerHTML='<div class="empty">Nenhuma resposta recebida ainda.</div>';return;}
   const nomes=comResp.map(l=>l.fornecedores?.nome||'—');
@@ -958,14 +961,16 @@ async function carregarComparacao(id){
 }
 async function carregarPedido(id){
   document.getElementById('ped-corpo').innerHTML='<div class="loading-box"><div class="spin"></div></div>';
-  const[{data:cot},{data:itens},{data:links},{data:resps}]=await Promise.all([
+  const[{data:cot},{data:itens},{data:links}]=await Promise.all([
     sb.from('cotacoes').select('titulo').eq('id',id).single(),
     sb.from('cotacao_itens').select('*').eq('cotacao_id',id),
-    sb.from('cotacao_links').select('*,fornecedores(nome)').eq('cotacao_id',id),
-    sb.from('cotacao_respostas').select('*').eq('cotacao_id',id).range(0,9999)
+    sb.from('cotacao_links').select('*,fornecedores(nome)').eq('cotacao_id',id)
   ]);
   document.getElementById('ped-sub').textContent=cot?.titulo||'';
-  const fornComDados=new Set((resps||[]).filter(r=>r.preco>0).map(r=>r.fornecedor_id));
+  const todosLinks=(links||[]).filter(l=>['respondido','rascunho','aberto'].includes(l.status));
+  const respsArrays=await Promise.all(todosLinks.map(l=>sb.from('cotacao_respostas').select('*').eq('cotacao_id',id).eq('fornecedor_id',l.fornecedor_id)));
+  const resps=respsArrays.flatMap(({data})=>data||[]);
+  const fornComDados=new Set(resps.filter(r=>r.preco>0).map(r=>r.fornecedor_id));
   const comResp=(links||[]).filter(l=>['respondido','rascunho'].includes(l.status)||fornComDados.has(l.fornecedor_id));
   if(comResp.length===0){document.getElementById('ped-corpo').innerHTML='<div class="empty">Nenhuma resposta recebida ainda.</div>';return;}
   if(pedidoData?.cotacaoId!==id)pedidoState={};
