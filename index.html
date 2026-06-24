@@ -634,12 +634,15 @@ async function salvarCotacao(){
 async function carregarDetalhe(id){
   const el=document.getElementById('det-cards');
   el.innerHTML='<div class="loading-box" style="grid-column:1/-1"><div class="spin"></div></div>';
-  const[{data:cot},{data:itens},{data:links},{data:respostas}]=await Promise.all([
+  const[{data:cot},{data:itens},{data:links}]=await Promise.all([
     sb.from('cotacoes').select('*').eq('id',id).single(),
     sb.from('cotacao_itens').select('*').eq('cotacao_id',id),
-    sb.from('cotacao_links').select('*,fornecedores(*)').eq('cotacao_id',id),
-    sb.from('cotacao_respostas').select('*').eq('cotacao_id',id).range(0,9999)
+    sb.from('cotacao_links').select('*,fornecedores(*)').eq('cotacao_id',id)
   ]);
+  // Busca respostas por fornecedor para evitar o limite de 1000 linhas do Supabase
+  const _linksComResp=(links||[]).filter(l=>['respondido','rascunho','aberto'].includes(l.status));
+  const _respsArrays=await Promise.all(_linksComResp.map(l=>sb.from('cotacao_respostas').select('*').eq('cotacao_id',id).eq('fornecedor_id',l.fornecedor_id)));
+  const respostas=_respsArrays.flatMap(({data})=>data||[]);
   if(cot){
     document.getElementById('det-titulo').textContent=cot.titulo||'Cotação';
     cotacaoStatus=cot.status||'aberta';
