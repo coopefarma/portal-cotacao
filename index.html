@@ -1541,4 +1541,11 @@ async function atualizarQtd(itemId,novaQtd){
   if(pedidoData?.itens){const item=pedidoData.itens.find(i=>i.id===itemId);if(item)item.quantidade=qty;renderPedido();}
 }
 let _refreshTimer=null;
-function iniciarAutoRefresh
+function iniciarAutoRefresh(){
+  pararAutoRefresh();
+  _refreshTimer=setInterval(()=>{if(cotacaoId&&document.getElementById('pg-detalhe').classList.contains('ativo'))carregarDetalhe(cotacaoId);},45000);
+}
+function pararAutoRefresh(){if(_refreshTimer){clearInterval(_refreshTimer);_refreshTimer=null;}}
+
+init();
+</script></body></html>
