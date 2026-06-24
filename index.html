@@ -1040,9 +1040,10 @@ function renderPedido(){
         `<div class="ped-alt-panel" id="pedalt-${itemId}"><div style="font-size:11px;color:#64748b;margin-bottom:5px;font-weight:600">SELECIONE O FORNECEDOR:</div>${altsHtml}</div></td>`+
         `<td style="color:#64748b;font-size:12px">${item.ean||'—'}</td>`+
         `<td style="text-align:center"><input type="number" min="1" value="${qty}" style="width:56px;text-align:center;border:1.5px solid #e0e0e0;border-radius:6px;padding:3px 4px;font-size:12px;font-family:'Inter',sans-serif" onchange="atualizarQtd('${item.id}',this.value)" onclick="event.stopPropagation()"/></td>`+
+        `<td style="text-align:right">${fmtR(preco)}</td>`+
         `<td style="text-align:right;color:#64748b;font-size:12px">${ultPreco?fmtR(ultPreco):'—'}</td>`+
         `<td style="text-align:center">${varHtml}</td>`+
-        `<td style="text-align:right">${fmtR(preco)}</td><td style="text-align:right;font-weight:600">${fmtR(subtotal)}</td>`+
+        `<td style="text-align:right;font-weight:600">${fmtR(subtotal)}</td>`+
         `<td style="text-align:center;width:32px"><button onclick="excluirItemPedido('${itemId}')" title="Excluir do pedido" style="background:none;border:none;cursor:pointer;color:#ef4444;font-size:15px;padding:2px 4px">🗑</button></td></tr>`;
     }).join('');
     const fatInfo=contFat>0?`<span style="font-size:12px;color:#15a563;margin-left:10px">✅ ${contFat} faturado(s): ${fmtR(totalFat)}</span>`:''  ;
@@ -1050,7 +1051,7 @@ function renderPedido(){
       `<div class="ped-forn-nome">🚚 ${g.nome} <span style="font-size:12px;font-weight:400;color:#64748b;margin-left:6px">${g.itens.length} item(ns)</span>${fatInfo}</div>`+
       `<div style="display:flex;align-items:center;gap:12px"><span style="font-size:14px;font-weight:700;color:#15a563">Total: ${fmtR(totalForn)}</span>`+
       `<button class="btn btn-outline btn-sm" onclick="exportarExcelForn('${fornId}','${g.nome.replace(/'/g,"\\'")}')" >📥 Exportar Excel</button></div></div>`+
-      `<table class="ped-table"><thead><tr><th style="width:36px" title="Marcar faturado">✅</th><th>Produto</th><th>EAN/Cód.</th><th style="text-align:center">Qtd</th><th style="text-align:right">Últ. Preço</th><th style="text-align:center">Var%</th><th style="text-align:right">Preço Unit.</th><th style="text-align:right">Total</th><th style="width:32px"></th></tr></thead>`+
+      `<table class="ped-table"><thead><tr><th style="width:36px" title="Marcar faturado">✅</th><th>Produto</th><th>EAN/Cód.</th><th style="text-align:center">Qtd</th><th style="text-align:right">Preço Unit.</th><th style="text-align:right">Últ. Preço</th><th style="text-align:center">Var%</th><th style="text-align:right">Total</th><th style="width:32px"></th></tr></thead>`+
       `<tbody>${rows}</tbody><tfoot><tr class="ped-total-row"><td colspan="7" style="text-align:right;padding:10px">Total do pedido:</td><td style="text-align:right;padding:10px">${fmtR(totalForn)}</td><td></td></tr></tfoot></table></div>`;
   }).join('');
   const nExcluidos=excluidos.size;
@@ -1540,11 +1541,4 @@ async function atualizarQtd(itemId,novaQtd){
   if(pedidoData?.itens){const item=pedidoData.itens.find(i=>i.id===itemId);if(item)item.quantidade=qty;renderPedido();}
 }
 let _refreshTimer=null;
-function iniciarAutoRefresh(){
-  pararAutoRefresh();
-  _refreshTimer=setInterval(()=>{if(cotacaoId&&document.getElementById('pg-detalhe').classList.contains('ativo'))carregarDetalhe(cotacaoId);},45000);
-}
-function pararAutoRefresh(){if(_refreshTimer){clearInterval(_refreshTimer);_refreshTimer=null;}}
-
-init();
-</script></body></html>
+function iniciarAutoRefresh
