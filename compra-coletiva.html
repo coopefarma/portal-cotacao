@@ -1065,6 +1065,32 @@ async function submeterPedido(){
 // ─────────────────────────────
 // EXPORT EXCEL
 // ─────────────────────────────
+
+// Estilos reutilizáveis
+const XS={
+  titulo:{font:{bold:true,sz:14,color:{rgb:'FFFFFF'}},fill:{fgColor:{rgb:'1B5E20'}},alignment:{horizontal:'left',vertical:'center'}},
+  sub:   {font:{sz:10,italic:true,color:{rgb:'64748B'}},fill:{fgColor:{rgb:'F8FAFC'}}},
+  vazio: {fill:{fgColor:{rgb:'FFFFFF'}}},
+  cab:   {font:{bold:true,sz:11,color:{rgb:'FFFFFF'}},fill:{fgColor:{rgb:'15a563'}},alignment:{horizontal:'left',vertical:'center'},border:{bottom:{style:'thin',color:{rgb:'0F8A52'}}}},
+  cabNum:{font:{bold:true,sz:11,color:{rgb:'FFFFFF'}},fill:{fgColor:{rgb:'15a563'}},alignment:{horizontal:'right',vertical:'center'}},
+  dado:  {font:{sz:11},fill:{fgColor:{rgb:'FFFFFF'}},alignment:{vertical:'center'}},
+  dadoAlt:{font:{sz:11},fill:{fgColor:{rgb:'F0FDF4'}},alignment:{vertical:'center'}},
+  num:   {font:{bold:true,sz:12,color:{rgb:'15a563'}},fill:{fgColor:{rgb:'FFFFFF'}},alignment:{horizontal:'right',vertical:'center'}},
+  numAlt:{font:{bold:true,sz:12,color:{rgb:'15a563'}},fill:{fgColor:{rgb:'F0FDF4'}},alignment:{horizontal:'right',vertical:'center'}},
+  secBonif:{font:{bold:true,sz:12,color:{rgb:'856404'}},fill:{fgColor:{rgb:'FFF3CD'}},alignment:{vertical:'center'}},
+  cabBonif:{font:{bold:true,sz:11,color:{rgb:'FFFFFF'}},fill:{fgColor:{rgb:'7B5EA7'}},alignment:{horizontal:'left',vertical:'center'}},
+  cabBonifNum:{font:{bold:true,sz:11,color:{rgb:'FFFFFF'}},fill:{fgColor:{rgb:'7B5EA7'}},alignment:{horizontal:'right',vertical:'center'}},
+  numBonif:{font:{bold:true,sz:12,color:{rgb:'7B5EA7'}},fill:{fgColor:{rgb:'FFFFFF'}},alignment:{horizontal:'right',vertical:'center'}},
+  numBonifAlt:{font:{bold:true,sz:12,color:{rgb:'7B5EA7'}},fill:{fgColor:{rgb:'F5F3FF'}},alignment:{horizontal:'right',vertical:'center'}},
+  dadoBonifAlt:{font:{sz:11},fill:{fgColor:{rgb:'F5F3FF'}},alignment:{vertical:'center'}},
+};
+function sc(v,s){return {v,s};}
+function applySheetStyle(ws,noCols){
+  ws['!sheetViews']=[{showGridLines:false}];
+  ws['!cols']=noCols;
+  return ws;
+}
+
 async function exportarConsolidado(){
   const pedIds=_pedidosCache.map(p=>p.id);
   if(!pedIds.length){toast('Nenhum pedido.','err');return;}
@@ -1079,30 +1105,45 @@ async function exportarConsolidado(){
     }
     if(it.bonif_quantidade>0&&it.bonif_descricao){
       const k=it.bonif_ean||it.bonif_descricao;
-      if(!mapBonif[k])mapBonif[k]={descricao:it.bonif_descricao,ean:it.bonif_ean||'—',total:0};
+      if(!mapBonif[k])mapBonif[k]={descricao:it.bonif_descricao,ean:it.bonif_ean||'',total:0};
       mapBonif[k].total+=it.bonif_quantidade;
     }
   });
 
-  const wb=XLSX.utils.book_new();
   const nm=(_campanhaCache.nome||'Coopefarma').replace(/[^a-zA-Z0-9]/g,'_');
+  const wb=XLSX.utils.book_new();
 
-  // ABA 1: Pedido fornecedor
-  const ws1=[
-    [_campanhaCache.nome+' — PEDIDO CONSOLIDADO'],
-    ['Gerado em: '+new Date().toLocaleString('pt-BR')],
-    [],
-    ['Descrição do Produto','Código EAN','Quantidade Total']
+  // ── ABA 1: Pedido Fornecedor ──
+  const prodList=Object.values(mapProd).sort((a,b)=>a.descricao.localeCompare(b.descricao));
+  const bonifList=Object.values(mapBonif).sort((a,b)=>a.descricao.localeCompare(b.descricao));
+
+  const rows1=[
+    [sc(_campanhaCache.nome+' — PEDIDO CONSOLIDADO',XS.titulo),sc('',XS.titulo),sc('',XS.titulo)],
+    [sc('Gerado em: '+new Date().toLocaleString('pt-BR'),XS.sub),sc('',XS.sub),sc('',XS.sub)],
+    [sc('',XS.vazio),sc('',XS.vazio),sc('',XS.vazio)],
+    [sc('Descricao do Produto',XS.cab),sc('Codigo EAN',XS.cab),sc('Quantidade Total',XS.cabNum)],
+    ...prodList.map((d,i)=>[sc(d.descricao,i%2?XS.dadoAlt:XS.dado),sc(d.ean,i%2?XS.dadoAlt:XS.dado),sc(d.total,i%2?XS.numAlt:XS.num)]),
   ];
-  Object.values(mapProd).sort((a,b)=>a.descricao.localeCompare(b.descricao)).forEach(d=>ws1.push([d.descricao,d.ean,d.total]));
 
-  if(Object.keys(mapBonif).length){
-    ws1.push([]);ws1.push(['🎁 BONIFICAÇÕES GERADAS','','']);ws1.push(['Produto Bonificado','Código EAN','Qtd. Total']);
-    Object.values(mapBonif).sort((a,b)=>a.descricao.localeCompare(b.descricao)).forEach(d=>ws1.push([d.descricao,d.ean,Math.floor(d.total)]));
+  if(bonifList.length){
+    rows1.push([sc('',XS.vazio),sc('',XS.vazio),sc('',XS.vazio)]);
+    rows1.push([sc('BONIFICACOES GERADAS',XS.secBonif),sc('',XS.secBonif),sc('',XS.secBonif)]);
+    rows1.push([sc('Produto Bonificado',XS.cabBonif),sc('Codigo EAN',XS.cabBonif),sc('Qtd. Total',XS.cabBonifNum)]);
+    bonifList.forEach((d,i)=>rows1.push([
+      sc(d.descricao,i%2?XS.dadoBonifAlt:XS.dado),
+      sc(d.ean,i%2?XS.dadoBonifAlt:XS.dado),
+      sc(Math.floor(d.total),i%2?XS.numBonifAlt:XS.numBonif)
+    ]));
   }
 
-  const s1=XLSX.utils.aoa_to_sheet(ws1);
-  s1['!cols']=[{wch:55},{wch:18},{wch:18}];
+  const s1=XLSX.utils.aoa_to_sheet(rows1);
+  s1['!merges']=[{s:{r:0,c:0},e:{r:0,c:2}},{s:{r:1,c:0},e:{r:1,c:2}}];
+  if(bonifList.length){
+    const bRow=4+prodList.length+1;
+    s1['!merges'].push({s:{r:bRow,c:0},e:{r:bRow,c:2}});
+  }
+  s1['!rows']=[{hpt:24},{hpt:16}];
+  applySheetStyle(s1,[{wch:55},{wch:20},{wch:18}]);
   XLSX.utils.book_append_sheet(wb,s1,'Pedido Fornecedor');
   XLSX.writeFile(wb,'Pedido_Consolidado_'+nm+'.xlsx');
 }
@@ -1111,23 +1152,45 @@ async function exportarDetalhado(){
   if(!_pedidosCache.length){toast('Nenhum pedido.','err');return;}
   const pedIds=_pedidosCache.map(p=>p.id);
   const{data:itens}=await sb.from('cc_pedido_itens').select('*').in('pedido_id',pedIds);
-  const ws=[
-    [_campanhaCache.nome+' — PEDIDOS DETALHADOS'],
-    ['Gerado em: '+new Date().toLocaleString('pt-BR')],
-    [],
-    ['Data/Hora','Razão Social','CNPJ','Descrição do Produto','Código EAN','Quantidade','Bonificação (produto)','Bonificação (qtd.)']
+  const nm=(_campanhaCache.nome||'Coopefarma').replace(/[^a-zA-Z0-9]/g,'_');
+  const wb=XLSX.utils.book_new();
+
+  const cabDet=[
+    sc('Data/Hora',XS.cab),sc('Razao Social',XS.cab),sc('CNPJ',XS.cab),
+    sc('Descricao do Produto',XS.cab),sc('Codigo EAN',XS.cab),
+    sc('Quantidade',XS.cabNum),sc('Bonificacao (produto)',XS.cab),sc('Bonificacao (qtd.)',XS.cabNum)
   ];
+
+  const dataRows=[];
   _pedidosCache.forEach(ped=>{
     const dt=new Date(ped.created_at).toLocaleString('pt-BR');
-    (itens||[]).filter(i=>i.pedido_id===ped.id&&i.quantidade>0).forEach(it=>
-      ws.push([dt,ped.razao_social,ped.cnpj,it.descricao,it.ean,it.quantidade,it.bonif_descricao||'—',it.bonif_quantidade?Math.floor(it.bonif_quantidade):'—'])
-    );
+    (itens||[]).filter(i=>i.pedido_id===ped.id&&i.quantidade>0).forEach(it=>{
+      const i=dataRows.length;
+      const s=i%2?XS.dadoAlt:XS.dado;
+      const sn=i%2?XS.numAlt:XS.num;
+      dataRows.push([
+        sc(dt,s),sc(ped.razao_social,s),sc(ped.cnpj,s),
+        sc(it.descricao,s),sc(it.ean,s),
+        sc(it.quantidade,sn),
+        sc(it.bonif_descricao||'',s),
+        sc(it.bonif_quantidade?Math.floor(it.bonif_quantidade):'',sn)
+      ]);
+    });
   });
-  const wb=XLSX.utils.book_new();
-  const s=XLSX.utils.aoa_to_sheet(ws);
-  s['!cols']=[{wch:20},{wch:40},{wch:20},{wch:50},{wch:16},{wch:12},{wch:30},{wch:16}];
+
+  const rows=[
+    [sc(_campanhaCache.nome+' — PEDIDOS DETALHADOS',XS.titulo),...Array(7).fill(sc('',XS.titulo))],
+    [sc('Gerado em: '+new Date().toLocaleString('pt-BR'),XS.sub),...Array(7).fill(sc('',XS.sub))],
+    Array(8).fill(sc('',XS.vazio)),
+    cabDet,
+    ...dataRows
+  ];
+
+  const s=XLSX.utils.aoa_to_sheet(rows);
+  s['!merges']=[{s:{r:0,c:0},e:{r:0,c:7}},{s:{r:1,c:0},e:{r:1,c:7}}];
+  s['!rows']=[{hpt:24},{hpt:16}];
+  applySheetStyle(s,[{wch:20},{wch:42},{wch:20},{wch:50},{wch:16},{wch:12},{wch:32},{wch:16}]);
   XLSX.utils.book_append_sheet(wb,s,'Pedidos Detalhados');
-  const nm=(_campanhaCache.nome||'Coopefarma').replace(/[^a-zA-Z0-9]/g,'_');
   XLSX.writeFile(wb,'Pedidos_Detalhados_'+nm+'.xlsx');
 }
 
