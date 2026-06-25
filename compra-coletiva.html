@@ -205,7 +205,7 @@ body{font-family:'Inter',sans-serif;background:#f5f7fa;color:#1a1a2e}
         </div>
         <div class="form-field">
           <label>CNPJ *</label>
-          <input type="text" id="f-cnpj" placeholder="00.000.000/0000-00" maxlength="18" oninput="fmtCNPJ(this)"/>
+          <input type="text" id="f-cnpj" placeholder="00.000.000/0000-00" maxlength="18" oninput="fmtCNPJ(this)" onblur="verificarCnpjDuplicado()"/>
         </div>
       </div>
 
@@ -300,6 +300,7 @@ body{font-family:'Inter',sans-serif;background:#f5f7fa;color:#1a1a2e}
           <div class="field" style="flex:1.5"><label>Código EAN</label><input type="text" id="n-ean" placeholder="7891234000001"/></div>
           <div class="field" style="flex:1"><label>Valor Unit. (R$)</label><input type="number" id="n-valor" placeholder="3.99" min="0" step="0.01"/></div>
           <div class="field" style="flex:1"><label>Qtd. Mínima</label><input type="number" id="n-qtdmin" placeholder="0" min="0"/></div>
+          <div class="field" style="flex:1"><label>Limite Total (un.)</label><input type="number" id="n-limite" placeholder="Sem limite" min="1"/></div>
         </div>
         <div class="field" style="margin-top:4px">
           <label>Imagem do produto (opcional)</label>
@@ -389,7 +390,7 @@ body{font-family:'Inter',sans-serif;background:#f5f7fa;color:#1a1a2e}
         <h3>📦 Produtos desta campanha</h3>
         <div style="overflow-x:auto;border-radius:8px;border:1px solid #e2e8f0">
           <table class="prod-table">
-            <thead><tr><th>#</th><th>Img</th><th>Descrição</th><th>EAN</th><th>Valor</th><th>Qtd Mín.</th><th>Condição Especial</th></tr></thead>
+            <thead><tr><th>#</th><th>Img</th><th>Descrição</th><th>EAN</th><th>Valor</th><th>Qtd Mín.</th><th>Limite</th><th>Condição Especial</th></tr></thead>
             <tbody id="d-tbody-prod"></tbody>
           </table>
         </div>
@@ -428,6 +429,19 @@ body{font-family:'Inter',sans-serif;background:#f5f7fa;color:#1a1a2e}
 </div>
 
 <div id="toast"></div>
+
+<!-- Modal CNPJ duplicado -->
+<div id="modal-cnpj" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9998;align-items:center;justify-content:center">
+  <div style="background:#fff;border-radius:16px;padding:28px;max-width:420px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,.3)">
+    <div style="font-size:2rem;text-align:center;margin-bottom:12px">⚠️</div>
+    <h3 style="font-family:Poppins,sans-serif;font-size:16px;font-weight:700;text-align:center;margin-bottom:10px">CNPJ já registrado</h3>
+    <p id="modal-cnpj-txt" style="font-size:13px;color:#555;text-align:center;line-height:1.6;margin-bottom:20px"></p>
+    <div style="display:flex;gap:10px;justify-content:center">
+      <button class="btn btn-outline" onclick="fecharModalCnpj(false)">Cancelar</button>
+      <button class="btn btn-primary" onclick="fecharModalCnpj(true)">Sim, continuar</button>
+    </div>
+  </div>
+</div>
 
 <!-- ════════════════════════════════════════════════
      JAVASCRIPT
@@ -552,9 +566,10 @@ async function carregarDetalhe(id){
         <td class="mono">${esc(p.ean)}</td>
         <td>${p.valor_unit!=null?'R$ '+fmtN(p.valor_unit):'—'}</td>
         <td>${p.qtd_min||'—'}</td>
+        <td>${p.limite_qtd?`<span style="font-weight:700;color:#1565C0">${p.limite_qtd} un.</span>`:'—'}</td>
         <td>${p.bonif_descricao?`<span class="bonif-tag">🎁 R$${fmtN(p.bonif_valor_unit)}/un → ${esc(p.bonif_descricao)} (R$${fmtN(p.bonif_prod_valor)})</span>`:'—'}</td>
       </tr>`).join('')
-    :'<tr><td colspan="7" style="text-align:center;color:#aaa;padding:20px">Nenhum produto</td></tr>';
+    :'<tr><td colspan="8" style="text-align:center;color:#aaa;padding:20px">Nenhum produto</td></tr>';
 
   await renderPedidos();
   await renderConsolidado();
@@ -742,6 +757,7 @@ async function addProdNova(){
   const ean=document.getElementById('n-ean').value.trim();
   const valor=parseFloat(document.getElementById('n-valor').value)||null;
   const qtdmin=parseInt(document.getElementById('n-qtdmin').value)||null;
+  const limite=parseInt(document.getElementById('n-limite').value)||null;
   const temBonif=document.getElementById('n-tem-bonif').checked;
   if(!desc){toast('Informe a descrição.','err');return;}
   if(!ean){toast('Informe o código EAN.','err');return;}
@@ -756,7 +772,7 @@ async function addProdNova(){
   }
 
   const prod={
-    id:Date.now(),descricao:desc,ean,valor_unit:valor,qtd_min:qtdmin,
+    id:Date.now(),descricao:desc,ean,valor_unit:valor,qtd_min:qtdmin,limite_qtd:limite,
     ordem:_novaProdutos.length,imagem_url:imagemUrl,
     bonif_descricao:null,bonif_ean:null,bonif_prod_valor:null,bonif_valor_unit:null
   };
@@ -772,7 +788,7 @@ async function addProdNova(){
   }
 
   _novaProdutos.push(prod);
-  ['n-desc','n-ean','n-valor','n-qtdmin','n-bonif-desc','n-bonif-ean','n-bonif-prod-valor','n-bonif-valor-unit']
+  ['n-desc','n-ean','n-valor','n-qtdmin','n-limite','n-bonif-desc','n-bonif-ean','n-bonif-prod-valor','n-bonif-valor-unit']
     .forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   document.getElementById('n-tem-bonif').checked=false;
   document.getElementById('n-bonif-fields').classList.remove('show');
@@ -812,7 +828,7 @@ async function salvarCampanha(){
   const{error:e2}=await sb.from('cc_produtos').insert(
     _novaProdutos.map((p,i)=>({
       campanha_id:camp.id,descricao:p.descricao,ean:p.ean,
-      valor_unit:p.valor_unit,qtd_min:p.qtd_min,ordem:i,imagem_url:p.imagem_url||null,
+      valor_unit:p.valor_unit,qtd_min:p.qtd_min,limite_qtd:p.limite_qtd||null,ordem:i,imagem_url:p.imagem_url||null,
       bonif_descricao:p.bonif_descricao,bonif_ean:p.bonif_ean,
       bonif_prod_valor:p.bonif_prod_valor,bonif_valor_unit:p.bonif_valor_unit
     }))
@@ -838,6 +854,7 @@ async function initForm(token){
     document.getElementById('btn-submit-form').style.display='none';return;
   }
   _formCampanha=camp;
+  _cnpjDuplicadoOk=false;
   document.getElementById('form-nome-campanha').textContent=camp.nome;
   document.title=camp.nome+' — Coopefarma';
   const{data:prods}=await sb.from('cc_produtos').select('*').eq('campanha_id',camp.id).order('ordem');
@@ -924,6 +941,36 @@ function onQtyChange(i){
     `<span style="font-size:11px;color:#aaa">(R$ ${fmtN(p.bonif_prod_valor)}/un)</span>`;
 }
 
+let _cnpjDuplicadoOk=false;
+
+async function verificarCnpjDuplicado(){
+  const cnpj=document.getElementById('f-cnpj').value.replace(/\D/g,'');
+  if(cnpj.length!==14||!_formCampanha)return;
+  _cnpjDuplicadoOk=false;
+  const{data}=await sb.from('cc_pedidos')
+    .select('id,created_at,razao_social')
+    .eq('campanha_id',_formCampanha.id)
+    .eq('cnpj',document.getElementById('f-cnpj').value)
+    .limit(1);
+  if(data&&data.length>0){
+    const dt=new Date(data[0].created_at).toLocaleString('pt-BR');
+    document.getElementById('modal-cnpj-txt').innerHTML=
+      `Este CNPJ já enviou um pedido para esta campanha em <strong>${dt}</strong> (${esc(data[0].razao_social)}).<br><br>Deseja continuar e registrar um pedido adicional?`;
+    document.getElementById('modal-cnpj').style.display='flex';
+  }else{
+    _cnpjDuplicadoOk=true;
+  }
+}
+
+function fecharModalCnpj(continuar){
+  document.getElementById('modal-cnpj').style.display='none';
+  _cnpjDuplicadoOk=continuar;
+  if(!continuar){
+    document.getElementById('f-cnpj').value='';
+    document.getElementById('f-cnpj').focus();
+  }
+}
+
 function fmtCNPJ(el){
   let v=el.value.replace(/\D/g,'').slice(0,14);
   if(v.length>12)v=v.slice(0,2)+'.'+v.slice(2,5)+'.'+v.slice(5,8)+'/'+v.slice(8,12)+'-'+v.slice(12);
@@ -954,6 +1001,41 @@ async function submeterPedido(){
   }).filter(it=>it.quantidade>0);
 
   if(!itens.length){showFormErr('Informe a quantidade de pelo menos um produto.');return;}
+
+  // Verificar se o CNPJ foi validado (sem duplicata ou usuário aceitou continuar)
+  const cnpjRaw=cnpj.replace(/\D/g,'');
+  if(!_cnpjDuplicadoOk){
+    // Disparar a verificação caso o usuário não tenha saído do campo
+    const{data:pedExist}=await sb.from('cc_pedidos')
+      .select('id').eq('campanha_id',_formCampanha.id).eq('cnpj',cnpj).limit(1);
+    if(pedExist&&pedExist.length>0){
+      await verificarCnpjDuplicado();
+      return;
+    }
+  }
+
+  // Verificar limites por produto
+  const prodsComLimite=_formProdutos.filter(p=>p.limite_qtd);
+  if(prodsComLimite.length){
+    const pedIds=(await sb.from('cc_pedidos').select('id').eq('campanha_id',_formCampanha.id)).data?.map(p=>p.id)||[];
+    if(pedIds.length){
+      const{data:itensExist}=await sb.from('cc_pedido_itens').select('produto_id,quantidade').in('pedido_id',pedIds);
+      for(const it of itens){
+        const prod=_formProdutos.find(p=>p.id===it.produto_id);
+        if(!prod?.limite_qtd)continue;
+        const jaOrdenado=(itensExist||[]).filter(e=>e.produto_id===it.produto_id).reduce((s,e)=>s+(e.quantidade||0),0);
+        const disponivel=prod.limite_qtd-jaOrdenado;
+        if(disponivel<=0){
+          showFormErr(`O limite desta campanha para "${prod.descricao}" já foi atingido (${prod.limite_qtd} unidades). Não é possível registrar mais pedidos para este produto.`);
+          return;
+        }
+        if(it.quantidade>disponivel){
+          showFormErr(`Quantidade solicitada de "${prod.descricao}" (${it.quantidade} un.) excede o disponível (${disponivel} un. restantes de ${prod.limite_qtd} un. no total).`);
+          return;
+        }
+      }
+    }
+  }
 
   const btn=document.getElementById('btn-submit-form');
   btn.disabled=true;btn.textContent='⏳ Enviando...';
