@@ -503,9 +503,23 @@ function adicionarMensagemNaTela(msg, scroll = true) {
   const div = document.createElement('div');
   div.className = `msg-wrapper ${lado}`;
   div.dataset.msgId = msg.id;
+
+  // Conteúdo da mensagem: imagem, áudio ou texto
+  let conteudoHtml = '';
+  if (msg.media_tipo === 'imagem' && msg.media_url) {
+    conteudoHtml = `<img src="${msg.media_url}" style="max-width:240px;max-height:240px;border-radius:8px;display:block;cursor:pointer" onclick="window.open('${msg.media_url}','_blank')">`;
+    if (msg.conteudo && msg.conteudo !== '[Imagem]') conteudoHtml += `<div style="margin-top:4px">${escapeHtml(msg.conteudo)}</div>`;
+  } else if (msg.media_tipo === 'audio' && msg.media_url) {
+    conteudoHtml = `<audio controls style="max-width:220px"><source src="${msg.media_url}"><span>${escapeHtml(msg.conteudo)}</span></audio>`;
+  } else if (msg.media_tipo === 'video' && msg.media_url) {
+    conteudoHtml = `<video controls style="max-width:240px;border-radius:8px"><source src="${msg.media_url}"><span>${escapeHtml(msg.conteudo)}</span></video>`;
+  } else {
+    conteudoHtml = escapeHtml(msg.conteudo);
+  }
+
   div.innerHTML = `
     ${!msg.de_mim && msg.remetente_nome ? `<div class="msg-remetente">${msg.remetente_nome}</div>` : ''}
-    <div class="msg-bubble">${escapeHtml(msg.conteudo)}</div>
+    <div class="msg-bubble">${conteudoHtml}</div>
     <div class="msg-hora">${hora}${msg.de_mim ? ' ✓' : ''}</div>`;
   el.appendChild(div);
   if (scroll) el.scrollTop = el.scrollHeight;
