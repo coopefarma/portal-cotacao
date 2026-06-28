@@ -643,41 +643,42 @@ function pararGravacao() {
 async function enviarAudioGravado() {
   if (!_conversaAtiva || _audioChunks.length === 0) return;
   const blob = new Blob(_audioChunks, { type: 'audio/ogg; codecs=opus' });
-  const SB_URL = 'https://uofcbqqbubvvltnzvhsx.supabase.co';
-  const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVvZmNicXFidWJ2dmx0bnp2aHN4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk1OTY3MDMsImV4cCI6MjA2NTE3MjcwM30.SQ0x7RDU9B0u5lqvn2pr1Q_4NwoJMY9';
   try {
     const nomeArquivo = `audio-${Date.now()}.ogg`;
-    const res = await fetch(`${SB_URL}/storage/v1/object/wa-midia/${nomeArquivo}`, {
-      method: 'POST',
-      headers: { 'Authorization': `Bearer ${SB_KEY}`, 'Content-Type': 'audio/ogg' },
-      body: blob,
-    });
-    if (!res.ok) throw new Error('Upload falhou');
-    const mediaUrl = `${SB_URL}/storage/v1/object/public/wa-midia/${nomeArquivo}`;
 
-    // Salvar mensagem de áudio no banco
+    // Upload usando o cliente sb já inicializado
+    const { data: uploadData, error: uploadError } = await sb.storage
+      .from('wa-midia')
+      .upload(nomeArquivo, blob, { contentType: 'audio/ogg', upsert: false });
+
+    if (uploadError) throw new Error('Upload: ' + uploadError.message);
+
+    const { data: { publicUrl } } = sb.storage.from('wa-midia').getPublicUrl(uploadData.path);
+
+    // Salvar mensagem de áudio no banco (para aparecer na tela)
     await sb.from('wa_mensagens').insert({
       conversa_id: _conversaAtiva.id,
       conteudo: '[Audio]',
       de_mim: true,
       remetente_nome: _agente?.nome || 'Atendente',
       media_tipo: 'audio',
-      media_url: mediaUrl,
+      media_url: publicUrl,
       timestamp: new Date().toISOString(),
     });
 
-    // Inserir na fila de envio com flag de audio
+    // Inserir na fila para o servidor enviar ao WhatsApp
     await sb.from('wa_fila_envio').insert({
       conversa_id: _conversaAtiva.id,
       telefone: _conversaAtiva.telefone,
       conteudo: '[Audio]',
-      media_url: mediaUrl,
+      media_url: publicUrl,
       media_tipo: 'audio',
     });
 
     toast('Áudio enviado!', 'ok');
   } catch (err) {
-    toast('Erro ao enviar áudio.', 'erro');
+    console.error('Erro ao enviar áudio:', err);
+    toast('Erro ao enviar áudio: ' + err.message, 'erro');
   }
 }
 
