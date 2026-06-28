@@ -18,7 +18,6 @@ body{font-family:'Segoe UI',sans-serif;background:var(--cinza);color:var(--texto
 #tela-login{display:flex;align-items:center;justify-content:center;height:100vh;background:linear-gradient(135deg,#0d4a2a,#15a563)}
 .login-box{background:var(--branco);border-radius:16px;padding:40px;width:360px;box-shadow:0 8px 32px rgba(0,0,0,.2)}
 .login-box .logo{text-align:center;margin-bottom:24px}
-.login-box .logo img{height:56px}
 .login-box h2{text-align:center;color:var(--verde);font-size:1.3rem;margin-bottom:4px}
 .login-box p{text-align:center;color:var(--texto2);font-size:.85rem;margin-bottom:24px}
 .campo{margin-bottom:16px}
@@ -29,122 +28,176 @@ body{font-family:'Segoe UI',sans-serif;background:var(--cinza);color:var(--texto
 .btn-login:hover{background:var(--verde-escuro)}
 .msg-erro{color:var(--vermelho);font-size:.83rem;text-align:center;margin-top:12px;min-height:18px}
 
-/* LAYOUT PRINCIPAL */
+/* LAYOUT */
 #app{display:none;height:100vh;flex-direction:column}
-.topbar{background:var(--verde);color:#fff;padding:0 20px;height:54px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;box-shadow:0 2px 8px rgba(0,0,0,.15)}
-.topbar .marca{display:flex;align-items:center;gap:10px;font-weight:700;font-size:1.05rem}
-.topbar .marca img{height:32px}
-.topbar .info-user{display:flex;align-items:center;gap:14px;font-size:.88rem}
-.badge-role{background:rgba(255,255,255,.2);padding:3px 10px;border-radius:12px;font-size:.78rem}
+.topbar{background:var(--verde);color:#fff;padding:0 16px;height:54px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;box-shadow:0 2px 8px rgba(0,0,0,.15)}
+.topbar .marca{display:flex;align-items:center;gap:10px;font-weight:700;font-size:1rem}
+.topbar .marca img{height:30px}
+.topbar .info-user{display:flex;align-items:center;gap:8px;font-size:.85rem}
+.badge-role{background:rgba(255,255,255,.2);padding:3px 10px;border-radius:12px;font-size:.77rem}
 .badge-role.gestor{background:#fff;color:var(--verde);font-weight:700}
-.btn-sair{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#fff;padding:5px 14px;border-radius:6px;cursor:pointer;font-size:.83rem;transition:.2s}
+.btn-sair{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#fff;padding:5px 12px;border-radius:6px;cursor:pointer;font-size:.8rem}
 .btn-sair:hover{background:rgba(255,255,255,.25)}
+
+/* VIEW SWITCHER */
+.view-switcher{display:flex;gap:2px;background:rgba(0,0,0,.18);border-radius:8px;padding:3px}
+.view-btn{padding:4px 11px;border-radius:5px;border:none;cursor:pointer;font-size:.76rem;font-weight:600;transition:.2s;background:transparent;color:rgba(255,255,255,.7)}
+.view-btn.ativo{background:#fff;color:var(--verde)}
 
 .corpo{display:flex;flex:1;overflow:hidden}
 
-/* SIDEBAR */
-.sidebar{width:320px;background:var(--branco);border-right:1px solid var(--borda);display:flex;flex-direction:column;flex-shrink:0}
-.sidebar-header{padding:14px 16px 10px;border-bottom:1px solid var(--borda)}
-.sidebar-tabs{display:flex;gap:0;margin-bottom:12px}
-.tab{flex:1;padding:8px 6px;font-size:.82rem;font-weight:600;color:var(--texto2);background:var(--cinza);border:none;cursor:pointer;transition:.2s;border-bottom:2px solid transparent}
+/* ======================== KANBAN ======================== */
+#vista-kanban{flex:1;overflow:hidden}
+.kb-board{display:flex;height:100%}
+.kb-col{flex:1;display:flex;flex-direction:column;border-right:1px solid var(--borda);background:var(--cinza);min-width:240px}
+.kb-col:last-child{border-right:none}
+.kb-col-hdr{padding:11px 14px;font-size:.83rem;font-weight:700;display:flex;align-items:center;border-bottom:1px solid var(--borda);flex-shrink:0}
+.kb-count{margin-left:auto;font-size:.7rem;background:rgba(0,0,0,.1);padding:1px 8px;border-radius:10px}
+.kb-cards{flex:1;overflow-y:auto;padding:10px;display:flex;flex-direction:column;gap:8px}
+.kb-cards::-webkit-scrollbar{width:4px}
+.kb-cards::-webkit-scrollbar-thumb{background:#ccc;border-radius:4px}
+.kb-card{background:#fff;border-radius:10px;padding:11px 13px;cursor:pointer;border:1.5px solid var(--borda);transition:.15s}
+.kb-card:hover{border-color:var(--verde);box-shadow:0 2px 8px rgba(0,0,0,.07)}
+.kc-top{display:flex;align-items:center;gap:8px;margin-bottom:5px}
+.kc-av{width:30px;height:30px;border-radius:50%;background:var(--verde);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.8rem;flex-shrink:0}
+.kc-nome{font-weight:600;font-size:.86rem;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.kc-tempo{font-size:.69rem;color:var(--texto2);white-space:nowrap;flex-shrink:0}
+.kc-tempo.alerta{color:var(--laranja);font-weight:600}
+.kc-tempo.urgente{color:var(--vermelho);font-weight:700}
+.kc-preview{font-size:.78rem;color:var(--texto2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:7px}
+.kc-foot{display:flex;align-items:center;justify-content:space-between;gap:6px}
+.kc-agente{font-size:.7rem;color:var(--verde);font-weight:600}
+.kc-btn{font-size:.73rem;padding:4px 11px;border-radius:20px;border:none;cursor:pointer;font-weight:600;flex-shrink:0;transition:.15s}
+.kc-assumir{background:var(--verde);color:#fff}
+.kc-assumir:hover{background:var(--verde-escuro)}
+.kc-ver{background:var(--cinza);color:var(--texto);border:1px solid var(--borda)!important}
+.kb-vazio{padding:24px 12px;text-align:center;color:var(--texto2);font-size:.82rem}
+
+/* ======================== SIDEBAR ======================== */
+#vista-chat{flex:1;overflow:hidden}
+.sidebar{width:298px;background:var(--branco);border-right:1px solid var(--borda);display:flex;flex-direction:column;flex-shrink:0}
+.sb-header{padding:11px 13px 9px;border-bottom:1px solid var(--borda)}
+.sb-tabs{display:flex;margin-bottom:9px}
+.tab{flex:1;padding:7px 4px;font-size:.78rem;font-weight:600;color:var(--texto2);background:var(--cinza);border:none;cursor:pointer;transition:.2s;border-bottom:2px solid transparent}
 .tab:first-child{border-radius:8px 0 0 8px}
 .tab:last-child{border-radius:0 8px 8px 0}
 .tab.ativo{background:var(--verde-light);color:var(--verde);border-bottom-color:var(--verde)}
 .busca{position:relative}
-.busca input{width:100%;padding:8px 12px 8px 32px;border:1.5px solid var(--borda);border-radius:8px;font-size:.85rem;outline:none}
+.busca input{width:100%;padding:7px 10px 7px 29px;border:1.5px solid var(--borda);border-radius:8px;font-size:.82rem;outline:none}
 .busca input:focus{border-color:var(--verde)}
-.busca::before{content:'🔍';position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:.8rem}
+.busca::before{content:'🔍';position:absolute;left:8px;top:50%;transform:translateY(-50%);font-size:.76rem}
+.lista-conv{flex:1;overflow-y:auto}
+.lista-conv::-webkit-scrollbar{width:4px}
+.lista-conv::-webkit-scrollbar-thumb{background:#ccc;border-radius:4px}
+.item-conv{padding:10px 13px;border-bottom:1px solid var(--cinza);cursor:pointer;transition:.15s}
+.item-conv:hover{background:#f9fffe}
+.item-conv.sel{background:var(--verde-light);border-left:3px solid var(--verde)}
+.ic-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:2px}
+.ic-nome{font-weight:600;font-size:.87rem}
+.ic-hora{font-size:.71rem;color:var(--texto2)}
+.ic-preview{font-size:.79rem;color:var(--texto2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ic-tempo{font-size:.67rem;color:var(--laranja);font-weight:600;margin-top:2px}
+.ic-tempo.urgente{color:var(--vermelho)}
+.nao-lidas{background:var(--verde);color:#fff;font-size:.69rem;font-weight:700;padding:1px 6px;border-radius:10px;min-width:18px;text-align:center;display:inline-block}
+.sem-conv{padding:30px 16px;text-align:center;color:var(--texto2);font-size:.87rem}
 
-.lista-conversas{flex:1;overflow-y:auto}
-.lista-conversas::-webkit-scrollbar{width:4px}
-.lista-conversas::-webkit-scrollbar-thumb{background:#ccc;border-radius:4px}
+/* ======================== ETIQUETAS ======================== */
+.etiq-chip{font-size:.66rem;padding:2px 6px;border-radius:8px;font-weight:600;white-space:nowrap}
+.etiq-receita{background:#e8eaf6;color:#283593}
+.etiq-medicamento{background:#e0f2f1;color:#00695c}
+.etiq-perfumaria{background:#fce4ec;color:#880e4f}
+.etiq-delivery{background:#fff3e0;color:#e65100}
+.etiq-orcamento{background:#e3f2fd;color:#1565c0}
+.etiq-crediario{background:#f3e5f5;color:#6a1b9a}
+.etiq-row{display:flex;flex-wrap:wrap;gap:3px;margin-top:4px}
 
-.item-conversa{padding:12px 16px;border-bottom:1px solid var(--cinza);cursor:pointer;transition:.15s;position:relative}
-.item-conversa:hover{background:#f9fffe}
-.item-conversa.selecionado{background:var(--verde-light);border-left:3px solid var(--verde)}
-.item-conversa .nome{font-weight:600;font-size:.9rem;color:var(--texto);margin-bottom:3px;display:flex;align-items:center;justify-content:space-between}
-.item-conversa .hora{font-size:.74rem;color:var(--texto2)}
-.item-conversa .preview{font-size:.82rem;color:var(--texto2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:220px}
-.item-conversa .status-badge{font-size:.7rem;padding:2px 7px;border-radius:10px;font-weight:600}
-.status-badge.aguardando{background:#fff3e0;color:#e65100}
-.status-badge.em_atendimento{background:#e8f5e9;color:#2e7d32}
-.status-badge.finalizado{background:#f3f4f6;color:#777}
-.nao-lidas-badge{background:var(--verde);color:#fff;font-size:.7rem;font-weight:700;padding:1px 6px;border-radius:10px;min-width:18px;text-align:center}
-.sem-conversas{padding:32px 16px;text-align:center;color:var(--texto2);font-size:.88rem}
-
-/* AREA DE CHAT */
+/* ======================== CHAT AREA ======================== */
 .chat-area{flex:1;display:flex;flex-direction:column;background:var(--cinza)}
 .chat-vazio{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--texto2)}
 .chat-vazio .icone{font-size:3.5rem;margin-bottom:16px;opacity:.4}
-.chat-vazio p{font-size:.95rem}
-
-.chat-header{background:var(--branco);padding:12px 20px;border-bottom:1px solid var(--borda);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
-.chat-header .contato{display:flex;align-items:center;gap:12px}
-.avatar{width:40px;height:40px;border-radius:50%;background:var(--verde);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:1.1rem;flex-shrink:0}
-.chat-header .contato-info h3{font-size:.98rem;font-weight:700}
-.chat-header .contato-info p{font-size:.8rem;color:var(--texto2)}
-.chat-acoes{display:flex;gap:8px;align-items:center}
-.btn-acao{padding:7px 14px;border-radius:7px;border:none;cursor:pointer;font-size:.82rem;font-weight:600;transition:.2s}
+.chat-header{background:var(--branco);padding:10px 17px;border-bottom:1px solid var(--borda);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.chat-header .contato{display:flex;align-items:center;gap:10px}
+.avatar{width:38px;height:38px;border-radius:50%;background:var(--verde);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:1rem;flex-shrink:0}
+.contato-info h3{font-size:.93rem;font-weight:700}
+.contato-info p{font-size:.77rem;color:var(--texto2)}
+.chat-acoes{display:flex;gap:6px;align-items:center}
+.btn-acao{padding:6px 12px;border-radius:7px;border:none;cursor:pointer;font-size:.79rem;font-weight:600;transition:.2s}
 .btn-assumir{background:var(--verde);color:#fff}
 .btn-assumir:hover{background:var(--verde-escuro)}
-.btn-finalizar{background:#fff;color:var(--vermelho);border:1.5px solid var(--vermelho)}
+.btn-finalizar{background:#fff;color:var(--vermelho);border:1.5px solid var(--vermelho)!important}
 .btn-finalizar:hover{background:#fff5f5}
-.btn-reabrir{background:#fff;color:var(--azul);border:1.5px solid var(--azul)}
-.agente-label{font-size:.8rem;color:var(--texto2);background:var(--cinza);padding:5px 10px;border-radius:6px}
+.btn-reabrir{background:#fff;color:var(--azul);border:1.5px solid var(--azul)!important}
+.agente-label{font-size:.77rem;color:var(--texto2);background:var(--cinza);padding:4px 9px;border-radius:6px}
 
-.chat-mensagens{flex:1;overflow-y:auto;padding:20px;display:flex;flex-direction:column;gap:8px}
-.chat-mensagens::-webkit-scrollbar{width:4px}
-.chat-mensagens::-webkit-scrollbar-thumb{background:#ccc;border-radius:4px}
+/* SUB STATUS */
+.substatus-bar{background:#fff;padding:6px 16px;border-bottom:1px solid var(--borda);display:flex;align-items:center;gap:0;overflow-x:auto;flex-shrink:0;scrollbar-width:none}
+.substatus-bar::-webkit-scrollbar{display:none}
+.ss-step{display:flex;align-items:center}
+.ss-btn{font-size:.71rem;padding:4px 9px;border:1.5px solid var(--borda);border-radius:20px;background:#fff;cursor:pointer;color:var(--texto2);transition:.15s;white-space:nowrap;font-weight:500}
+.ss-btn.ativo{background:var(--verde);color:#fff;border-color:var(--verde);font-weight:700}
+.ss-btn:hover:not(.ativo){border-color:var(--verde);color:var(--verde)}
+.ss-seta{color:#ccc;padding:0 3px;font-size:.8rem;flex-shrink:0}
 
-.msg-wrapper{display:flex;flex-direction:column}
-.msg-wrapper.deles{align-items:flex-start}
-.msg-wrapper.minha{align-items:flex-end}
-.msg-bubble{max-width:68%;padding:9px 14px;border-radius:12px;font-size:.9rem;line-height:1.45;position:relative;word-break:break-word}
-.msg-wrapper.deles .msg-bubble{background:var(--branco);border-radius:0 12px 12px 12px;box-shadow:0 1px 3px rgba(0,0,0,.08)}
-.msg-wrapper.minha .msg-bubble{background:#dcf8c6;border-radius:12px 12px 0 12px}
-.msg-hora{font-size:.7rem;color:var(--texto2);margin-top:3px;padding:0 4px}
-.msg-remetente{font-size:.72rem;color:var(--verde);font-weight:600;margin-bottom:2px;padding:0 4px}
-.msg-data-divider{text-align:center;font-size:.75rem;color:var(--texto2);margin:12px 0;background:var(--cinza);padding:3px 0}
+/* ETIQUETAS BAR NO CHAT */
+.etiq-bar{background:#fff;padding:5px 17px;border-bottom:1px solid var(--borda);display:flex;align-items:center;gap:5px;flex-wrap:wrap;flex-shrink:0;min-height:33px}
+.etiq-add-btn{font-size:.69rem;padding:2px 8px;border-radius:10px;border:1.5px dashed var(--borda);background:transparent;cursor:pointer;color:var(--texto2);transition:.15s}
+.etiq-add-btn:hover{border-color:var(--verde);color:var(--verde)}
+#etiq-picker{position:fixed;background:#fff;border:1.5px solid var(--borda);border-radius:10px;padding:10px;z-index:1000;box-shadow:0 4px 20px rgba(0,0,0,.12);display:none;flex-wrap:wrap;gap:6px;max-width:255px}
+#etiq-picker.vis{display:flex}
+.ep-btn{font-size:.74rem;padding:4px 10px;border-radius:10px;border:1.5px solid var(--borda);cursor:pointer;transition:.15s;background:#fff}
+.ep-btn.sel{font-weight:700;border-width:2px}
 
-.chat-input-area{background:var(--branco);padding:12px 16px;border-top:1px solid var(--borda);display:flex;gap:10px;align-items:flex-end;flex-shrink:0}
-.chat-input-area textarea{flex:1;border:1.5px solid var(--borda);border-radius:10px;padding:10px 14px;font-size:.92rem;resize:none;outline:none;max-height:120px;font-family:inherit;line-height:1.4}
+/* MENSAGENS */
+.chat-msgs{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:7px}
+.chat-msgs::-webkit-scrollbar{width:4px}
+.chat-msgs::-webkit-scrollbar-thumb{background:#ccc;border-radius:4px}
+.msg-w{display:flex;flex-direction:column}
+.msg-w.deles{align-items:flex-start}
+.msg-w.minha{align-items:flex-end}
+.msg-bubble{max-width:68%;padding:8px 13px;border-radius:12px;font-size:.88rem;line-height:1.45;word-break:break-word}
+.msg-w.deles .msg-bubble{background:var(--branco);border-radius:0 12px 12px 12px;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.msg-w.minha .msg-bubble{background:#dcf8c6;border-radius:12px 12px 0 12px}
+.msg-hora{font-size:.68rem;color:var(--texto2);margin-top:3px;padding:0 4px}
+.msg-rem{font-size:.7rem;color:var(--verde);font-weight:600;margin-bottom:2px;padding:0 4px}
+
+/* INPUT */
+.chat-input-area{background:var(--branco);padding:10px 13px;border-top:1px solid var(--borda);display:flex;gap:7px;align-items:flex-end;flex-shrink:0}
+.chat-input-area textarea{flex:1;border:1.5px solid var(--borda);border-radius:10px;padding:9px 12px;font-size:.9rem;resize:none;outline:none;max-height:120px;font-family:inherit;line-height:1.4}
 .chat-input-area textarea:focus{border-color:var(--verde)}
-.btn-enviar{background:var(--verde);color:#fff;border:none;border-radius:10px;width:44px;height:44px;cursor:pointer;font-size:1.2rem;transition:.2s;flex-shrink:0;display:flex;align-items:center;justify-content:center}
+.btn-enviar{background:var(--verde);color:#fff;border:none;border-radius:10px;width:42px;height:42px;cursor:pointer;font-size:1.1rem;transition:.2s;flex-shrink:0;display:flex;align-items:center;justify-content:center}
 .btn-enviar:hover{background:var(--verde-escuro)}
 .btn-enviar:disabled{background:#ccc;cursor:not-allowed}
-.chat-bloqueado{padding:12px 16px;text-align:center;font-size:.85rem;color:var(--texto2);background:var(--cinza);border-top:1px solid var(--borda)}
+.chat-bloqueado{padding:10px 16px;text-align:center;font-size:.83rem;color:var(--texto2);background:var(--cinza);border-top:1px solid var(--borda)}
 
-/* PAINEL GESTOR */
-.gestor-stats{padding:16px 20px;background:var(--branco);border-bottom:1px solid var(--borda);display:flex;gap:16px;flex-shrink:0}
-.stat-card{flex:1;background:var(--cinza);border-radius:10px;padding:12px 16px;text-align:center}
-.stat-card .num{font-size:1.8rem;font-weight:700;color:var(--verde)}
-.stat-card .label{font-size:.75rem;color:var(--texto2);margin-top:2px}
+/* STATS GESTOR */
+.gestor-stats{padding:12px 16px;background:var(--branco);border-bottom:1px solid var(--borda);display:flex;gap:12px;flex-shrink:0}
+.stat-card{flex:1;background:var(--cinza);border-radius:10px;padding:10px 14px;text-align:center}
+.stat-card .num{font-size:1.7rem;font-weight:700;color:var(--verde)}
+.stat-card .label{font-size:.72rem;color:var(--texto2);margin-top:1px}
 .stat-card.laranja .num{color:var(--laranja)}
 .stat-card.azul .num{color:var(--azul)}
 
 /* TOAST */
-.toast-container{position:fixed;bottom:24px;right:24px;z-index:9999;display:flex;flex-direction:column;gap:8px}
-.toast{padding:12px 18px;border-radius:8px;color:#fff;font-size:.88rem;font-weight:500;box-shadow:0 4px 12px rgba(0,0,0,.2);animation:fadeIn .3s ease}
+.toast-container{position:fixed;bottom:20px;right:20px;z-index:9999;display:flex;flex-direction:column;gap:7px}
+.toast{padding:10px 16px;border-radius:8px;color:#fff;font-size:.86rem;font-weight:500;box-shadow:0 4px 12px rgba(0,0,0,.2);animation:fadeIn .3s ease}
 .toast.ok{background:#2e7d32}
 .toast.err{background:#c62828}
 .toast.info{background:#1565c0}
 @keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
-
-/* LOADING */
-.loading-overlay{position:fixed;inset:0;background:rgba(255,255,255,.7);display:flex;align-items:center;justify-content:center;z-index:999;display:none}
-.spinner{width:36px;height:36px;border:3px solid var(--borda);border-top-color:var(--verde);border-radius:50%;animation:spin .7s linear infinite}
+.loading-overlay{position:fixed;inset:0;background:rgba(255,255,255,.7);display:none;align-items:center;justify-content:center;z-index:999}
+.spinner{width:34px;height:34px;border:3px solid var(--borda);border-top-color:var(--verde);border-radius:50%;animation:spin .7s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 
-/* RESPONSIVO */
 @media(max-width:700px){
   .sidebar{width:100%;position:absolute;z-index:10;height:calc(100vh - 54px)}
-  .sidebar.oculto{display:none}
+  .kb-col{min-width:78vw}
+  #vista-kanban .kb-board{overflow-x:auto}
 }
 </style>
 </head>
 <body>
 
-<!-- TELA DE LOGIN -->
+<!-- LOGIN -->
 <div id="tela-login">
   <div class="login-box">
     <div class="logo">
@@ -152,97 +205,102 @@ body{font-family:'Segoe UI',sans-serif;background:var(--cinza);color:var(--texto
     </div>
     <h2>Atendimento WhatsApp</h2>
     <p>Entre com seu login para acessar</p>
-    <div class="campo">
-      <label>E-mail</label>
-      <input type="email" id="email" placeholder="seu@email.com" autocomplete="username">
-    </div>
-    <div class="campo">
-      <label>Senha</label>
-      <input type="password" id="senha" placeholder="••••••••" autocomplete="current-password">
-    </div>
+    <div class="campo"><label>E-mail</label><input type="email" id="email" placeholder="seu@email.com" autocomplete="username"></div>
+    <div class="campo"><label>Senha</label><input type="password" id="senha" placeholder="••••••••" autocomplete="current-password"></div>
     <button class="btn-login" onclick="fazerLogin()">Entrar</button>
     <div class="msg-erro" id="msg-erro"></div>
   </div>
 </div>
 
-<!-- APP PRINCIPAL -->
+<!-- APP -->
 <div id="app">
   <div class="topbar">
     <div class="marca">
-      <img src="https://raw.githubusercontent.com/coopefarma/portal-cotacao/main/Coopefarma_Marca_1.jpg" alt="Coopefarma" style="height:32px;object-fit:contain">
+      <img src="https://raw.githubusercontent.com/coopefarma/portal-cotacao/main/Coopefarma_Marca_1.jpg" alt="Coopefarma" style="height:30px;object-fit:contain">
       Atendimento WhatsApp
     </div>
     <div class="info-user">
+      <div class="view-switcher">
+        <button class="view-btn" id="btn-vk" onclick="mostrarVista('kanban')">⬜ Kanban</button>
+        <button class="view-btn ativo" id="btn-vc" onclick="mostrarVista('chat')">💬 Chat</button>
+      </div>
       <span id="nome-usuario"></span>
       <span class="badge-role" id="badge-role">atendente</span>
       <button class="btn-sair" onclick="sair()">Sair</button>
     </div>
   </div>
 
-  <!-- Stats gestor -->
   <div class="gestor-stats" id="gestor-stats" style="display:none">
-    <div class="stat-card laranja">
-      <div class="num" id="stat-aguardando">0</div>
-      <div class="label">Aguardando</div>
-    </div>
-    <div class="stat-card">
-      <div class="num" id="stat-atendimento">0</div>
-      <div class="label">Em atendimento</div>
-    </div>
-    <div class="stat-card azul">
-      <div class="num" id="stat-finalizados">0</div>
-      <div class="label">Finalizados hoje</div>
-    </div>
-    <div class="stat-card">
-      <div class="num" id="stat-agentes">0</div>
-      <div class="label">Agentes online</div>
-    </div>
+    <div class="stat-card laranja"><div class="num" id="stat-aguardando">0</div><div class="label">Aguardando</div></div>
+    <div class="stat-card"><div class="num" id="stat-atendimento">0</div><div class="label">Em atendimento</div></div>
+    <div class="stat-card azul"><div class="num" id="stat-finalizados">0</div><div class="label">Finalizados hoje</div></div>
+    <div class="stat-card"><div class="num" id="stat-agentes">0</div><div class="label">Agentes online</div></div>
   </div>
 
   <div class="corpo">
-    <!-- SIDEBAR -->
-    <div class="sidebar" id="sidebar">
-      <div class="sidebar-header">
-        <div class="sidebar-tabs" id="sidebar-tabs">
-          <!-- Tabs inseridas dinamicamente -->
+    <!-- VISTA KANBAN -->
+    <div id="vista-kanban" style="display:none;flex:1;overflow:hidden">
+      <div class="kb-board">
+        <div class="kb-col">
+          <div class="kb-col-hdr" style="background:#fff3e0;color:#e65100">
+            ⏳ Aguardando <span class="kb-count" id="kc-ag">0</span>
+          </div>
+          <div class="kb-cards" id="kb-ag"></div>
         </div>
-        <div class="busca">
-          <input type="text" id="busca-input" placeholder="Buscar contato..." oninput="filtrarConversas()">
+        <div class="kb-col">
+          <div class="kb-col-hdr" style="background:#e8f5e9;color:#2e7d32">
+            💬 Em Atendimento <span class="kb-count" id="kc-at">0</span>
+          </div>
+          <div class="kb-cards" id="kb-at"></div>
+        </div>
+        <div class="kb-col">
+          <div class="kb-col-hdr" style="background:#f5f5f5;color:#555">
+            ✅ Finalizados <span class="kb-count" id="kc-fi">0</span>
+          </div>
+          <div class="kb-cards" id="kb-fi"></div>
         </div>
       </div>
-      <div class="lista-conversas" id="lista-conversas"></div>
     </div>
 
-    <!-- AREA DE CHAT -->
-    <div class="chat-area" id="chat-area">
-      <div class="chat-vazio" id="chat-vazio">
-        <div class="icone">💬</div>
-        <p>Selecione uma conversa para atender</p>
-      </div>
-      <div id="chat-ativo" style="display:none;flex-direction:column;height:100%">
-        <div class="chat-header">
-          <div class="contato">
-            <div class="avatar" id="chat-avatar">?</div>
-            <div class="contato-info">
-              <h3 id="chat-nome">—</h3>
-              <p id="chat-telefone">—</p>
-            </div>
+    <!-- VISTA CHAT -->
+    <div id="vista-chat" style="display:flex;flex:1;overflow:hidden">
+      <div class="sidebar" id="sidebar">
+        <div class="sb-header">
+          <div class="sb-tabs" id="sb-tabs"></div>
+          <div class="busca">
+            <input type="text" id="busca-input" placeholder="Buscar contato..." oninput="filtrarConversas()">
           </div>
-          <div class="chat-acoes" id="chat-acoes"></div>
         </div>
-        <div class="chat-mensagens" id="chat-mensagens"></div>
-        <div id="chat-input-wrapper">
-          <div class="chat-input-area">
-            <textarea id="msg-input" placeholder="Digite sua mensagem..." rows="1" onkeydown="teclaEnter(event)" oninput="autoResize(this)"></textarea>
-            <button class="btn-enviar" id="btn-audio" onclick="toggleGravarAudio()" title="Gravar áudio" style="background:var(--cinza);color:var(--texto2);border:1.5px solid var(--borda)">🎤</button>
-            <button class="btn-enviar" onclick="enviarMensagem()" id="btn-enviar">➤</button>
+        <div class="lista-conv" id="lista-conv"></div>
+      </div>
+
+      <div class="chat-area" id="chat-area">
+        <div class="chat-vazio" id="chat-vazio">
+          <div class="icone">💬</div>
+          <p>Selecione uma conversa para atender</p>
+        </div>
+        <div id="chat-ativo" style="display:none;flex-direction:column;height:100%">
+          <div class="chat-header">
+            <div class="contato">
+              <div class="avatar" id="chat-av">?</div>
+              <div class="contato-info">
+                <h3 id="chat-nome">—</h3>
+                <p id="chat-tel">—</p>
+              </div>
+            </div>
+            <div class="chat-acoes" id="chat-acoes"></div>
           </div>
+          <div class="substatus-bar" id="substatus-bar" style="display:none"></div>
+          <div class="etiq-bar" id="etiq-bar"></div>
+          <div class="chat-msgs" id="chat-msgs"></div>
+          <div id="chat-input-wrapper"></div>
         </div>
       </div>
     </div>
   </div>
 </div>
 
+<div id="etiq-picker"></div>
 <div class="toast-container" id="toasts"></div>
 <div class="loading-overlay" id="loading"><div class="spinner"></div></div>
 
@@ -252,58 +310,57 @@ const SB_KEY = 'sb_publishable_SQ0x7RDU9B0u5lqvn2pr1Q_4NwoJMY9';
 const { createClient } = supabase;
 const sb = createClient(SB_URL, SB_KEY);
 
-let _user = null;
-let _agente = null;
-let _conversas = [];
-let _conversaAtiva = null;
-let _tabAtiva = 'aguardando';
-let _termoBusca = '';
-let _subConversas = null;
-let _subMensagens = null;
+let _user = null, _agente = null, _conversas = [], _convAtiva = null;
+let _tabAtiva = 'aguardando', _busca = '', _vista = 'chat';
+let _subConv = null, _subMsgs = null;
+let _mediaRecorder = null, _audioChunks = [], _gravando = false;
 
-// ========================
-// LOGIN
-// ========================
+const ETIQUETAS = [
+  {id:'receita',    label:'📋 Receita',     cls:'etiq-receita'    },
+  {id:'medicamento',label:'💊 Medicamento', cls:'etiq-medicamento'},
+  {id:'perfumaria', label:'🌸 Perfumaria',  cls:'etiq-perfumaria' },
+  {id:'delivery',   label:'🚚 Delivery',    cls:'etiq-delivery'   },
+  {id:'orcamento',  label:'💰 Orçamento',   cls:'etiq-orcamento'  },
+  {id:'crediario',  label:'💳 Crediário',   cls:'etiq-crediario'  },
+];
+
+const SUB_STATUS = [
+  {id:'aguardando_cliente', label:'⏳ Aguardando cliente'},
+  {id:'separando',          label:'📦 Separando pedido' },
+  {id:'pagamento',          label:'💳 Pagamento'        },
+  {id:'entrega',            label:'🚚 Em entrega'       },
+  {id:'concluido',          label:'✅ Concluído'        },
+];
+
+// ============ LOGIN ============
 document.addEventListener('keydown', e => {
-  if(e.key==='Enter' && document.getElementById('tela-login').style.display !== 'none'){
-    fazerLogin();
-  }
+  if(e.key==='Enter' && document.getElementById('tela-login').style.display!=='none') fazerLogin();
 });
 
 async function fazerLogin() {
   const email = document.getElementById('email').value.trim();
   const senha = document.getElementById('senha').value;
   document.getElementById('msg-erro').textContent = '';
-  if (!email || !senha) { document.getElementById('msg-erro').textContent = 'Preencha email e senha.'; return; }
+  if (!email||!senha){document.getElementById('msg-erro').textContent='Preencha email e senha.';return;}
   mostrarLoading(true);
-  const { data, error } = await sb.auth.signInWithPassword({ email, password: senha });
+  const {data,error} = await sb.auth.signInWithPassword({email,password:senha});
   mostrarLoading(false);
-  if (error) { document.getElementById('msg-erro').textContent = 'Email ou senha incorretos.'; return; }
+  if(error){document.getElementById('msg-erro').textContent='Email ou senha incorretos.';return;}
   _user = data.user;
   await iniciarApp();
 }
 
 async function iniciarApp() {
-  // Buscar perfil do agente
-  const { data: agente } = await sb.from('wa_agentes').select('*').eq('user_id', _user.id).single();
-  if (!agente) {
-    document.getElementById('msg-erro').textContent = 'Seu usuário não tem perfil de atendente. Contate o gestor.';
-    await sb.auth.signOut();
-    return;
-  }
-  _agente = agente;
-
-  // Marcar online
-  await sb.from('wa_agentes').update({ online: true, ultima_atividade: new Date().toISOString() }).eq('id', agente.id);
-
-  // UI
-  document.getElementById('tela-login').style.display = 'none';
-  document.getElementById('app').style.display = 'flex';
-  document.getElementById('nome-usuario').textContent = agente.nome;
-  const badgeRole = document.getElementById('badge-role');
-  badgeRole.textContent = agente.role === 'gestor' ? 'Gestor' : 'Atendente';
-  if (agente.role === 'gestor') { badgeRole.classList.add('gestor'); document.getElementById('gestor-stats').style.display = 'flex'; }
-
+  const {data:ag} = await sb.from('wa_agentes').select('*').eq('user_id',_user.id).single();
+  if(!ag){document.getElementById('msg-erro').textContent='Usuário sem perfil de atendente.';await sb.auth.signOut();return;}
+  _agente = ag;
+  await sb.from('wa_agentes').update({online:true,ultima_atividade:new Date().toISOString()}).eq('id',ag.id);
+  document.getElementById('tela-login').style.display='none';
+  document.getElementById('app').style.display='flex';
+  document.getElementById('nome-usuario').textContent=ag.nome;
+  const br = document.getElementById('badge-role');
+  br.textContent = ag.role==='gestor'?'Gestor':'Atendente';
+  if(ag.role==='gestor'){br.classList.add('gestor');document.getElementById('gestor-stats').style.display='flex';}
   montarTabs();
   await carregarConversas();
   inscreverRealtime();
@@ -311,438 +368,403 @@ async function iniciarApp() {
 }
 
 async function sair() {
-  if (_agente) await sb.from('wa_agentes').update({ online: false }).eq('id', _agente.id);
-  if (_subConversas) _subConversas.unsubscribe();
-  if (_subMensagens) _subMensagens.unsubscribe();
+  if(_agente) await sb.from('wa_agentes').update({online:false}).eq('id',_agente.id);
+  _subConv?.unsubscribe(); _subMsgs?.unsubscribe();
   await sb.auth.signOut();
   location.reload();
 }
 
-// ========================
-// TABS
-// ========================
-function montarTabs() {
-  const tabs = document.getElementById('sidebar-tabs');
-  const isGestor = _agente.role === 'gestor';
-  if (isGestor) {
-    tabs.innerHTML = `
-      <button class="tab ativo" onclick="trocarTab('aguardando',this)">Aguardando</button>
-      <button class="tab" onclick="trocarTab('em_atendimento',this)">Em atend.</button>
-      <button class="tab" onclick="trocarTab('todos',this)">Todos</button>`;
-  } else {
-    tabs.innerHTML = `
-      <button class="tab ativo" onclick="trocarTab('aguardando',this)">Aguardando</button>
-      <button class="tab" onclick="trocarTab('minhas',this)">Minhas</button>
-      <button class="tab" onclick="trocarTab('finalizados',this)">Finalizados</button>`;
-  }
+// ============ VISTA ============
+function mostrarVista(v) {
+  _vista = v;
+  const vk = document.getElementById('vista-kanban');
+  const vc = document.getElementById('vista-chat');
+  vk.style.display = v==='kanban'?'flex':'none';
+  vc.style.display = v==='chat'?'flex':'none';
+  document.getElementById('btn-vk').classList.toggle('ativo', v==='kanban');
+  document.getElementById('btn-vc').classList.toggle('ativo', v==='chat');
+  if(v==='kanban') renderizarKanban();
 }
 
-function trocarTab(tab, el) {
-  _tabAtiva = tab;
-  document.querySelectorAll('.tab').forEach(t => t.classList.remove('ativo'));
+// ============ KANBAN ============
+function tempoEspera(iso) {
+  if(!iso) return '';
+  const mins = Math.floor((Date.now()-new Date(iso))/60000);
+  if(mins<1) return 'agora';
+  if(mins<60) return `há ${mins}min`;
+  const h=Math.floor(mins/60), m=mins%60;
+  return `há ${h}h${m>0?m+'min':''}`;
+}
+function urgCls(iso) {
+  if(!iso) return '';
+  const mins=Math.floor((Date.now()-new Date(iso))/60000);
+  return mins>15?'urgente':mins>7?'alerta':'';
+}
+
+function renderizarKanban() {
+  const isG = _agente.role==='gestor';
+  const ag = _conversas.filter(c=>c.status==='aguardando');
+  const at = _conversas.filter(c=>c.status==='em_atendimento'&&(isG||c.agente_id===_user.id));
+  const fi = _conversas.filter(c=>c.status==='finalizado').slice(0,30);
+  document.getElementById('kc-ag').textContent=ag.length;
+  document.getElementById('kc-at').textContent=at.length;
+  document.getElementById('kc-fi').textContent=fi.length;
+  const mk=(lista,col)=>{
+    const el=document.getElementById('kb-'+col);
+    el.innerHTML=lista.length===0?'<div class="kb-vazio">Nenhuma conversa</div>':lista.map(c=>mkCard(c,col)).join('');
+  };
+  mk(ag,'ag'); mk(at,'at'); mk(fi,'fi');
+}
+
+function mkCard(c,col) {
+  const nome=c.nome_contato||c.telefone;
+  const ini=nome.charAt(0).toUpperCase();
+  const t=tempoEspera(c.ultima_mensagem_at);
+  const urg=urgCls(c.ultima_mensagem_at);
+  const nl=c.nao_lidas>0?`<span class="nao-lidas" style="font-size:.63rem">${c.nao_lidas}</span>`:'';
+  const chips=mkChips(c.etiquetas||[]);
+  let btn='';
+  if(col==='ag') btn=`<button class="kc-btn kc-assumir" onclick="event.stopPropagation();assumirKanban('${c.id}')">Assumir</button>`;
+  else if(col==='at') btn=`<button class="kc-btn kc-ver" onclick="event.stopPropagation();abrirKanban('${c.id}')">Abrir</button>`;
+  return `<div class="kb-card" onclick="abrirKanban('${c.id}')">
+    <div class="kc-top">
+      <div class="kc-av">${ini}</div>
+      <div class="kc-nome">${esc(nome)} ${nl}</div>
+      <div class="kc-tempo ${urg}">${t}</div>
+    </div>
+    <div class="kc-preview">${esc(c.ultima_mensagem||'')}</div>
+    ${chips?`<div class="etiq-row" style="margin-bottom:6px">${chips}</div>`:''}
+    <div class="kc-foot"><div class="kc-agente">${c.agente_nome?'👤 '+c.agente_nome:''}</div>${btn}</div>
+  </div>`;
+}
+
+async function assumirKanban(id) {
+  _convAtiva = _conversas.find(c=>c.id===id);
+  if(!_convAtiva) return;
+  await assumirConversa();
+  mostrarVista('chat');
+}
+async function abrirKanban(id) {
+  mostrarVista('chat');
+  await abrirConversa(id);
+}
+
+// ============ TABS ============
+function montarTabs() {
+  const tabs = document.getElementById('sb-tabs');
+  const isG = _agente.role==='gestor';
+  tabs.innerHTML = isG
+    ? `<button class="tab ativo" onclick="trocarTab('aguardando',this)">Aguardando</button>
+       <button class="tab" onclick="trocarTab('em_atendimento',this)">Em atend.</button>
+       <button class="tab" onclick="trocarTab('todos',this)">Todos</button>`
+    : `<button class="tab ativo" onclick="trocarTab('aguardando',this)">Aguardando</button>
+       <button class="tab" onclick="trocarTab('minhas',this)">Minhas</button>
+       <button class="tab" onclick="trocarTab('finalizados',this)">Finalizados</button>`;
+}
+function trocarTab(tab,el) {
+  _tabAtiva=tab;
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('ativo'));
   el.classList.add('ativo');
   renderizarLista();
 }
 
-// ========================
-// CONVERSAS
-// ========================
+// ============ CONVERSAS ============
 async function carregarConversas() {
-  const { data } = await sb.from('wa_conversas').select('*').order('ultima_mensagem_at', { ascending: false });
-  _conversas = data || [];
+  const {data} = await sb.from('wa_conversas').select('*').order('ultima_mensagem_at',{ascending:false});
+  _conversas = data||[];
   renderizarLista();
 }
 
 function renderizarLista() {
-  const el = document.getElementById('lista-conversas');
+  const el = document.getElementById('lista-conv');
   let lista = _conversas;
-
-  // Filtrar por tab
-  if (_tabAtiva === 'aguardando') lista = lista.filter(c => c.status === 'aguardando');
-  else if (_tabAtiva === 'em_atendimento') lista = lista.filter(c => c.status === 'em_atendimento');
-  else if (_tabAtiva === 'minhas') lista = lista.filter(c => c.agente_id === _user.id && c.status !== 'finalizado');
-  else if (_tabAtiva === 'finalizados') lista = lista.filter(c => c.status === 'finalizado' && c.agente_id === _user.id);
-  // 'todos' mostra tudo
-
-  // Filtrar por busca
-  if (_termoBusca) {
-    const t = _termoBusca.toLowerCase();
-    lista = lista.filter(c => (c.nome_contato||'').toLowerCase().includes(t) || c.telefone.includes(t));
-  }
-
-  if (lista.length === 0) {
-    el.innerHTML = '<div class="sem-conversas">Nenhuma conversa aqui.</div>';
-    return;
-  }
-
-  el.innerHTML = lista.map(c => {
-    const ini = (c.nome_contato || c.telefone).charAt(0).toUpperCase();
-    const hora = c.ultima_mensagem_at ? formatarHora(c.ultima_mensagem_at) : '';
-    const ativo = _conversaAtiva?.id === c.id ? 'selecionado' : '';
-    const naoLidas = c.nao_lidas > 0 ? `<span class="nao-lidas-badge">${c.nao_lidas}</span>` : '';
-    return `
-      <div class="item-conversa ${ativo}" onclick="abrirConversa('${c.id}')">
-        <div class="nome">
-          <span>${c.nome_contato || c.telefone}</span>
-          <div style="display:flex;gap:6px;align-items:center">${naoLidas}<span class="hora">${hora}</span></div>
-        </div>
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-top:3px">
-          <div class="preview">${c.ultima_mensagem || ''}</div>
-          <span class="status-badge ${c.status}">${traduzirStatus(c.status)}</span>
-        </div>
-      </div>`;
+  if(_tabAtiva==='aguardando') lista=lista.filter(c=>c.status==='aguardando');
+  else if(_tabAtiva==='em_atendimento') lista=lista.filter(c=>c.status==='em_atendimento');
+  else if(_tabAtiva==='minhas') lista=lista.filter(c=>c.agente_id===_user.id&&c.status!=='finalizado');
+  else if(_tabAtiva==='finalizados') lista=lista.filter(c=>c.status==='finalizado'&&c.agente_id===_user.id);
+  if(_busca){const t=_busca.toLowerCase();lista=lista.filter(c=>(c.nome_contato||'').toLowerCase().includes(t)||c.telefone.includes(t));}
+  if(lista.length===0){el.innerHTML='<div class="sem-conv">Nenhuma conversa aqui.</div>';return;}
+  el.innerHTML=lista.map(c=>{
+    const nome=c.nome_contato||c.telefone;
+    const hora=c.ultima_mensagem_at?fmtHora(c.ultima_mensagem_at):'';
+    const sel=_convAtiva?.id===c.id?'sel':'';
+    const nl=c.nao_lidas>0?`<span class="nao-lidas">${c.nao_lidas}</span>`:'';
+    const chips=mkChips(c.etiquetas||[]);
+    const tEl=c.status==='aguardando'?`<div class="ic-tempo ${urgCls(c.ultima_mensagem_at)}">${tempoEspera(c.ultima_mensagem_at)}</div>`:'';
+    return `<div class="item-conv ${sel}" onclick="abrirConversa('${c.id}')">
+      <div class="ic-top"><span class="ic-nome">${esc(nome)}</span><div style="display:flex;gap:5px;align-items:center">${nl}<span class="ic-hora">${hora}</span></div></div>
+      <div class="ic-preview">${esc(c.ultima_mensagem||'')}</div>
+      ${tEl}${chips?`<div class="etiq-row">${chips}</div>`:''}
+    </div>`;
   }).join('');
 }
 
-function filtrarConversas() {
-  _termoBusca = document.getElementById('busca-input').value;
-  renderizarLista();
+function filtrarConversas(){_busca=document.getElementById('busca-input').value;renderizarLista();}
+function fmtHora(iso){
+  const d=new Date(iso),h=new Date();
+  return d.toDateString()===h.toDateString()?d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}):d.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'});
 }
 
-function traduzirStatus(s) {
-  return {aguardando:'Aguardando',em_atendimento:'Atendendo',finalizado:'Finalizado'}[s] || s;
-}
-
-function formatarHora(iso) {
-  const d = new Date(iso);
-  const hoje = new Date();
-  if (d.toDateString() === hoje.toDateString()) return d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
-  return d.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'});
-}
-
-// ========================
-// CHAT
-// ========================
+// ============ CHAT ============
 async function abrirConversa(id) {
-  _conversaAtiva = _conversas.find(c => c.id === id);
-  if (!_conversaAtiva) return;
-
-  // Zerar nao_lidas
-  if (_conversaAtiva.nao_lidas > 0) {
-    await sb.from('wa_conversas').update({ nao_lidas: 0 }).eq('id', id);
-    _conversaAtiva.nao_lidas = 0;
-  }
-
-  document.getElementById('chat-vazio').style.display = 'none';
-  const chatAtivo = document.getElementById('chat-ativo');
-  chatAtivo.style.display = 'flex';
-
-  const nome = _conversaAtiva.nome_contato || _conversaAtiva.telefone;
-  document.getElementById('chat-avatar').textContent = nome.charAt(0).toUpperCase();
-  document.getElementById('chat-nome').textContent = nome;
-  document.getElementById('chat-telefone').textContent = '+' + _conversaAtiva.telefone;
-
-  renderizarAcoes();
-  renderizarLista();
+  _convAtiva = _conversas.find(c=>c.id===id);
+  if(!_convAtiva) return;
+  if(_convAtiva.nao_lidas>0){await sb.from('wa_conversas').update({nao_lidas:0}).eq('id',id);_convAtiva.nao_lidas=0;}
+  document.getElementById('chat-vazio').style.display='none';
+  const ca=document.getElementById('chat-ativo'); ca.style.display='flex';
+  const nome=_convAtiva.nome_contato||_convAtiva.telefone;
+  document.getElementById('chat-av').textContent=nome.charAt(0).toUpperCase();
+  document.getElementById('chat-nome').textContent=nome;
+  document.getElementById('chat-tel').textContent='+'+_convAtiva.telefone;
+  renderizarAcoes(); renderizarSubStatus(); renderizarEtiqBar(); renderizarLista();
   await carregarMensagens(id);
-
-  // Re-inscrever em mensagens desta conversa
-  if (_subMensagens) _subMensagens.unsubscribe();
-  _subMensagens = sb.channel('msgs-' + id)
-    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'wa_mensagens', filter: `conversa_id=eq.${id}` },
-      payload => { adicionarMensagemNaTela(payload.new); })
+  _subMsgs?.unsubscribe();
+  _subMsgs=sb.channel('msgs-'+id)
+    .on('postgres_changes',{event:'INSERT',schema:'public',table:'wa_mensagens',filter:`conversa_id=eq.${id}`},p=>addMsg(p.new))
     .subscribe();
 }
 
 function renderizarAcoes() {
-  const el = document.getElementById('chat-acoes');
-  const c = _conversaAtiva;
-  const isGestor = _agente.role === 'gestor';
-  const isMeu = c.agente_id === _user.id;
-  let html = '';
-
-  if (c.agente_id && c.agente_nome) {
-    html += `<span class="agente-label">👤 ${c.agente_nome}</span>`;
-  }
-
-  if (c.status === 'aguardando') {
-    html += `<button class="btn-acao btn-assumir" onclick="assumirConversa()">Assumir atendimento</button>`;
-  } else if (c.status === 'em_atendimento') {
-    if (isMeu || isGestor) {
-      html += `<button class="btn-acao btn-finalizar" onclick="finalizarConversa()">Finalizar</button>`;
-    }
-  } else if (c.status === 'finalizado') {
-    if (isGestor || isMeu) {
-      html += `<button class="btn-acao btn-reabrir" onclick="reabrirConversa()">Reabrir</button>`;
-    }
-  }
-
-  el.innerHTML = html;
-
-  // Controle do input
-  const wrapper = document.getElementById('chat-input-wrapper');
-  const podeEnviar = (c.status === 'em_atendimento' && (isMeu || isGestor)) || isGestor;
-  if (podeEnviar) {
-    wrapper.innerHTML = `
-      <div class="chat-input-area">
-        <textarea id="msg-input" placeholder="Digite sua mensagem..." rows="1" onkeydown="teclaEnter(event)" oninput="autoResize(this)"></textarea>
-        <button class="btn-enviar" id="btn-audio" onclick="toggleGravarAudio()" title="Gravar áudio" style="background:var(--cinza);color:var(--texto2);border:1.5px solid var(--borda)">🎤</button>
-        <button class="btn-enviar" onclick="enviarMensagem()" id="btn-enviar">➤</button>
-      </div>`;
-  } else if (c.status === 'aguardando') {
-    wrapper.innerHTML = `<div class="chat-bloqueado">Assuma a conversa para responder.</div>`;
-  } else if (c.status === 'finalizado') {
-    wrapper.innerHTML = `<div class="chat-bloqueado">Conversa finalizada. Reabra para continuar.</div>`;
+  const el=document.getElementById('chat-acoes');
+  const c=_convAtiva, isG=_agente.role==='gestor', isMeu=c.agente_id===_user.id;
+  let h='';
+  if(c.agente_nome) h+=`<span class="agente-label">👤 ${c.agente_nome}</span>`;
+  if(c.status==='aguardando') h+=`<button class="btn-acao btn-assumir" onclick="assumirConversa()">Assumir atendimento</button>`;
+  else if(c.status==='em_atendimento'&&(isMeu||isG)) h+=`<button class="btn-acao btn-finalizar" onclick="finalizarConversa()">Finalizar</button>`;
+  else if(c.status==='finalizado'&&(isG||isMeu)) h+=`<button class="btn-acao btn-reabrir" onclick="reabrirConversa()">Reabrir</button>`;
+  el.innerHTML=h;
+  const w=document.getElementById('chat-input-wrapper');
+  const pode=(c.status==='em_atendimento'&&(isMeu||isG))||isG;
+  if(pode){
+    w.innerHTML=`<div class="chat-input-area">
+      <textarea id="msg-input" placeholder="Digite sua mensagem..." rows="1" onkeydown="teclaEnter(event)" oninput="autoResize(this)"></textarea>
+      <button class="btn-enviar" id="btn-audio" onclick="toggleGravarAudio()" title="Gravar áudio" style="background:var(--cinza);color:var(--texto2);border:1.5px solid var(--borda)">🎤</button>
+      <button class="btn-enviar" onclick="enviarMensagem()" id="btn-enviar">➤</button>
+    </div>`;
+  } else if(c.status==='aguardando'){
+    w.innerHTML=`<div class="chat-bloqueado">Assuma a conversa para responder.</div>`;
+  } else if(c.status==='finalizado'){
+    w.innerHTML=`<div class="chat-bloqueado">Conversa finalizada. Reabra para continuar.</div>`;
   } else {
-    wrapper.innerHTML = `<div class="chat-bloqueado">Esta conversa está sendo atendida por outro agente.</div>`;
+    w.innerHTML=`<div class="chat-bloqueado">Esta conversa está sendo atendida por outro agente.</div>`;
   }
 }
 
-async function carregarMensagens(conversaId) {
-  const el = document.getElementById('chat-mensagens');
-  el.innerHTML = '<div style="text-align:center;color:#aaa;padding:20px">Carregando...</div>';
-  const { data } = await sb.from('wa_mensagens').select('*').eq('conversa_id', conversaId).order('timestamp');
-  el.innerHTML = '';
-  (data || []).forEach(m => adicionarMensagemNaTela(m, false));
-  el.scrollTop = el.scrollHeight;
+// ============ SUB STATUS ============
+function renderizarSubStatus() {
+  const bar=document.getElementById('substatus-bar');
+  if(!_convAtiva||_convAtiva.status!=='em_atendimento'){bar.style.display='none';return;}
+  bar.style.display='flex';
+  const atual=_convAtiva.sub_status||'aguardando_cliente';
+  bar.innerHTML=SUB_STATUS.map((s,i)=>`
+    <div class="ss-step">
+      <button class="ss-btn ${s.id===atual?'ativo':''}" onclick="setSubStatus('${s.id}')">${s.label}</button>
+      ${i<SUB_STATUS.length-1?'<span class="ss-seta">›</span>':''}
+    </div>`).join('');
 }
 
-function adicionarMensagemNaTela(msg, scroll = true) {
-  const el = document.getElementById('chat-mensagens');
-  if (!el) return;
-  const lado = msg.de_mim ? 'minha' : 'deles';
-  const hora = new Date(msg.timestamp).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-  const div = document.createElement('div');
-  div.className = `msg-wrapper ${lado}`;
-  div.dataset.msgId = msg.id;
+async function setSubStatus(id) {
+  if(!_convAtiva) return;
+  await sb.from('wa_conversas').update({sub_status:id}).eq('id',_convAtiva.id);
+  _convAtiva.sub_status=id;
+  renderizarSubStatus();
+  toast('Status atualizado.','info');
+}
 
-  // Conteúdo da mensagem: imagem, áudio, vídeo, documento ou texto
-  let conteudoHtml = '';
-  if (msg.media_tipo === 'imagem' && msg.media_url) {
-    conteudoHtml = `<img src="${msg.media_url}" style="max-width:240px;max-height:240px;border-radius:8px;display:block;cursor:pointer" onclick="window.open('${msg.media_url}','_blank')">`;
-    if (msg.conteudo && msg.conteudo !== '[Imagem]') conteudoHtml += `<div style="margin-top:4px">${escapeHtml(msg.conteudo)}</div>`;
-  } else if (msg.media_tipo === 'audio' && msg.media_url) {
-    conteudoHtml = `<audio controls style="max-width:220px;outline:none"><source src="${msg.media_url}" type="audio/ogg"><source src="${msg.media_url}" type="audio/mpeg"><span>🎵 ${escapeHtml(msg.conteudo)}</span></audio>`;
-  } else if (msg.media_tipo === 'video' && msg.media_url) {
-    conteudoHtml = `<video controls style="max-width:240px;border-radius:8px"><source src="${msg.media_url}"><span>${escapeHtml(msg.conteudo)}</span></video>`;
-  } else if (msg.media_tipo === 'documento' && msg.media_url) {
-    const nome = escapeHtml(msg.conteudo);
-    const isPdf = msg.media_url.toLowerCase().includes('.pdf') || nome.toLowerCase().includes('.pdf');
-    if (isPdf) {
-      conteudoHtml = `<div style="display:flex;flex-direction:column;gap:6px">
-        <a href="${msg.media_url}" target="_blank" style="display:flex;align-items:center;gap:8px;color:var(--azul);text-decoration:none">
-          <span style="font-size:1.6rem">📄</span><span style="text-decoration:underline">${nome}</span>
-        </a>
-        <iframe src="${msg.media_url}" style="width:260px;height:180px;border:1px solid var(--borda);border-radius:6px" title="${nome}"></iframe>
-      </div>`;
-    } else {
-      conteudoHtml = `<a href="${msg.media_url}" target="_blank" style="display:flex;align-items:center;gap:8px;color:var(--azul);text-decoration:none">
-        <span style="font-size:1.6rem">📎</span><span style="text-decoration:underline">${nome}</span>
-      </a>`;
-    }
+// ============ ETIQUETAS ============
+function mkChips(etiquetas) {
+  return (etiquetas||[]).map(e=>{const cfg=ETIQUETAS.find(x=>x.id===e);return cfg?`<span class="etiq-chip ${cfg.cls}">${cfg.label}</span>`:''}).join('');
+}
+function renderizarEtiqBar() {
+  const bar=document.getElementById('etiq-bar');
+  if(!bar) return;
+  bar.innerHTML=mkChips(_convAtiva?.etiquetas||[])+`<button class="etiq-add-btn" onclick="togglePicker(event)">+ Etiqueta</button>`;
+}
+function togglePicker(event) {
+  event.stopPropagation();
+  const pk=document.getElementById('etiq-picker');
+  const rect=event.target.getBoundingClientRect();
+  const etiq=_convAtiva?.etiquetas||[];
+  pk.innerHTML=ETIQUETAS.map(e=>`<button class="ep-btn ${e.cls} ${etiq.includes(e.id)?'sel':''}" onclick="toggleEtiq('${e.id}')">${e.label}</button>`).join('');
+  pk.style.top=(rect.bottom+4)+'px';
+  pk.style.left=Math.min(rect.left,window.innerWidth-260)+'px';
+  pk.classList.toggle('vis');
+}
+document.addEventListener('click',()=>document.getElementById('etiq-picker')?.classList.remove('vis'));
+async function toggleEtiq(id) {
+  if(!_convAtiva) return;
+  let etiq=[...(_convAtiva.etiquetas||[])];
+  etiq=etiq.includes(id)?etiq.filter(e=>e!==id):[...etiq,id];
+  await sb.from('wa_conversas').update({etiquetas:etiq}).eq('id',_convAtiva.id);
+  _convAtiva.etiquetas=etiq;
+  renderizarEtiqBar();
+  document.querySelectorAll('.ep-btn').forEach(btn=>{
+    const bid=btn.getAttribute('onclick').match(/'(.+?)'/)?.[1];
+    btn.classList.toggle('sel',etiq.includes(bid));
+  });
+}
+
+// ============ MENSAGENS ============
+async function carregarMensagens(cid) {
+  const el=document.getElementById('chat-msgs');
+  el.innerHTML='<div style="text-align:center;color:#aaa;padding:20px">Carregando...</div>';
+  const {data}=await sb.from('wa_mensagens').select('*').eq('conversa_id',cid).order('timestamp');
+  el.innerHTML='';
+  (data||[]).forEach(m=>addMsg(m,false));
+  el.scrollTop=el.scrollHeight;
+}
+
+function addMsg(msg, scroll=true) {
+  const el=document.getElementById('chat-msgs'); if(!el) return;
+  const lado=msg.de_mim?'minha':'deles';
+  const hora=new Date(msg.timestamp).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+  const div=document.createElement('div');
+  div.className=`msg-w ${lado}`; div.dataset.msgId=msg.id;
+  let c='';
+  if(msg.media_tipo==='imagem'&&msg.media_url){
+    c=`<img src="${msg.media_url}" style="max-width:240px;max-height:240px;border-radius:8px;display:block;cursor:pointer" onclick="window.open('${msg.media_url}','_blank')">`;
+    if(msg.conteudo&&msg.conteudo!=='[Imagem]') c+=`<div style="margin-top:4px">${esc(msg.conteudo)}</div>`;
+  } else if(msg.media_tipo==='audio'&&msg.media_url){
+    c=`<audio controls style="max-width:220px;outline:none"><source src="${msg.media_url}" type="audio/ogg"><source src="${msg.media_url}" type="audio/mpeg">🎵 ${esc(msg.conteudo)}</audio>`;
+  } else if(msg.media_tipo==='video'&&msg.media_url){
+    c=`<video controls style="max-width:240px;border-radius:8px"><source src="${msg.media_url}">${esc(msg.conteudo)}</video>`;
+  } else if(msg.media_tipo==='documento'&&msg.media_url){
+    const nm=esc(msg.conteudo);
+    const isPdf=msg.media_url.toLowerCase().includes('.pdf')||nm.toLowerCase().includes('.pdf');
+    c=isPdf
+      ?`<div style="display:flex;flex-direction:column;gap:6px"><a href="${msg.media_url}" target="_blank" style="display:flex;align-items:center;gap:8px;color:var(--azul);text-decoration:none"><span style="font-size:1.5rem">📄</span><span style="text-decoration:underline">${nm}</span></a><iframe src="${msg.media_url}" style="width:260px;height:180px;border:1px solid var(--borda);border-radius:6px" title="${nm}"></iframe></div>`
+      :`<a href="${msg.media_url}" target="_blank" style="display:flex;align-items:center;gap:8px;color:var(--azul);text-decoration:none"><span style="font-size:1.5rem">📎</span><span style="text-decoration:underline">${nm}</span></a>`;
   } else {
-    conteudoHtml = escapeHtml(msg.conteudo);
+    c=esc(msg.conteudo);
   }
-
-  div.innerHTML = `
-    ${!msg.de_mim && msg.remetente_nome ? `<div class="msg-remetente">${msg.remetente_nome}</div>` : ''}
-    <div class="msg-bubble">${conteudoHtml}</div>
-    <div class="msg-hora">${hora}${msg.de_mim ? ' ✓' : ''}</div>`;
+  div.innerHTML=`${!msg.de_mim&&msg.remetente_nome?`<div class="msg-rem">${esc(msg.remetente_nome)}</div>`:''}<div class="msg-bubble">${c}</div><div class="msg-hora">${hora}${msg.de_mim?' ✓':''}</div>`;
   el.appendChild(div);
-  if (scroll) el.scrollTop = el.scrollHeight;
+  if(scroll) el.scrollTop=el.scrollHeight;
 }
 
+// ============ AÇÕES ============
 async function assumirConversa() {
+  const hora=new Date().getHours();
+  const s=hora<12?'Bom dia':hora<18?'Boa tarde':'Boa noite';
+  const msg=`${s}! Aqui é ${_agente.nome}. Em que posso lhe ajudar? 😊`;
   await sb.from('wa_conversas').update({
-    status: 'em_atendimento',
-    agente_id: _user.id,
-    agente_nome: _agente.nome,
-  }).eq('id', _conversaAtiva.id);
-  _conversaAtiva.status = 'em_atendimento';
-  _conversaAtiva.agente_id = _user.id;
-  _conversaAtiva.agente_nome = _agente.nome;
-  renderizarAcoes();
-  renderizarLista();
-  toast('Conversa assumida!', 'ok');
+    status:'em_atendimento', agente_id:_user.id, agente_nome:_agente.nome,
+    assumido_at:new Date().toISOString(), sub_status:'aguardando_cliente',
+  }).eq('id',_convAtiva.id);
+  Object.assign(_convAtiva,{status:'em_atendimento',agente_id:_user.id,agente_nome:_agente.nome,sub_status:'aguardando_cliente'});
+  await sb.from('wa_fila_envio').insert({conversa_id:_convAtiva.id,telefone:_convAtiva.telefone,conteudo:msg});
+  renderizarAcoes(); renderizarSubStatus(); renderizarLista();
+  toast('Conversa assumida! Saudação enviada.','ok');
 }
 
 async function finalizarConversa() {
-  await sb.from('wa_conversas').update({ status: 'finalizado' }).eq('id', _conversaAtiva.id);
-  _conversaAtiva.status = 'finalizado';
-  renderizarAcoes();
-  renderizarLista();
-  toast('Conversa finalizada.', 'info');
+  await sb.from('wa_conversas').update({status:'finalizado'}).eq('id',_convAtiva.id);
+  _convAtiva.status='finalizado';
+  renderizarAcoes(); renderizarSubStatus(); renderizarLista();
+  toast('Conversa finalizada.','info');
 }
 
 async function reabrirConversa() {
-  await sb.from('wa_conversas').update({ status: 'em_atendimento' }).eq('id', _conversaAtiva.id);
-  _conversaAtiva.status = 'em_atendimento';
-  renderizarAcoes();
-  renderizarLista();
-  toast('Conversa reaberta.', 'ok');
+  await sb.from('wa_conversas').update({status:'em_atendimento',sub_status:'aguardando_cliente'}).eq('id',_convAtiva.id);
+  Object.assign(_convAtiva,{status:'em_atendimento',sub_status:'aguardando_cliente'});
+  renderizarAcoes(); renderizarSubStatus(); renderizarLista();
+  toast('Conversa reaberta.','ok');
 }
 
 async function enviarMensagem() {
-  const input = document.getElementById('msg-input');
-  const texto = input?.value?.trim();
-  if (!texto || !_conversaAtiva) return;
-  const btn = document.getElementById('btn-enviar');
-  if (btn) btn.disabled = true;
-  input.value = '';
-  input.style.height = 'auto';
-
-  await sb.from('wa_fila_envio').insert({
-    conversa_id: _conversaAtiva.id,
-    telefone: _conversaAtiva.telefone,
-    conteudo: texto,
-  });
-
-  if (btn) btn.disabled = false;
+  const input=document.getElementById('msg-input');
+  const texto=input?.value?.trim();
+  if(!texto||!_convAtiva) return;
+  const btn=document.getElementById('btn-enviar');
+  if(btn) btn.disabled=true;
+  input.value=''; input.style.height='auto';
+  await sb.from('wa_fila_envio').insert({conversa_id:_convAtiva.id,telefone:_convAtiva.telefone,conteudo:texto});
+  if(btn) btn.disabled=false;
   input?.focus();
 }
 
-function teclaEnter(e) {
-  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); enviarMensagem(); }
-}
-function autoResize(el) { el.style.height = 'auto'; el.style.height = Math.min(el.scrollHeight, 120) + 'px'; }
+function teclaEnter(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();enviarMensagem();}}
+function autoResize(el){el.style.height='auto';el.style.height=Math.min(el.scrollHeight,120)+'px';}
 
-// ========================
-// GRAVAÇÃO DE ÁUDIO
-// ========================
-let _mediaRecorder = null;
-let _audioChunks = [];
-let _gravando = false;
-
-async function toggleGravarAudio() {
-  if (_gravando) {
-    pararGravacao();
-  } else {
-    await iniciarGravacao();
-  }
-}
-
+// ============ GRAVAÇÃO ÁUDIO ============
+async function toggleGravarAudio(){if(_gravando)pararGravacao();else await iniciarGravacao();}
 async function iniciarGravacao() {
   try {
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    _audioChunks = [];
-    _mediaRecorder = new MediaRecorder(stream);
-    _mediaRecorder.ondataavailable = e => { if (e.data.size > 0) _audioChunks.push(e.data); };
-    _mediaRecorder.onstop = async () => {
-      stream.getTracks().forEach(t => t.stop());
-      await enviarAudioGravado();
-    };
-    _mediaRecorder.start();
-    _gravando = true;
-    const btn = document.getElementById('btn-audio');
-    if (btn) { btn.textContent = '⏹'; btn.style.background = '#e53935'; btn.style.color = '#fff'; btn.style.border = 'none'; btn.title = 'Parar gravação'; }
-    toast('Gravando... clique em ⏹ para parar.', 'ok');
-  } catch (err) {
-    toast('Erro ao acessar microfone.', 'erro');
-  }
+    const stream=await navigator.mediaDevices.getUserMedia({audio:true});
+    _audioChunks=[];
+    _mediaRecorder=new MediaRecorder(stream);
+    _mediaRecorder.ondataavailable=e=>{if(e.data.size>0)_audioChunks.push(e.data);};
+    _mediaRecorder.onstop=async()=>{stream.getTracks().forEach(t=>t.stop());await enviarAudioGravado();};
+    _mediaRecorder.start(); _gravando=true;
+    const btn=document.getElementById('btn-audio');
+    if(btn){btn.textContent='⏹';btn.style.background='#e53935';btn.style.color='#fff';btn.style.border='none';btn.title='Parar gravação';}
+    toast('Gravando... clique em ⏹ para parar.','ok');
+  } catch(err){toast('Erro ao acessar microfone.','err');}
 }
-
 function pararGravacao() {
-  if (_mediaRecorder && _gravando) {
-    _mediaRecorder.stop();
-    _gravando = false;
-    const btn = document.getElementById('btn-audio');
-    if (btn) { btn.textContent = '🎤'; btn.style.background = 'var(--cinza)'; btn.style.color = 'var(--texto2)'; btn.style.border = '1.5px solid var(--borda)'; btn.title = 'Gravar áudio'; }
+  if(_mediaRecorder&&_gravando){
+    _mediaRecorder.stop(); _gravando=false;
+    const btn=document.getElementById('btn-audio');
+    if(btn){btn.textContent='🎤';btn.style.background='var(--cinza)';btn.style.color='var(--texto2)';btn.style.border='1.5px solid var(--borda)';btn.title='Gravar áudio';}
   }
 }
-
 async function enviarAudioGravado() {
-  if (!_conversaAtiva || _audioChunks.length === 0) return;
-  const blob = new Blob(_audioChunks, { type: 'audio/ogg; codecs=opus' });
+  if(!_convAtiva||_audioChunks.length===0) return;
+  const blob=new Blob(_audioChunks,{type:'audio/ogg; codecs=opus'});
   try {
-    const nomeArquivo = `audio-${Date.now()}.ogg`;
-
-    // Upload usando o cliente sb já inicializado
-    const { data: uploadData, error: uploadError } = await sb.storage
-      .from('wa-midia')
-      .upload(nomeArquivo, blob, { contentType: 'audio/ogg', upsert: false });
-
-    if (uploadError) throw new Error('Upload: ' + uploadError.message);
-
-    const { data: { publicUrl } } = sb.storage.from('wa-midia').getPublicUrl(uploadData.path);
-
-    // Salvar mensagem de áudio no banco (para aparecer na tela)
-    await sb.from('wa_mensagens').insert({
-      conversa_id: _conversaAtiva.id,
-      conteudo: '[Audio]',
-      de_mim: true,
-      remetente_nome: _agente?.nome || 'Atendente',
-      media_tipo: 'audio',
-      media_url: publicUrl,
-      timestamp: new Date().toISOString(),
-    });
-
-    // Inserir na fila para o servidor enviar ao WhatsApp
-    await sb.from('wa_fila_envio').insert({
-      conversa_id: _conversaAtiva.id,
-      telefone: _conversaAtiva.telefone,
-      conteudo: '[Audio]',
-      media_url: publicUrl,
-      media_tipo: 'audio',
-    });
-
-    toast('Áudio enviado!', 'ok');
-  } catch (err) {
-    console.error('Erro ao enviar áudio:', err);
-    toast('Erro ao enviar áudio: ' + err.message, 'erro');
-  }
+    const nm=`audio-${Date.now()}.ogg`;
+    const {data:up,error:ue}=await sb.storage.from('wa-midia').upload(nm,blob,{contentType:'audio/ogg',upsert:false});
+    if(ue) throw new Error('Upload: '+ue.message);
+    const {data:{publicUrl}}=sb.storage.from('wa-midia').getPublicUrl(up.path);
+    await sb.from('wa_mensagens').insert({conversa_id:_convAtiva.id,conteudo:'[Audio]',de_mim:true,remetente_nome:_agente?.nome||'Atendente',media_tipo:'audio',media_url:publicUrl,timestamp:new Date().toISOString()});
+    await sb.from('wa_fila_envio').insert({conversa_id:_convAtiva.id,telefone:_convAtiva.telefone,conteudo:'[Audio]',media_url:publicUrl,media_tipo:'audio'});
+    toast('Áudio enviado!','ok');
+  } catch(err){toast('Erro ao enviar áudio: '+err.message,'err');}
 }
 
-// ========================
-// REALTIME
-// ========================
+// ============ REALTIME ============
 function inscreverRealtime() {
-  _subConversas = sb.channel('conversas-global')
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'wa_conversas' }, payload => {
-      const idx = _conversas.findIndex(c => c.id === payload.new?.id);
-      if (payload.eventType === 'INSERT') {
-        _conversas.unshift(payload.new);
-      } else if (payload.eventType === 'UPDATE') {
-        if (idx >= 0) _conversas[idx] = payload.new;
-        if (_conversaAtiva?.id === payload.new.id) {
-          _conversaAtiva = payload.new;
-          renderizarAcoes();
+  _subConv=sb.channel('conv-global')
+    .on('postgres_changes',{event:'*',schema:'public',table:'wa_conversas'},payload=>{
+      const idx=_conversas.findIndex(c=>c.id===payload.new?.id);
+      if(payload.eventType==='INSERT') _conversas.unshift(payload.new);
+      else if(payload.eventType==='UPDATE'){
+        if(idx>=0) _conversas[idx]=payload.new;
+        if(_convAtiva?.id===payload.new.id){
+          _convAtiva=payload.new;
+          renderizarAcoes(); renderizarSubStatus(); renderizarEtiqBar();
         }
       }
       renderizarLista();
+      if(_vista==='kanban') renderizarKanban();
       atualizarStats();
-    })
-    .subscribe();
+    }).subscribe();
 }
 
-// ========================
-// STATS (GESTOR)
-// ========================
+// ============ STATS ============
 async function atualizarStats() {
-  if (_agente?.role !== 'gestor') return;
-  const hoje = new Date(); hoje.setHours(0,0,0,0);
-  document.getElementById('stat-aguardando').textContent = _conversas.filter(c => c.status === 'aguardando').length;
-  document.getElementById('stat-atendimento').textContent = _conversas.filter(c => c.status === 'em_atendimento').length;
-  document.getElementById('stat-finalizados').textContent = _conversas.filter(c => c.status === 'finalizado' && new Date(c.ultima_mensagem_at) >= hoje).length;
-  const { data: agentes } = await sb.from('wa_agentes').select('*').eq('online', true);
-  document.getElementById('stat-agentes').textContent = (agentes || []).length;
+  if(_agente?.role!=='gestor') return;
+  const hoje=new Date(); hoje.setHours(0,0,0,0);
+  document.getElementById('stat-aguardando').textContent=_conversas.filter(c=>c.status==='aguardando').length;
+  document.getElementById('stat-atendimento').textContent=_conversas.filter(c=>c.status==='em_atendimento').length;
+  document.getElementById('stat-finalizados').textContent=_conversas.filter(c=>c.status==='finalizado'&&new Date(c.ultima_mensagem_at)>=hoje).length;
+  const {data:ags}=await sb.from('wa_agentes').select('*').eq('online',true);
+  document.getElementById('stat-agentes').textContent=(ags||[]).length;
 }
 
-// ========================
-// UTILS
-// ========================
-function escapeHtml(str) {
-  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
-}
-function toast(msg, tipo = 'ok') {
-  const c = document.getElementById('toasts');
-  const d = document.createElement('div');
-  d.className = `toast ${tipo}`;
-  d.textContent = msg;
-  c.appendChild(d);
-  setTimeout(() => d.remove(), 3500);
-}
-function mostrarLoading(v) { document.getElementById('loading').style.display = v ? 'flex' : 'none'; }
+// Atualizar timers a cada 60s
+setInterval(()=>{
+  if(_vista==='kanban') renderizarKanban();
+  renderizarLista();
+},60000);
 
-// Verificar sessao ativa ao carregar
-(async () => {
-  const { data: { session } } = await sb.auth.getSession();
-  if (session) { _user = session.user; await iniciarApp(); }
-})();
+// ============ UTILS ============
+function esc(str){if(!str)return'';return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');}
+function toast(msg,tipo='ok'){const c=document.getElementById('toasts');const d=document.createElement('div');d.className=`toast ${tipo}`;d.textContent=msg;c.appendChild(d);setTimeout(()=>d.remove(),3500);}
+function mostrarLoading(v){document.getElementById('loading').style.display=v?'flex':'none';}
 
-// Marcar offline ao fechar
-window.addEventListener('beforeunload', async () => {
-  if (_agente) await sb.from('wa_agentes').update({ online: false }).eq('id', _agente.id);
-});
+(async()=>{const{data:{session}}=await sb.auth.getSession();if(session){_user=session.user;await iniciarApp();}})();
+window.addEventListener('beforeunload',async()=>{if(_agente)await sb.from('wa_agentes').update({online:false}).eq('id',_agente.id);});
 </script>
 </body>
 </html>
