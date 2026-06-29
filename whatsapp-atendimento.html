@@ -159,6 +159,7 @@ body{font-family:'Segoe UI',sans-serif;background:var(--cinza);color:var(--texto
 .msg-w.minha .msg-bubble{background:#dcf8c6;border-radius:12px 12px 0 12px}
 .msg-hora{font-size:.68rem;color:var(--texto2);margin-top:3px;padding:0 4px}
 .msg-rem{font-size:.7rem;color:var(--verde);font-weight:600;margin-bottom:2px;padding:0 4px}
+.msg-w.minha .msg-rem{text-align:right;color:var(--azul)}
 
 /* INPUT */
 .chat-input-area{background:var(--branco);padding:10px 13px;border-top:1px solid var(--borda);display:flex;gap:7px;align-items:flex-end;flex-shrink:0}
@@ -637,7 +638,7 @@ function addMsg(msg, scroll=true) {
   } else {
     c=esc(msg.conteudo);
   }
-  div.innerHTML=`${!msg.de_mim&&msg.remetente_nome?`<div class="msg-rem">${esc(msg.remetente_nome)}</div>`:''}<div class="msg-bubble">${c}</div><div class="msg-hora">${hora}${msg.de_mim?' ✓':''}</div>`;
+  div.innerHTML=`${msg.remetente_nome?`<div class="msg-rem">${esc(msg.remetente_nome)}</div>`:''}<div class="msg-bubble">${c}</div><div class="msg-hora">${hora}${msg.de_mim?' ✓':''}</div>`;
   el.appendChild(div);
   if(scroll) el.scrollTop=el.scrollHeight;
 }
