@@ -170,6 +170,17 @@ body{font-family:'Segoe UI',sans-serif;background:var(--cinza);color:var(--texto
 .btn-enviar:disabled{background:#ccc;cursor:not-allowed}
 .chat-bloqueado{padding:10px 16px;text-align:center;font-size:.83rem;color:var(--texto2);background:var(--cinza);border-top:1px solid var(--borda)}
 
+/* RESPOSTAS RÁPIDAS */
+#rr-panel{position:fixed;bottom:70px;left:50%;transform:translateX(-50%);background:#fff;border:1.5px solid var(--borda);border-radius:12px;padding:10px;z-index:1000;box-shadow:0 4px 24px rgba(0,0,0,.13);display:none;flex-direction:column;gap:5px;max-width:480px;width:90%;max-height:300px;overflow-y:auto}
+#rr-panel.vis{display:flex}
+#rr-panel::-webkit-scrollbar{width:4px}
+#rr-panel::-webkit-scrollbar-thumb{background:#ccc;border-radius:4px}
+.rr-titulo{font-size:.72rem;font-weight:700;color:var(--texto2);padding:2px 6px;text-transform:uppercase;letter-spacing:.5px}
+.rr-btn{text-align:left;padding:8px 12px;border-radius:8px;border:1.5px solid var(--borda);background:#fff;cursor:pointer;font-size:.84rem;line-height:1.4;transition:.15s;color:var(--texto)}
+.rr-btn:hover{background:var(--verde-light);border-color:var(--verde);color:var(--verde-escuro)}
+.btn-rr{background:var(--cinza);color:var(--texto2);border:1.5px solid var(--borda);border-radius:10px;width:42px;height:42px;cursor:pointer;font-size:1rem;transition:.2s;flex-shrink:0;display:flex;align-items:center;justify-content:center}
+.btn-rr:hover{background:var(--verde-light);border-color:var(--verde)}
+
 /* STATS GESTOR */
 .gestor-stats{padding:12px 16px;background:var(--branco);border-bottom:1px solid var(--borda);display:flex;gap:12px;flex-shrink:0}
 .stat-card{flex:1;background:var(--cinza);border-radius:10px;padding:10px 14px;text-align:center}
@@ -302,6 +313,7 @@ body{font-family:'Segoe UI',sans-serif;background:var(--cinza);color:var(--texto
 </div>
 
 <div id="etiq-picker"></div>
+<div id="rr-panel"></div>
 <div class="toast-container" id="toasts"></div>
 <div class="loading-overlay" id="loading"><div class="spinner"></div></div>
 
@@ -315,6 +327,41 @@ let _user = null, _agente = null, _conversas = [], _convAtiva = null;
 let _tabAtiva = 'aguardando', _busca = '', _vista = 'chat';
 let _subConv = null, _subMsgs = null;
 let _mediaRecorder = null, _audioChunks = [], _gravando = false;
+
+const RESPOSTAS_RAPIDAS = [
+  { grupo: 'Saudações', frases: [
+    'Bom dia! Em que posso ajudar? 😊',
+    'Boa tarde! Em que posso ajudar? 😊',
+    'Boa noite! Em que posso ajudar? 😊',
+    'Olá! Seja bem-vindo à Drogaria Florânia. Como posso ajudar?',
+  ]},
+  { grupo: 'Pedidos e Estoque', frases: [
+    'Temos esse medicamento em estoque. Posso separar para você?',
+    'No momento esse produto está em falta. Posso verificar a previsão de chegada.',
+    'Vou verificar o estoque e retorno em instantes.',
+    'Produto disponível! Qual a quantidade desejada?',
+  ]},
+  { grupo: 'Receita', frases: [
+    'Para esse medicamento precisamos da receita médica. Pode trazer ou enviar uma foto?',
+    'Receita recebida! Vou verificar e já retorno.',
+    'Esse medicamento é de uso controlado. Precisamos da receita original.',
+  ]},
+  { grupo: 'Pagamento', frases: [
+    'Aceitamos PIX, cartão de débito, crédito e dinheiro.',
+    'Para pagamento no crediário, precisamos do CPF e cadastro atualizado.',
+    'Posso gerar o PIX agora. Qual o valor total da sua compra?',
+  ]},
+  { grupo: 'Delivery', frases: [
+    'Fazemos entrega! Qual o endereço? 🚚',
+    'O motoboy está a caminho. Em breve chegará sua entrega!',
+    'Prazo de entrega: em média 30 a 60 minutos para o bairro.',
+  ]},
+  { grupo: 'Encerramento', frases: [
+    'Fico à disposição! Qualquer dúvida, é só chamar. 😊',
+    'Obrigado pelo contato! Tenha um ótimo dia!',
+    'Prontinho! Se precisar de mais alguma coisa, estamos aqui.',
+  ]},
+];
 
 const ETIQUETAS = [
   {id:'receita',    label:'📋 Receita',     cls:'etiq-receita'    },
@@ -539,6 +586,7 @@ function renderizarAcoes() {
   if(pode){
     w.innerHTML=`<div class="chat-input-area">
       <textarea id="msg-input" placeholder="Digite sua mensagem..." rows="1" onkeydown="teclaEnter(event)" oninput="autoResize(this)"></textarea>
+      <button class="btn-rr" onclick="toggleRR(event)" title="Respostas rápidas">⚡</button>
       <button class="btn-enviar" id="btn-audio" onclick="toggleGravarAudio()" title="Gravar áudio" style="background:var(--cinza);color:var(--texto2);border:1.5px solid var(--borda)">🎤</button>
       <button class="btn-enviar" onclick="enviarMensagem()" id="btn-enviar">➤</button>
     </div>`;
@@ -683,6 +731,28 @@ async function enviarMensagem() {
   if(btn) btn.disabled=false;
   input?.focus();
 }
+
+function toggleRR(event) {
+  event.stopPropagation();
+  const panel = document.getElementById('rr-panel');
+  if(panel.classList.contains('vis')){ panel.classList.remove('vis'); return; }
+  panel.innerHTML = RESPOSTAS_RAPIDAS.map(g =>
+    `<div class="rr-titulo">${g.grupo}</div>` +
+    g.frases.map(f => `<button class="rr-btn" onclick="usarRR(${JSON.stringify(f)})">${f}</button>`).join('')
+  ).join('');
+  // posicionar acima da área de input
+  const btn = event.target;
+  const rect = btn.getBoundingClientRect();
+  panel.style.bottom = (window.innerHeight - rect.top + 6) + 'px';
+  panel.style.left = '50%';
+  panel.classList.add('vis');
+}
+function usarRR(frase) {
+  const input = document.getElementById('msg-input');
+  if(input){ input.value = frase; input.focus(); autoResize(input); }
+  document.getElementById('rr-panel').classList.remove('vis');
+}
+document.addEventListener('click', () => document.getElementById('rr-panel')?.classList.remove('vis'));
 
 function teclaEnter(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();enviarMensagem();}}
 function autoResize(el){el.style.height='auto';el.style.height=Math.min(el.scrollHeight,120)+'px';}
