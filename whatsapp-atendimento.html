@@ -730,9 +730,9 @@ function toggleRR(event) {
   event.stopPropagation();
   const panel = document.getElementById('rr-panel');
   if(panel.classList.contains('vis')){ panel.classList.remove('vis'); return; }
-  panel.innerHTML = RESPOSTAS_RAPIDAS.map(g =>
+  panel.innerHTML = RESPOSTAS_RAPIDAS.map((g, gi) =>
     `<div class="rr-titulo">${g.grupo}</div>` +
-    g.frases.map(f => `<button class="rr-btn" onclick="usarRR(${JSON.stringify(f)})">${f}</button>`).join('')
+    g.frases.map((f, fi) => `<button class="rr-btn" onclick="usarRR(${gi},${fi})">${f}</button>`).join('')
   ).join('');
   // posicionar acima da área de input
   const btn = event.target;
@@ -741,7 +741,8 @@ function toggleRR(event) {
   panel.style.left = '50%';
   panel.classList.add('vis');
 }
-function usarRR(frase) {
+function usarRR(gi, fi) {
+  const frase = RESPOSTAS_RAPIDAS[gi].frases[fi];
   const input = document.getElementById('msg-input');
   if(input){ input.value = frase; input.focus(); autoResize(input); }
   document.getElementById('rr-panel').classList.remove('vis');
