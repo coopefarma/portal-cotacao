@@ -126,10 +126,10 @@ body{font-family:'Inter',sans-serif;background:#f5f7fa;color:#1a1a2e}
 .tf-content{max-width:700px;margin:24px auto;padding:0 16px 40px}
 .tf-box{background:#fff;border-radius:12px;padding:18px;margin-bottom:14px;box-shadow:0 1px 4px rgba(0,0,0,.08)}
 .tf-box h4{font-family:'Poppins',sans-serif;font-size:12px;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:.6px;margin-bottom:14px}
-.prod-item{display:flex;align-items:center;gap:12px;padding:10px 12px;border:1.5px solid #e0e0e0;border-radius:8px;margin-bottom:7px;background:#fff;transition:border .2s}
+.prod-item{display:flex;align-items:flex-start;gap:12px;padding:10px 12px;border:1.5px solid #e0e0e0;border-radius:8px;margin-bottom:7px;background:#fff;transition:border .2s}
 .prod-item.ok{border-color:#15a563;background:#f0fdf4}
-.prod-desc{flex:1;min-width:0}
-.prod-desc strong{display:block;font-size:13px;color:#1a1a2e;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.prod-desc{flex:1;min-width:0;padding-top:2px}
+.prod-desc strong{display:block;font-size:13px;color:#1a1a2e;font-weight:600;white-space:normal;word-break:break-word;line-height:1.35}
 .prod-desc span{font-size:11px;color:#64748b}
 .prod-input-wrap{display:flex;align-items:center;gap:6px;flex-shrink:0}
 .prod-input-wrap label{font-size:12px;color:#64748b;font-weight:600}
@@ -375,14 +375,14 @@ body{font-family:'Inter',sans-serif;background:#f5f7fa;color:#1a1a2e}
 <!-- MODAL DISPARAR -->
 <div class="modal-overlay" id="modal-disparar">
   <div class="modal">
-    <div class="modal-titulo">📲 Enviar para Fornecedores</div>
-    <p style="font-size:13px;color:#64748b;margin-bottom:12px">Selecione os fornecedores que receberão o link desta cotação:</p>
-    <div style="display:flex;gap:8px;margin-bottom:12px">
+    <div class="modal-titulo" id="disp-titulo">📲 Enviar para Fornecedores</div>
+    <p style="font-size:13px;color:#64748b;margin-bottom:12px" id="disp-instrucao">Selecione os fornecedores que receberão o link desta cotação:</p>
+    <div style="display:flex;gap:8px;margin-bottom:12px" id="disp-selbtns">
       <button class="btn btn-outline btn-sm" onclick="selTodos(true)">Marcar todos</button>
       <button class="btn btn-outline btn-sm" onclick="selTodos(false)">Desmarcar</button>
     </div>
     <div id="disp-lista" style="max-height:340px;overflow-y:auto"></div>
-    <div class="modal-btns">
+    <div class="modal-btns" id="disp-btns">
       <button class="btn btn-outline" onclick="fecharModal('modal-disparar')">Cancelar</button>
       <button class="btn btn-primary" onclick="confirmarDisparar()">✅ Gerar links e disparar</button>
     </div>
@@ -908,6 +908,10 @@ async function salvarEdicaoRespostas(){
 }
 let _dispForn=[];
 async function abrirDisparar(){
+  document.getElementById('disp-titulo').textContent='📲 Enviar para Fornecedores';
+  document.getElementById('disp-instrucao').textContent='Selecione os fornecedores que receberão o link desta cotação:';
+  document.getElementById('disp-selbtns').style.display='flex';
+  document.getElementById('disp-btns').innerHTML=`<button class="btn btn-outline" onclick="fecharModal('modal-disparar')">Cancelar</button><button class="btn btn-primary" onclick="confirmarDisparar()">✅ Gerar links e disparar</button>`;
   const{data:forn}=await sb.from('fornecedores').select('*').neq('ativo',false).order('nome');
   const{data:existentes}=await sb.from('cotacao_links').select('fornecedor_id').eq('cotacao_id',cotacaoId);
   const jaEnv=new Set((existentes||[]).map(e=>e.fornecedor_id));
@@ -923,6 +927,7 @@ async function abrirDisparar(){
 }
 function toggleCheck(el){const cb=el.querySelector('input');cb.checked=!cb.checked;el.classList.toggle('sel',cb.checked);}
 function selTodos(v){document.querySelectorAll('#disp-lista input:not(:disabled)').forEach(cb=>{cb.checked=v;cb.closest('.check-item').classList.toggle('sel',v)});}
+let _dispGerados={titulo:'',lista:[]};
 async function confirmarDisparar(){
   const selecionados=[...document.querySelectorAll('#disp-lista input:checked:not(:disabled)')].map(cb=>cb.value);
   if(selecionados.length===0){toast('Selecione pelo menos um fornecedor.','err');return;}
@@ -930,9 +935,37 @@ async function confirmarDisparar(){
   const novos=selecionados.map(fId=>({cotacao_id:cotacaoId,fornecedor_id:fId,token:crypto.randomUUID(),status:'aguardando',parceiro:null}));
   const{data:gerados,error}=await sb.from('cotacao_links').insert(novos).select('*,fornecedores(nome,whatsapp)');
   if(error){toast('Erro ao gerar links: '+error.message,'err');return;}
-  fecharModal('modal-disparar');toast(`${gerados.length} link(s) gerado(s)!`,'ok');
-  gerados.forEach((l,i)=>{const f=l.fornecedores;if(f?.whatsapp)setTimeout(()=>abrirWpp(f.whatsapp,l.token,f.nome,cot?.titulo||''),i*800+400);});
-  await carregarDetalhe(cotacaoId);
+  toast(`${gerados.length} link(s) gerado(s)!`,'ok');
+  // O WhatsApp Web só mantém UMA conversa ativa por vez no navegador: abrir várias abas
+  // simultâneas derruba as anteriores e só a última fica com a mensagem pronta pra enviar.
+  // Por isso vira uma fila: um botão por fornecedor, clicado um de cada vez.
+  _dispGerados={titulo:cot?.titulo||'',lista:gerados};
+  renderDispararFila();
+}
+function renderDispararFila(){
+  const{titulo,lista}=_dispGerados;
+  document.getElementById('disp-titulo').textContent='📲 Links gerados — envie um de cada vez';
+  document.getElementById('disp-instrucao').textContent='O WhatsApp Web só mantém uma conversa ativa por vez: abra e envie o de cima, espere carregar, depois clique no próximo.';
+  document.getElementById('disp-selbtns').style.display='none';
+  document.getElementById('disp-lista').innerHTML=(lista||[]).map(l=>{
+    const f=l.fornecedores||{};
+    return `<div class="check-item" id="dispf-${l.id}" style="cursor:default">
+      <div style="flex:1"><div style="font-weight:600;font-size:13px">${f.nome||'—'}</div><div style="font-size:11px;color:#64748b">${f.whatsapp?('WhatsApp: '+f.whatsapp):'sem WhatsApp cadastrado — use 🔗 Copiar link'}</div></div>
+      <button class="btn btn-outline btn-sm" ${f.whatsapp?'':'disabled'} onclick="enviarUmWpp('${l.id}')">📲 Abrir WhatsApp</button>
+    </div>`;
+  }).join('');
+  document.getElementById('disp-btns').innerHTML=`<button class="btn btn-primary" onclick="fecharModal('modal-disparar');carregarDetalhe(cotacaoId)">✅ Concluir</button>`;
+}
+function enviarUmWpp(linkId){
+  const l=(_dispGerados.lista||[]).find(x=>x.id===linkId);if(!l)return;
+  const f=l.fornecedores||{};
+  abrirWpp(f.whatsapp,l.token,f.nome,_dispGerados.titulo);
+  const el=document.getElementById('dispf-'+linkId);
+  if(el){
+    el.style.borderColor='#15a563';el.style.background='#f0fdf4';
+    const btn=el.querySelector('button');
+    if(btn){btn.textContent='✅ Aberto';btn.disabled=true;}
+  }
 }
 async function carregarComparacao(id){
   document.getElementById('comp-corpo').innerHTML='<div class="loading-box"><div class="spin"></div></div>';
@@ -977,6 +1010,14 @@ async function carregarPedido(id){
   const comResp=(links||[]).filter(l=>['respondido','rascunho'].includes(l.status)||fornComDados.has(l.fornecedor_id));
   if(comResp.length===0){document.getElementById('ped-corpo').innerHTML='<div class="empty">Nenhuma resposta recebida ainda.</div>';return;}
   if(pedidoData?.cotacaoId!==id)pedidoState={};
+  // Recupera escolhas de vencedor já salvas (localStorage) antes de aplicar o padrão "menor preço" —
+  // assim uma troca manual (⇄) sobrevive a F5 / fechar e reabrir a aba, e não só à navegação dentro do app.
+  const _estPersist=_pedGetEstado();
+  if(_estPersist.vencedores){
+    Object.entries(_estPersist.vencedores).forEach(([itemId,fornId])=>{
+      if(!pedidoState[itemId])pedidoState[itemId]=fornId;
+    });
+  }
   (itens||[]).forEach(item=>{
     if(pedidoState[item.id])return;
     let melhorForn=null,melhorPreco=Infinity;
@@ -990,7 +1031,7 @@ async function carregarPedido(id){
   renderPedido();
 }
 // Estado persistente do pedido (faturado, excluídos) por cotação
-function _pedLsKey(){return'ped_estado_'+(pedidoData?.cotacaoId||cotacaoId);}
+function _pedLsKey(){return'ped_estado_'+(cotacaoId||pedidoData?.cotacaoId);}
 function _pedGetEstado(){try{return JSON.parse(localStorage.getItem(_pedLsKey())||'{}')}catch{return{}};}
 function _pedSaveEstado(est){localStorage.setItem(_pedLsKey(),JSON.stringify(est));}
 function toggleFaturado(itemId){
@@ -1088,7 +1129,9 @@ function renderPedido(){
 }
 function toggleAlt(itemId){const panel=document.getElementById('pedalt-'+itemId);if(panel)panel.classList.toggle('aberto');}
 function trocarVencedor(itemId,novoFornId){
-  pedidoState[itemId]=novoFornId;renderPedido();
+  pedidoState[itemId]=novoFornId;
+  const est=_pedGetEstado();est.vencedores=est.vencedores||{};est.vencedores[itemId]=novoFornId;_pedSaveEstado(est);
+  renderPedido();
   setTimeout(()=>{const panel=document.getElementById('pedalt-'+itemId);if(panel)panel.classList.add('aberto');},10);
 }
 function exportarExcelForn(fornId,fornNome){
@@ -1235,13 +1278,10 @@ async function enviarRespostas(){
   const preench=document.querySelectorAll('.preco-inp.ok').length;const total=fornState.itens.length;
   if(preench===0){toast('Preencha pelo menos um preço.','err');return;}
   const faltam=total-preench;
-  if(faltam>0){
-    const aviso=document.getElementById('tf-aviso');
-    if(aviso.dataset.confirmando==='1'){aviso.dataset.confirmando='';await _enviarFinal();return;}
-    aviso.dataset.confirmando='1';
-    aviso.innerHTML='<div class="aviso-box aviso-amarelo">⚠️ <strong>'+faltam+' produto(s) sem preço.</strong> Clique em <b>Enviar respostas</b> novamente para confirmar o envio assim mesmo.</div>';
-    return;
-  }
+  // Um único clique no botão. Se faltar item, um popup de confirmação separado (não o mesmo
+  // botão clicado 2x) pergunta se quer enviar assim mesmo — evita o usuário achar que já enviou
+  // no primeiro clique quando na verdade só armou a confirmação.
+  if(faltam>0&&!confirm(`${faltam} produto(s) ainda sem preço.\nEnviar as respostas assim mesmo?`))return;
   await _enviarFinal();
 }
 async function _enviarFinal(){
@@ -1260,6 +1300,18 @@ async function _salvarRespostas(novoStatus,silencioso){
   const{token,cotacaoId,fornecedorId,itens}=fornState;
   // Nunca rebaixar de 'respondido' para 'rascunho'
   if(novoStatus==='rascunho'&&fornState._jaEnviou)return;
+  // Proteção contra aba/sessão antiga esquecida aberta: o auto-save silencioso reconfere
+  // o status real no banco antes de gravar. Sem isso, uma aba do fornecedor esquecida aberta
+  // (com valores antigos/errados ainda no formulário) fica reescrevendo por cima de correções
+  // feitas manualmente pelo gestor em "Ver respostas", a cada 90s, sem nenhuma ação do usuário.
+  if(silencioso){
+    const{data:lnkAtual}=await sb.from('cotacao_links').select('status').eq('token',token).single();
+    if(lnkAtual?.status==='respondido'){
+      fornState._jaEnviou=true;
+      if(fornState._autoSave){clearInterval(fornState._autoSave);fornState._autoSave=null;}
+      return;
+    }
+  }
   // Separa itens com preço dos sem preço
   const comPreco=[];const semPreco=[];
   itens.forEach(item=>{
