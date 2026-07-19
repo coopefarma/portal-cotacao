@@ -410,7 +410,7 @@ body{font-family:'Inter',sans-serif;background:#f5f7fa;color:#1a1a2e}
   <div class="modal" style="max-width:780px">
     <div class="modal-titulo">⚡ Auto-cotar por OLs</div>
     <p style="font-size:13px;color:#64748b;margin-bottom:4px">O sistema cruzou o falteiro com as OLs importadas. Clique em um card para ativar/desativar. Cards verdes serão lançados no ranking.</p>
-    <div style="font-size:11px;color:#94a3b8;margin-bottom:14px">🔒 = match por EAN (exato) &nbsp;·&nbsp; % = similaridade por descrição</div>
+    <div style="font-size:11px;color:#94a3b8;margin-bottom:14px">🔒 EAN = match exato &nbsp;·&nbsp; % = similaridade por descrição inteira &nbsp;·&nbsp; 🔤 % = similaridade pelo nome do princípio ativo (ignora sal/forma/embalagem) — confira sempre o nome mostrado no card antes de confirmar</div>
     <div id="mac-corpo" style="max-height:60vh;overflow-y:auto"></div>
     <div class="modal-btns">
       <button class="btn btn-outline" onclick="fecharModal('modal-autocotar')">Cancelar</button>
@@ -1488,6 +1488,66 @@ function normDesc(s){
     .replace(/[^a-z0-9\s]/g,' ')
     .replace(/\s+/g,' ').trim();
 }
+// MATCH POR PALAVRA-CHAVE (nome do princípio ativo) — complementa o Fuse.js quando a descrição
+// inteira diverge demais entre a cotação e a OL (ordem das palavras, sal do princípio ativo
+// abreviado de um lado e não do outro, embalagem escrita diferente, etc.), mas o nome da
+// substância em si é o mesmo ou tem só um pequeno erro de digitação.
+const _STOP_TOKENS=new Set(['de','do','da','das','dos','e','com','para','sem','the',
+  'maleato','cloridrato','dicloridrato','sulfato','succinato','fumarato','bicarbonato',
+  'carbonato','citrato','tartarato','besilato','mesilato','acetato','fosfato','difosfato',
+  'monoidratado','diidratado','hidratado','anidro','sodico','sodica','potassico','potassica',
+  'calcico','calcica','magnesico','trometamol','clavulanato','clavulonato','dissodico',
+  'cpr','cap','pom','sol','susp','cx','ct','fr','amp','env','bl','un','kit','gts','gt',
+  'mg','mcg','ml','g','kg','ui','cartela','blister','caixa','frasco','envelope'
+]);
+function _tokensSignificativos(normStr){
+  return normStr.split(' ').filter(t=>t.length>=3&&!_STOP_TOKENS.has(t)&&!/^\d+$/.test(t));
+}
+function _levenshtein(a,b){
+  const m=a.length,n=b.length;const d=[];
+  for(let i=0;i<=m;i++)d.push([i]);
+  for(let j=1;j<=n;j++)d[0][j]=j;
+  for(let i=1;i<=m;i++)for(let j=1;j<=n;j++){
+    d[i][j]=a[i-1]===b[j-1]?d[i-1][j-1]:1+Math.min(d[i-1][j-1],d[i-1][j],d[i][j-1]);
+  }
+  return d[m][n];
+}
+function _similaridadeToken(a,b){
+  if(a===b)return 1;
+  const dist=_levenshtein(a,b);
+  return 1-dist/Math.max(a.length,b.length);
+}
+// Índice por prefixo de 4 letras (aprox. as 1as sílabas do nome) pra não ter que comparar
+// cada item da cotação contra TODOS os itens da OL do fornecedor (custo alto em listas grandes).
+function _buildTokenIndex(olItens){
+  const idx=new Map();
+  olItens.forEach(o=>{
+    o._toks=_tokensSignificativos(o._norm);
+    new Set(o._toks.map(t=>t.slice(0,4))).forEach(p=>{
+      if(!idx.has(p))idx.set(p,[]);
+      idx.get(p).push(o);
+    });
+  });
+  return idx;
+}
+function _melhorMatchPorTokens(descItem,tokenIdx){
+  const tA=_tokensSignificativos(normDesc(descItem));
+  if(!tA.length)return null;
+  const candidatos=new Set();
+  tA.forEach(t=>{(tokenIdx.get(t.slice(0,4))||[]).forEach(o=>candidatos.add(o));});
+  let melhor=null,melhorScore=0;
+  candidatos.forEach(o=>{
+    let somaPeso=0,somaScore=0;
+    tA.forEach(ta=>{
+      let best=0;
+      (o._toks||[]).forEach(tb=>{const s=_similaridadeToken(ta,tb);if(s>best)best=s;});
+      const peso=ta.length;somaScore+=best*peso;somaPeso+=peso;
+    });
+    const score=somaPeso?somaScore/somaPeso:0;
+    if(score>melhorScore){melhorScore=score;melhor=o;}
+  });
+  return melhor?{item:melhor,pct:Math.round(melhorScore*100)}:null;
+}
 async function abrirAutoCotar(){
   document.getElementById('mac-corpo').innerHTML='<div class="loading-box"><div class="spin"></div> Cruzando OLs com o falteiro...</div>';
   abrirModal('modal-autocotar');
@@ -1505,12 +1565,13 @@ async function abrirAutoCotar(){
   const olPorForn={};
   fornComOL.forEach(fId=>{
     const fNome=(fornecedores||[]).find(f=>f.id===fId)?.nome||'—';
-    olPorForn[fId]={nome:fNome,itens:(olItensData||[]).filter(i=>i.fornecedor_id===fId).map(i=>({...i,_norm:normDesc(i.descricao)}))};
+    const itensOL=(olItensData||[]).filter(i=>i.fornecedor_id===fId).map(i=>({...i,_norm:normDesc(i.descricao)}));
+    olPorForn[fId]={nome:fNome,itens:itensOL,tokenIdx:_buildTokenIndex(itensOL)};
   });
   autoState={itens:itens||[],fornecedores:olPorForn,matches:{}};
   (itens||[]).forEach(item=>{
     autoState.matches[item.id]={};
-    Object.entries(olPorForn).forEach(([fornId,{itens:olItens}])=>{
+    Object.entries(olPorForn).forEach(([fornId,{itens:olItens,tokenIdx}])=>{
       if(!olItens.length)return;
       if(item.ean){
         const eanMatch=olItens.find(o=>o.ean&&String(o.ean).trim()===String(item.ean).trim());
@@ -1521,14 +1582,19 @@ async function abrirAutoCotar(){
           return;
         }
       }
+      // Compara os dois métodos e fica com o de maior confiança: Fuse.js (string inteira) e
+      // o match por palavra-chave (nome do princípio ativo, ignorando sal/forma/embalagem).
       const fuse=new Fuse(olItens,{keys:['_norm'],threshold:0.42,includeScore:true,minMatchCharLength:3});
       const results=fuse.search(normDesc(item.descricao));
-      if(results.length){
-        const best=results[0];const olIt=best.item;
-        const pct=Math.round((1-best.score)*100);
-        const t=getBestTier(olIt,item.quantidade||1);
-        const semEstoque=olIt.estoque===0;
-        autoState.matches[item.id][fornId]={item:olIt,confidence:pct,fonte:'fuzzy',ativo:!semEstoque&&pct>=60,tierIdx:t.idx,precoEfetivo:t.preco??olIt.preco};
+      const fuseBest=results.length?{item:results[0].item,pct:Math.round((1-results[0].score)*100)}:null;
+      const tokenBest=_melhorMatchPorTokens(item.descricao,tokenIdx);
+      let escolhido=null,pct=0,fonte='fuzzy';
+      if(fuseBest){escolhido=fuseBest.item;pct=fuseBest.pct;fonte='fuzzy';}
+      if(tokenBest&&tokenBest.pct>pct){escolhido=tokenBest.item;pct=tokenBest.pct;fonte='token';}
+      if(escolhido){
+        const t=getBestTier(escolhido,item.quantidade||1);
+        const semEstoque=escolhido.estoque===0;
+        autoState.matches[item.id][fornId]={item:escolhido,confidence:pct,fonte,ativo:!semEstoque&&pct>=60,tierIdx:t.idx,precoEfetivo:t.preco??escolhido.preco};
       }
     });
   });
@@ -1544,7 +1610,7 @@ function renderAutoCotar(){
       const m=im[fId];
       if(!m)return `<div class="mac-card mac-sem"><div class="mac-forn">${fornecedores[fId].nome}</div><div class="mac-prod" style="color:#94a3b8;font-style:italic">sem match</div></div>`;
       const cor=m.confidence>=80?'#15a563':m.confidence>=60?'#f59e0b':'#e8112d';
-      const badge=m.fonte==='ean'?`<span style="font-size:10px;font-weight:700;color:#15a563">EAN</span>`:`<span style="font-size:10px;font-weight:700;color:${cor}">${m.confidence}%</span>`;
+      const badge=m.fonte==='ean'?`<span style="font-size:10px;font-weight:700;color:#15a563">EAN</span>`:`<span style="font-size:10px;font-weight:700;color:${cor}">${m.fonte==='token'?'🔤 ':''}${m.confidence}%</span>`;
       const ativo=m.ativo!==false;
       const precoAtual=m.precoEfetivo??m.item.preco;
       let estoqueHtml='';
