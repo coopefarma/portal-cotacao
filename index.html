@@ -1639,17 +1639,34 @@ function toggleMatch(itemId,fornId){
   renderAutoCotar();
 }
 async function confirmarAutoCotar(){
-  let total=0;
-  for(const[fornId,matchesForForn]of Object.entries(autoState.matches)){
-    const toInsert=Object.entries(matchesForForn)
-      .filter(([,m])=>m.ativo&&m.preco>0)
-      .map(([itemId,m])=>({cotacao_id:cotacaoId,fornecedor_id:fornId,item_id:itemId,preco:m.preco}));
-    if(toInsert.length===0)continue;
-    await sb.from('cotacao_respostas').upsert(toInsert,{onConflict:'cotacao_id,fornecedor_id,item_id',ignoreDuplicates:false});
-    total++;
-  }
+  // BUG histórico corrigido aqui: autoState.matches é {item_id:{fornecedor_id:match}}, mas a
+  // versão anterior deste loop lia a 1a chave como se fosse fornecedor_id e a 2a como item_id
+  // (invertido) — e ainda tentava gravar "m.preco", campo que nem existe no objeto de match
+  // (o preço certo é m.precoEfetivo, ou o preço bruto do item da OL como respaldo). Resultado:
+  // o Supabase rejeitava o insert (fornecedor_id/item_id trocados) e, como não havia checagem
+  // de erro, o botão fechava o modal e mostrava "sucesso" mesmo sem gravar nada — toda a seleção
+  // feita no auto-cotar se perdia ao fechar.
+  const toInsert=[];
+  Object.entries(autoState.matches).forEach(([itemId,matchesDoItem])=>{
+    Object.entries(matchesDoItem).forEach(([fornId,m])=>{
+      const preco=m.precoEfetivo??m.item?.preco;
+      if(m.ativo&&preco>0)toInsert.push({cotacao_id:cotacaoId,fornecedor_id:fornId,item_id:itemId,preco});
+    });
+  });
+  if(toInsert.length===0){toast('Nenhum match ativo para lançar.','err');return;}
+  const{error}=await sb.from('cotacao_respostas').upsert(toInsert,{onConflict:'cotacao_id,fornecedor_id,item_id',ignoreDuplicates:false});
+  if(error){toast('Erro ao lançar no ranking: '+error.message,'err');return;}
+  // Fornecedor lançado que ainda não tem nenhum link de cotação criado (nunca foi "disparado")
+  // não aparece no detalhe/ranking mesmo com a resposta salva — cria um link "rascunho" pra ele.
+  const fornIds=[...new Set(toInsert.map(t=>t.fornecedor_id))];
+  const{data:linksExistentes}=await sb.from('cotacao_links').select('id,fornecedor_id,status').eq('cotacao_id',cotacaoId).in('fornecedor_id',fornIds);
+  const fornComLink=new Set((linksExistentes||[]).map(l=>l.fornecedor_id));
+  const semLink=fornIds.filter(f=>!fornComLink.has(f));
+  if(semLink.length)await sb.from('cotacao_links').insert(semLink.map(fId=>({cotacao_id:cotacaoId,fornecedor_id:fId,token:crypto.randomUUID(),status:'rascunho'})));
+  const aguardandoIds=(linksExistentes||[]).filter(l=>l.status==='aguardando').map(l=>l.id);
+  if(aguardandoIds.length)await sb.from('cotacao_links').update({status:'rascunho'}).in('id',aguardandoIds);
   fecharModal('modal-autocotar');
-  toast(total>0?`✅ ${total} fornecedor(es) lançados no ranking!`:'Nenhum match ativo para lançar.','ok');
+  toast(`✅ ${toInsert.length} preço(s) lançados para ${fornIds.length} fornecedor(es)!`,'ok');
   carregarDetalhe(cotacaoId);
 }
 async function atualizarQtd(itemId,novaQtd){
