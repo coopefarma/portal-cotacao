@@ -983,17 +983,35 @@ async function carregarComparacao(id){
   const comResp=(links||[]).filter(l=>['respondido','rascunho'].includes(l.status)||fornComDados.has(l.fornecedor_id));
   if(comResp.length===0){document.getElementById('comp-corpo').innerHTML='<div class="empty">Nenhuma resposta recebida ainda.</div>';return;}
   const nomes=comResp.map(l=>l.fornecedores?.nome||'—');
+  let semCotacao=0;
   const rows=(itens||[]).map(item=>{
     const precos=comResp.map(lnk=>{const r=(resps||[]).find(x=>x.item_id===item.id&&x.fornecedor_id===lnk.fornecedor_id);return r?.preco??null;});
     const validos=precos.filter(p=>p!=null&&p>0);const menor=validos.length?Math.min(...validos):null;
+    const semNenhuma=validos.length===0;
+    if(semNenhuma)semCotacao++;
     const cells=precos.map(p=>{
       if(p==null)return '<td style="text-align:right"><span class="preco-sem">—</span></td>';
       const cls=p===menor?'preco-melhor':'preco-normal';
       return `<td style="text-align:right"><span class="${cls}">${fmtR(p)}</span></td>`;
     }).join('');
-    return `<tr><td style="font-weight:600;max-width:220px">${item.descricao}</td><td style="text-align:center;color:#64748b">${item.quantidade||1}</td><td style="color:#64748b">${item.ultimo_preco?fmtR(item.ultimo_preco):'—'}</td>${cells}</tr>`;
+    const rowStyle=semNenhuma?'background:#fef2f2':'';
+    const tagSemCot=semNenhuma?' <span style="font-size:9px;font-weight:700;color:#e8112d;background:#fee2e2;padding:1px 6px;border-radius:8px;vertical-align:middle">SEM COTAÇÃO</span>':'';
+    return `<tr class="${semNenhuma?'row-sem-cotacao':''}" style="${rowStyle}"><td style="font-weight:600;max-width:220px">${item.descricao}${tagSemCot}</td><td style="text-align:center;color:#64748b">${item.quantidade||1}</td><td style="color:#64748b">${item.ultimo_preco?fmtR(item.ultimo_preco):'—'}</td>${cells}</tr>`;
   }).join('');
-  document.getElementById('comp-corpo').innerHTML=`<div style="overflow-x:auto"><table class="comp-table"><thead><tr><th style="min-width:180px">Produto</th><th class="num" style="text-align:center">Qtd</th><th>Últ. Preço</th>${nomes.map(n=>`<th class="num">${n}</th>`).join('')}</tr></thead><tbody>${rows}</tbody></table></div><div style="padding:12px 14px;font-size:11px;color:#94a3b8">🟢 Menor preço para cada produto</div>`;
+  const avisoSemCot=semCotacao>0?`<div style="padding:10px 14px;background:#fef2f2;border-bottom:1px solid #fecaca;font-size:12px;color:#991b1b;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap">
+    <span>⚠️ <strong>${semCotacao}</strong> produto(s) sem nenhuma resposta de preço — precisa buscar outro fornecedor pra eles.</span>
+    <button class="btn btn-outline btn-sm" onclick="toggleSoSemCotacao(this)">👁️ Mostrar só esses</button>
+  </div>`:'';
+  document.getElementById('comp-corpo').innerHTML=`${avisoSemCot}<div style="overflow-x:auto"><table class="comp-table"><thead><tr><th style="min-width:180px">Produto</th><th class="num" style="text-align:center">Qtd</th><th>Últ. Preço</th>${nomes.map(n=>`<th class="num">${n}</th>`).join('')}</tr></thead><tbody>${rows}</tbody></table></div><div style="padding:12px 14px;font-size:11px;color:#94a3b8">🟢 Menor preço para cada produto</div>`;
+}
+function toggleSoSemCotacao(btn){
+  const filtrando=btn.dataset.filtrando==='1';
+  document.querySelectorAll('#comp-corpo tbody tr').forEach(tr=>{
+    if(!filtrando){tr.style.display=tr.classList.contains('row-sem-cotacao')?'':'none';}
+    else{tr.style.display='';}
+  });
+  btn.dataset.filtrando=filtrando?'0':'1';
+  btn.textContent=filtrando?'👁️ Mostrar só esses':'👁️ Mostrar todos';
 }
 async function carregarPedido(id){
   document.getElementById('ped-corpo').innerHTML='<div class="loading-box"><div class="spin"></div></div>';
@@ -1108,6 +1126,15 @@ function renderPedido(){
   });
   const economia=totalMaximo-totalMinimo;
   const pctEco=totalMaximo>0?Math.round(economia/totalMaximo*100):0;
+  // Produtos que nenhum fornecedor lançado precificou — precisa correr atrás em outro lugar.
+  const semCotacaoItens=itensAtivos.filter(item=>{
+    const temPreco=comResp.some(lnk=>{const r=resps.find(x=>x.item_id===item.id&&x.fornecedor_id===lnk.fornecedor_id);return r?.preco>0;});
+    return !temPreco;
+  });
+  const semCotacaoHtml=semCotacaoItens.length?`<div style="background:#fef2f2;border:1px solid #fecaca;border-radius:12px;padding:16px 20px;margin-bottom:20px">
+    <div style="font-size:12px;font-weight:700;color:#991b1b;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">⚠️ ${semCotacaoItens.length} produto(s) sem nenhuma cotação — buscar outro fornecedor</div>
+    <div style="font-size:12px;color:#7f1d1d;line-height:1.8">${semCotacaoItens.map(i=>`• ${i.descricao} <span style="color:#b91c1c;font-weight:600">(qtd ${i.quantidade||1})</span>`).join('<br>')}</div>
+  </div>`:'';
   const resumoHtml=`<div style="background:#fff;border-radius:12px;padding:18px 22px;margin-bottom:20px;box-shadow:0 1px 4px rgba(0,0,0,.08);display:flex;gap:24px;flex-wrap:wrap;align-items:center;border-left:5px solid #15a563">
     <div style="flex:1;min-width:160px">
       <div style="font-size:11px;font-weight:700;color:#15a563;text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px">Total pelo menor preço</div>
@@ -1125,7 +1152,7 @@ function renderPedido(){
       <div style="font-size:11px;color:#15a563;margin-top:2px">${pctEco}% de economia vs. maior preço</div>
     </div>
   </div>`;
-  document.getElementById('ped-corpo').innerHTML=(html?(resumoHtml+btnRestaurar+html):'<div class="empty">Nenhum item com proposta recebida.</div>');
+  document.getElementById('ped-corpo').innerHTML=html?(resumoHtml+semCotacaoHtml+btnRestaurar+html):(semCotacaoHtml||'<div class="empty">Nenhum item com proposta recebida.</div>');
 }
 function toggleAlt(itemId){const panel=document.getElementById('pedalt-'+itemId);if(panel)panel.classList.toggle('aberto');}
 function trocarVencedor(itemId,novoFornId){
