@@ -1588,7 +1588,24 @@ async function abrirAutoCotar(){
     document.getElementById('mac-corpo').innerHTML='<div class="empty">Nenhum fornecedor com OL importada.<br>Vá em <b>🚚 Fornecedores</b> e clique em <b>📥 OL</b> para importar.</div>';
     return;
   }
-  const{data:olItensData}=await sb.from('fornecedor_ol_itens').select('*').in('fornecedor_id',fornComOL);
+  // Busca paginada: o Supabase limita a 1000 linhas por requisição. Com vários fornecedores
+  // com OL grande, o total combinado passa fácil de 1000 e um select() simples corta itens
+  // dos fornecedores "de trás" silenciosamente (sem erro) — foi o que fazia produtos que
+  // realmente existem na OL (ex.: Biosintética) aparecerem como "sem match".
+  const olItensData=[];
+  {
+    const PAGE=1000;
+    let from=0;
+    while(true){
+      const{data:pagina,error:eOl}=await sb.from('fornecedor_ol_itens').select('*')
+        .in('fornecedor_id',fornComOL).range(from,from+PAGE-1);
+      if(eOl){toast('Erro ao carregar itens das OLs: '+eOl.message,'err');break;}
+      if(!pagina||!pagina.length)break;
+      olItensData.push(...pagina);
+      if(pagina.length<PAGE)break;
+      from+=PAGE;
+    }
+  }
   const olPorForn={};
   fornComOL.forEach(fId=>{
     const fNome=(fornecedores||[]).find(f=>f.id===fId)?.nome||'—';
