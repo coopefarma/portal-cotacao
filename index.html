@@ -152,6 +152,15 @@ body{font-family:'Inter',sans-serif;background:#f5f7fa;color:#1a1a2e}
 .aviso-verde{border-color:#15a563;background:#f0fdf4;color:#155724}
 .aviso-amarelo{border-color:#f59e0b;background:#fffbeb;color:#78350f}
 .ped-forn-section{background:#fff;border-radius:12px;padding:18px;margin-bottom:16px;box-shadow:0 1px 4px rgba(0,0,0,.06);border-left:4px solid #15a563}
+.ped-busca-wrap{position:sticky;top:0;z-index:20;background:#f6f7f9;padding:10px 0 14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.ped-busca-box{flex:1;min-width:240px;display:flex;align-items:center;gap:8px;background:#fff;border:2px solid #e2e8f0;border-radius:10px;padding:9px 12px;box-shadow:0 1px 4px rgba(0,0,0,.06);transition:border-color .15s}
+.ped-busca-box:focus-within{border-color:#15a563;box-shadow:0 2px 10px rgba(21,165,99,.15)}
+.ped-busca-box input{flex:1;border:none;outline:none;font-family:'Inter',sans-serif;font-size:14px;color:#1a1a2e;background:transparent}
+.ped-busca-box input::placeholder{color:#94a3b8}
+.ped-busca-clear{background:none;border:none;cursor:pointer;color:#94a3b8;font-size:15px;line-height:1;padding:2px 4px}
+.ped-busca-clear:hover{color:#ef4444}
+.ped-busca-info{font-size:12px;font-weight:600;color:#15a563;white-space:nowrap}
+.ped-table mark{background:#fef08a;color:inherit;padding:0 1px;border-radius:3px}
 .ped-forn-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px}
 .ped-forn-nome{font-family:'Poppins',sans-serif;font-size:15px;font-weight:700;color:#1a1a2e}
 .ped-table{width:100%;border-collapse:collapse;font-size:13px}
@@ -324,6 +333,14 @@ body{font-family:'Inter',sans-serif;background:#f5f7fa;color:#1a1a2e}
       <div class="page-header">
         <div><div class="page-title">Montar Pedido</div><div class="page-sub" id="ped-sub"></div></div>
         <button class="btn btn-outline" onclick="irPara('comparacao')">← Ranking</button>
+      </div>
+      <div class="ped-busca-wrap">
+        <div class="ped-busca-box">
+          <span style="font-size:15px;color:#94a3b8">🔎</span>
+          <input id="ped-busca" type="text" autocomplete="off" placeholder="Buscar produto por descrição ou código (ex: dipirona 500)" oninput="filtrarPedido(this.value)" onkeydown="if(event.key==='Escape')limparBuscaPedido()">
+          <button class="ped-busca-clear" id="ped-busca-clear" style="display:none" onclick="limparBuscaPedido()" title="Limpar busca (Esc)">✕</button>
+        </div>
+        <span class="ped-busca-info" id="ped-busca-info"></span>
       </div>
       <div id="ped-corpo"></div>
     </div>
@@ -1046,6 +1063,9 @@ async function carregarPedido(id){
     if(melhorForn)pedidoState[item.id]=melhorForn;
   });
   pedidoData={itens:itens||[],comResp,resps:resps||[],cotTitulo:cot?.titulo||'',cotacaoId:id};
+  pedFiltro='';
+  const _bs=document.getElementById('ped-busca');if(_bs)_bs.value='';
+  const _bc=document.getElementById('ped-busca-clear');if(_bc)_bc.style.display='none';
   renderPedido();
 }
 // Estado persistente do pedido (faturado, excluídos) por cotação
@@ -1068,19 +1088,52 @@ function excluirItemPedido(itemId){
 function restaurarExcluidos(){
   const est=_pedGetEstado();est.excluidos=[];_pedSaveEstado(est);renderPedido();
 }
+// ---- Busca rápida de produto na tela Montar Pedido ----
+let pedFiltro='';
+function _pedNorm(s){return(s==null?'':String(s)).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();}
+function _pedTermos(){return _pedNorm(pedFiltro).split(/\s+/).filter(Boolean);}
+function _pedCasa(item,termos){
+  if(!termos.length)return true;
+  const alvo=_pedNorm(item.descricao)+' '+_pedNorm(item.ean);
+  return termos.every(t=>alvo.includes(t));
+}
+function _pedDestaca(texto,termos){
+  let out=texto==null?'':String(texto);
+  if(!termos.length)return out;
+  termos.forEach(t=>{
+    const re=new RegExp('('+t.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+')','gi');
+    out=out.replace(re,'<mark>$1</mark>');
+  });
+  return out;
+}
+function filtrarPedido(v){
+  pedFiltro=v||'';
+  const btn=document.getElementById('ped-busca-clear');
+  if(btn)btn.style.display=pedFiltro?'':'none';
+  renderPedido();
+}
+function limparBuscaPedido(){
+  const el=document.getElementById('ped-busca');
+  if(el){el.value='';el.focus();}
+  filtrarPedido('');
+}
 function renderPedido(){
   const{itens,comResp,resps}=pedidoData;
   const est=_pedGetEstado();
   const faturado=est.faturado||{};
   const excluidos=new Set(est.excluidos||[]);
   const itensAtivos=itens.filter(i=>!excluidos.has(i.id));
+  const termos=_pedTermos();
+  const itensVisiveis=termos.length?itensAtivos.filter(i=>_pedCasa(i,termos)):itensAtivos;
+  const infoEl=document.getElementById('ped-busca-info');
+  if(infoEl)infoEl.textContent=termos.length?`${itensVisiveis.length} de ${itensAtivos.length} produto(s)`:'';
   const grupos={};
   comResp.forEach(lnk=>{grupos[lnk.fornecedor_id]={nome:lnk.fornecedores?.nome||'—',itens:[]};});
-  itensAtivos.forEach(item=>{const fId=pedidoState[item.id];if(fId&&grupos[fId])grupos[fId].itens.push(item.id);});
+  itensVisiveis.forEach(item=>{const fId=pedidoState[item.id];if(fId&&grupos[fId])grupos[fId].itens.push(item.id);});
   const html=Object.entries(grupos).filter(([,g])=>g.itens.length>0).map(([fornId,g])=>{
     let totalForn=0;let totalFat=0;let contFat=0;
     const rows=g.itens.map(itemId=>{
-      const item=itensAtivos.find(i=>i.id===itemId);
+      const item=itensVisiveis.find(i=>i.id===itemId);
       const r=resps.find(x=>x.item_id===itemId&&x.fornecedor_id===fornId);
       const preco=r?.preco||0;const qty=item.quantidade||1;const subtotal=preco*qty;totalForn+=subtotal;
       const fat=!!faturado[itemId];if(fat){totalFat+=subtotal;contFat++;}
@@ -1095,7 +1148,7 @@ function renderPedido(){
         `<span>${a.nome}</span><span>${fmtR(a.preco)}</span></div>`).join('');
       const rowStyle=fat?'background:#f0fdf4;opacity:.8;':''  ;
       return `<tr style="${rowStyle}"><td style="text-align:center;width:36px"><input type="checkbox" ${fat?'checked':''} title="Faturado" style="width:16px;height:16px;cursor:pointer;accent-color:#15a563" onchange="toggleFaturado('${itemId}')"></td>`+
-        `<td><div style="display:flex;align-items:center;gap:6px"><button class="btn-alt" onclick="toggleAlt('${itemId}')" title="Trocar fornecedor">⇄</button><span style="${fat?'text-decoration:line-through;color:#94a3b8;':''}">${item.descricao}</span></div>`+
+        `<td><div style="display:flex;align-items:center;gap:6px"><button class="btn-alt" onclick="toggleAlt('${itemId}')" title="Trocar fornecedor">⇄</button><span style="${fat?'text-decoration:line-through;color:#94a3b8;':''}">${_pedDestaca(item.descricao,termos)}</span></div>`+
         `<div class="ped-alt-panel" id="pedalt-${itemId}"><div style="font-size:11px;color:#64748b;margin-bottom:5px;font-weight:600">SELECIONE O FORNECEDOR:</div>${altsHtml}</div></td>`+
         `<td style="color:#64748b;font-size:12px">${item.ean||'—'}</td>`+
         `<td style="text-align:center"><input type="number" min="1" value="${qty}" style="width:56px;text-align:center;border:1.5px solid #e0e0e0;border-radius:6px;padding:3px 4px;font-size:12px;font-family:'Inter',sans-serif" onchange="atualizarQtd('${item.id}',this.value)" onclick="event.stopPropagation()"/></td>`+
@@ -1127,7 +1180,7 @@ function renderPedido(){
   const economia=totalMaximo-totalMinimo;
   const pctEco=totalMaximo>0?Math.round(economia/totalMaximo*100):0;
   // Produtos que nenhum fornecedor lançado precificou — precisa correr atrás em outro lugar.
-  const semCotacaoItens=itensAtivos.filter(item=>{
+  const semCotacaoItens=itensVisiveis.filter(item=>{
     const temPreco=comResp.some(lnk=>{const r=resps.find(x=>x.item_id===item.id&&x.fornecedor_id===lnk.fornecedor_id);return r?.preco>0;});
     return !temPreco;
   });
@@ -1152,6 +1205,11 @@ function renderPedido(){
       <div style="font-size:11px;color:#15a563;margin-top:2px">${pctEco}% de economia vs. maior preço</div>
     </div>
   </div>`;
+  if(termos.length){
+    const vazio=`<div class="empty">Nenhum produto encontrado para "<b>${pedFiltro}</b>".</div>`;
+    document.getElementById('ped-corpo').innerHTML=(html||semCotacaoHtml)?(semCotacaoHtml+html):vazio;
+    return;
+  }
   document.getElementById('ped-corpo').innerHTML=html?(resumoHtml+semCotacaoHtml+btnRestaurar+html):(semCotacaoHtml||'<div class="empty">Nenhum item com proposta recebida.</div>');
 }
 function toggleAlt(itemId){const panel=document.getElementById('pedalt-'+itemId);if(panel)panel.classList.toggle('aberto');}
