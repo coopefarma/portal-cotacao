@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Faltas & Encomendas — Drogaria Florânia</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:'Inter',sans-serif;background:#f5f7fa;color:#1a1a2e;padding-bottom:70px}
+.hidden{display:none!important}
+
+/* ── BOTÕES ── */
+.btn{padding:10px 18px;border:none;border-radius:9px;cursor:pointer;font-size:13px;font-weight:600;font-family:'Inter',sans-serif;transition:all .18s}
+.btn-primary{background:#15a563;color:#fff}.btn-primary:hover{background:#0f8a52}
+.btn-blue{background:#1565C0;color:#fff}.btn-blue:hover{background:#0D47A1}
+.btn-danger{background:#e8112d;color:#fff}.btn-danger:hover{background:#c00d26}
+.btn-outline{background:#fff;color:#475569;border:1.5px solid #e2e8f0}.btn-outline:hover{border-color:#15a563;color:#15a563}
+.btn-wa{background:#25D366;color:#fff}.btn-wa:hover{background:#1da851}
+.btn-sm{padding:6px 11px;font-size:12px;border-radius:7px}
+.btn-block{width:100%;padding:14px;font-size:15px}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+
+/* ── BADGES ── */
+.badge{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:700;white-space:nowrap}
+.b-verde{background:#d4edda;color:#155724}.b-cinza{background:#e2e8f0;color:#64748b}
+.b-azul{background:#dbeafe;color:#1e40af}.b-ouro{background:#fff3cd;color:#856404}
+.b-vermelho{background:#fde2e4;color:#b3161f}.b-roxo{background:#ede9fe;color:#5b21b6}
+
+/* ── TOPBAR ── */
+.topbar{background:#15a563;color:#fff;padding:0 18px;height:58px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 2px 10px rgba(0,0,0,.15);position:sticky;top:0;z-index:50}
+.topbar-logo{display:flex;flex-direction:column;line-height:1.15}
+.topbar-logo b{font-family:'Poppins',sans-serif;font-size:16px;font-weight:800}
+.topbar-logo small{font-size:11px;opacity:.85}
+.topbar-user{display:flex;align-items:center;gap:8px;font-size:13px}
+.user-chip{background:rgba(255,255,255,.18);padding:6px 12px;border-radius:20px;font-weight:600;cursor:pointer;border:none;color:#fff;font-family:'Inter',sans-serif;font-size:13px}
+.dot-live{width:8px;height:8px;border-radius:50%;background:#b9f6ca;box-shadow:0 0 0 0 rgba(185,246,202,.8);animation:pulse 2s infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(185,246,202,.7)}70%{box-shadow:0 0 0 8px rgba(185,246,202,0)}100%{box-shadow:0 0 0 0 rgba(185,246,202,0)}}
+
+/* ── NAV ── */
+.nav{display:flex;background:#fff;border-bottom:1px solid #e2e8f0;position:sticky;top:58px;z-index:49;overflow-x:auto}
+.nav button{flex:1;min-width:90px;padding:13px 8px;background:none;border:none;border-bottom:3px solid transparent;font-family:'Inter',sans-serif;font-size:13px;font-weight:600;color:#64748b;cursor:pointer;white-space:nowrap;transition:all .18s}
+.nav button.ativo{color:#15a563;border-bottom-color:#15a563;background:#f0faf5}
+.nav .cnt{display:inline-block;background:#e8112d;color:#fff;border-radius:10px;padding:1px 6px;font-size:10px;margin-left:4px;vertical-align:top}
+
+.main{max-width:1150px;margin:0 auto;padding:18px}
+.page{display:none}.page.ativo{display:block}
+.page-title{font-family:'Poppins',sans-serif;font-size:19px;font-weight:800;margin-bottom:2px}
+.page-sub{color:#64748b;font-size:13px;margin-bottom:16px}
+
+/* ── CARDS / FORM ── */
+.card{background:#fff;border-radius:14px;padding:20px;box-shadow:0 2px 10px rgba(0,0,0,.06);margin-bottom:16px}
+.card h3{font-family:'Poppins',sans-serif;font-size:15px;font-weight:700;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.field{margin-bottom:14px}
+.field label{font-size:11px;font-weight:700;color:#64748b;display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px}
+.field input,.field select,.field textarea{width:100%;padding:12px 14px;border:1.5px solid #e2e8f0;border-radius:9px;font-size:15px;font-family:'Inter',sans-serif;outline:none;transition:border .18s;background:#fff}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:#15a563}
+.field textarea{resize:vertical;min-height:60px;font-size:14px}
+.field .hint{font-size:11px;color:#94a3b8;margin-top:5px;line-height:1.4}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:600px){.row2{grid-template-columns:1fr}}
+
+/* ── CHIPS (vendedor / opções) ── */
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{padding:9px 15px;border:1.5px solid #e2e8f0;border-radius:22px;background:#fff;font-size:13px;font-weight:600;color:#475569;cursor:pointer;font-family:'Inter',sans-serif;transition:all .15s}
+.chip:hover{border-color:#15a563}
+.chip.on{background:#15a563;border-color:#15a563;color:#fff}
+.chip.on.alt{background:#e8112d;border-color:#e8112d}
+
+/* ── SUBTABS ── */
+.subtabs{display:flex;gap:8px;margin-bottom:16px}
+.subtabs button{flex:1;padding:13px;border-radius:11px;border:2px solid #e2e8f0;background:#fff;font-family:'Poppins',sans-serif;font-size:14px;font-weight:700;color:#64748b;cursor:pointer;transition:all .18s}
+.subtabs button.ativo{background:#15a563;border-color:#15a563;color:#fff}
+
+/* ── FILTROS ── */
+.filtros{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
+.filtros input,.filtros select{padding:9px 12px;border:1.5px solid #e2e8f0;border-radius:9px;font-size:13px;font-family:'Inter',sans-serif;outline:none;background:#fff}
+.filtros input:focus,.filtros select:focus{border-color:#15a563}
+.filtros input[type=search]{flex:1;min-width:170px}
+
+/* ── TABELA ── */
+.tbl{width:100%;border-collapse:collapse;font-size:13px;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 10px rgba(0,0,0,.06)}
+.tbl th{background:#f8fafc;padding:11px 12px;text-align:left;font-weight:700;color:#475569;border-bottom:2px solid #e2e8f0;white-space:nowrap;font-size:12px}
+.tbl td{padding:11px 12px;border-bottom:1px solid #f1f5f9;vertical-align:middle}
+.tbl tr:last-child td{border-bottom:none}
+.tbl tr:hover td{background:#fafbfc}
+.tbl .acoes{display:flex;gap:6px;flex-wrap:wrap}
+.prod{font-weight:600;color:#1a1a2e}
+.mono{font-family:'Courier New',monospace;font-size:12px;color:#64748b;white-space:nowrap}
+.rep{background:#fff3cd;color:#856404;border-radius:6px;padding:1px 6px;font-size:10px;font-weight:800;margin-left:6px}
+.risc{text-decoration:line-through;opacity:.55}
+.vazio{text-align:center;padding:46px 20px;color:#94a3b8;font-size:14px;background:#fff;border-radius:12px}
+
+@media(max-width:760px){
+  .tbl,.tbl tbody,.tbl tr,.tbl td{display:block;width:100%}
+  .tbl thead{display:none}
+  .tbl{box-shadow:none;background:transparent}
+  .tbl tr{background:#fff;border-radius:12px;margin-bottom:10px;padding:12px 14px;box-shadow:0 2px 8px rgba(0,0,0,.06)}
+  .tbl td{border:none;padding:5px 0;display:flex;justify-content:space-between;align-items:center;gap:12px;text-align:right}
+  .tbl td:before{content:attr(data-l);font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.4px;text-align:left;flex-shrink:0}
+  .tbl tr:hover td{background:transparent}
+  .tbl td.full{display:block;text-align:left;border-top:1px solid #f1f5f9;margin-top:8px;padding-top:10px}
+  .tbl td.full:before{display:block;margin-bottom:6px}
+  .tbl .acoes{justify-content:flex-end}
+}
+
+/* ── STATS ── */
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:18px}
+.stat{background:#fff;border-radius:12px;padding:16px;box-shadow:0 2px 10px rgba(0,0,0,.06);border-left:4px solid #15a563}
+.stat.vermelho{border-left-color:#e8112d}.stat.azul{border-left-color:#1565C0}
+.stat.ouro{border-left-color:#f0c040}.stat.roxo{border-left-color:#7B5EA7}
+.stat b{display:block;font-family:'Poppins',sans-serif;font-size:26px;font-weight:800;line-height:1.1}
+.stat span{font-size:12px;color:#64748b;font-weight:600}
+
+/* ── TOAST ── */
+#toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%) translateY(120px);background:#1a1a2e;color:#fff;padding:14px 22px;border-radius:12px;font-size:14px;font-weight:600;box-shadow:0 10px 30px rgba(0,0,0,.3);z-index:200;transition:transform .3s;max-width:92vw;text-align:center}
+#toast.show{transform:translateX(-50%) translateY(0)}
+#toast.erro{background:#e8112d}
+
+/* ── MODAL ── */
+.modal{position:fixed;inset:0;background:rgba(15,23,42,.55);display:none;align-items:center;justify-content:center;z-index:150;padding:16px}
+.modal.show{display:flex}
+.modal-box{background:#fff;border-radius:16px;padding:24px;width:100%;max-width:440px;max-height:90vh;overflow:auto;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+.modal-box h3{font-family:'Poppins',sans-serif;font-size:17px;font-weight:800;margin-bottom:16px}
+.modal-acoes{display:flex;gap:8px;justify-content:flex-end;margin-top:18px;flex-wrap:wrap}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-logo">
+    <b>Faltas &amp; Encomendas</b>
+    <small>Drogaria Florânia</small>
+  </div>
+  <div class="topbar-user">
+    <span class="dot-live" title="Atualizando em tempo real"></span>
+    <button class="user-chip" onclick="trocarVendedor()" id="chip-vendedor">Quem é você?</button>
+  </div>
+</div>
+
+<div class="nav">
+  <button class="ativo" data-p="registrar" onclick="irPara('registrar')">Registrar</button>
+  <button data-p="faltas" onclick="irPara('faltas')">Faltas <span class="cnt hidden" id="cnt-faltas">0</span></button>
+  <button data-p="encomendas" onclick="irPara('encomendas')">Encomendas <span class="cnt hidden" id="cnt-enc">0</span></button>
+  <button data-p="resumo" onclick="irPara('resumo')">Resumo</button>
+</div>
+
+<div class="main">
+
+<!-- ══════════ REGISTRAR ══════════ -->
+<div class="page ativo" id="p-registrar">
+  <div class="subtabs">
+    <button class="ativo" id="st-falta" onclick="subTab('falta')">Falta</button>
+    <button id="st-enc" onclick="subTab('enc')">Encomenda</button>
+  </div>
+
+  <!-- FALTA -->
+  <div class="card" id="form-falta">
+    <h3>Registrar falta</h3>
+    <div class="field">
+      <label>Produto *</label>
+      <input id="f-produto" placeholder="Ex: DIPIRONA 500MG C/10 CPR" autocomplete="off"/>
+      <div class="hint">Nome, concentração e apresentação. Se souber, coloque entre parênteses o estoque atual.</div>
+    </div>
+    <div class="field">
+      <label>Motivo *</label>
+      <div class="chips" id="f-motivo">
+        <button class="chip on" data-v="Estoque baixo" onclick="pick(this)">Estoque baixo</button>
+        <button class="chip alt" data-v="Venda perdida" onclick="pick(this)">Venda perdida</button>
+      </div>
+    </div>
+    <div class="field">
+      <label>Observação (opcional)</label>
+      <input id="f-obs" placeholder="Ex: cliente vai voltar amanhã" autocomplete="off"/>
+    </div>
+    <button class="btn btn-primary btn-block" id="btn-falta" onclick="salvarFalta()">Registrar falta</button>
+  </div>
+
+  <!-- ENCOMENDA -->
+  <div class="card hidden" id="form-enc">
+    <h3>Registrar encomenda</h3>
+    <div class="field">
+      <label>Nome do cliente *</label>
+      <input id="e-cliente" placeholder="Ex: Sayonara de Solange da farmácia" autocomplete="off"/>
+      <div class="hint">Use um nome de fácil identificação.</div>
+    </div>
+    <div class="field">
+      <label>Produto *</label>
+      <input id="e-produto" placeholder="Ex: Sinvastatina 40mg 30comp EMS" autocomplete="off"/>
+      <div class="hint">Nome, concentração (mg), apresentação (comprimido, xarope, spray) e marca.</div>
+    </div>
+    <div class="row2">
+      <div class="field">
+        <label>Quantidade *</label>
+        <input id="e-qtd" placeholder="Ex: 1 caixa" autocomplete="off"/>
+      </div>
+      <div class="field">
+        <label>Telefone</label>
+        <input id="e-tel" type="tel" inputmode="numeric" placeholder="84 99999-9999" autocomplete="off"/>
+      </div>
+    </div>
+    <div class="field">
+      <label>Pagamento *</label>
+      <div class="chips" id="e-pgto">
+        <button class="chip on" data-v="Paga ao receber" onclick="pick(this)">Paga ao receber</button>
+        <button class="chip" data-v="Já pago" onclick="pick(this)">Já pago</button>
+        <button class="chip" data-v="Notar quando entregar" onclick="pick(this)">Notar quando entregar</button>
+      </div>
+    </div>
+    <div class="field">
+      <label>Observação (opcional)</label>
+      <input id="e-obs" placeholder="Ex: pode ser genérico" autocomplete="off"/>
+    </div>
+    <button class="btn btn-primary btn-block" id="btn-enc" onclick="salvarEncomenda()">Registrar encomenda</button>
+  </div>
+
+  <div class="card" id="ultimos">
+    <h3>Seus últimos registros</h3>
+    <div id="ultimos-lista"></div>
+  </div>
+</div>
+
+<!-- ══════════ FALTAS ══════════ -->
+<div class="page" id="p-faltas">
+  <div class="page-title">Faltas</div>
+  <div class="page-sub" id="faltas-sub">—</div>
+  <div class="filtros">
+    <input type="search" id="ff-busca" placeholder="Buscar produto..." oninput="renderFaltas()"/>
+    <select id="ff-status" onchange="renderFaltas()">
+      <option value="pendente">Pendentes</option>
+      <option value="comprado">Compradas</option>
+      <option value="">Todas</option>
+    </select>
+    <select id="ff-motivo" onchange="renderFaltas()">
+      <option value="">Todos os motivos</option>
+      <option>Estoque baixo</option>
+      <option>Venda perdida</option>
+    </select>
+    <select id="ff-vend" onchange="renderFaltas()"><option value="">Todos</option></select>
+    <select id="ff-per" onchange="renderFaltas()">
+      <option value="0">Hoje</option>
+      <option value="7">7 dias</option>
+      <option value="30" selected>30 dias</option>
+      <option value="9999">Tudo</option>
+    </select>
+    <button class="btn btn-outline btn-sm" onclick="exportarFaltas()">Exportar XLSX</button>
+  </div>
+  <div id="faltas-tabela"></div>
+</div>
+
+<!-- ══════════ ENCOMENDAS ══════════ -->
+<div class="page" id="p-encomendas">
+  <div class="page-title">Encomendas</div>
+  <div class="page-sub" id="enc-sub">—</div>
+  <div class="filtros">
+    <input type="search" id="fe-busca" placeholder="Buscar cliente ou produto..." oninput="renderEncomendas()"/>
+    <select id="fe-status" onchange="renderEncomendas()">
+      <option value="abertas">Em aberto</option>
+      <option value="pendente">A pedir</option>
+      <option value="pedido">Pedido feito</option>
+      <option value="chegou">Chegou (avisar)</option>
+      <option value="entregue">Entregues</option>
+      <option value="cancelado">Canceladas</option>
+      <option value="">Todas</option>
+    </select>
+    <select id="fe-vend" onchange="renderEncomendas()"><option value="">Todos</option></select>
+    <select id="fe-per" onchange="renderEncomendas()">
+      <option value="0">Hoje</option>
+      <option value="7">7 dias</option>
+      <option value="30">30 dias</option>
+      <option value="9999" selected>Tudo</option>
+    </select>
+    <button class="btn btn-outline btn-sm" onclick="exportarEncomendas()">Exportar XLSX</button>
+  </div>
+  <div id="enc-tabela"></div>
+</div>
+
+<!-- ══════════ RESUMO ══════════ -->
+<div class="page" id="p-resumo">
+  <div class="page-title">Resumo</div>
+  <div class="page-sub">Situação de hoje e ranking dos últimos 30 dias</div>
+  <div class="stats" id="resumo-stats"></div>
+  <div class="card">
+    <h3>Produtos que mais faltaram (30 dias)</h3>
+    <div id="rank-produtos"></div>
+  </div>
+  <div class="row2">
+    <div class="card">
+      <h3>Faltas por vendedor (30 dias)</h3>
+      <div id="rank-vend"></div>
+    </div>
+    <div class="card">
+      <h3>Encomendas por vendedor (30 dias)</h3>
+      <div id="rank-vend-enc"></div>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<!-- MODAL EDIÇÃO ENCOMENDA -->
+<div class="modal" id="modal-enc">
+  <div class="modal-box">
+    <h3 id="me-titulo">Encomenda</h3>
+    <div class="field"><label>Cliente</label><input id="me-cliente"/></div>
+    <div class="field"><label>Produto</label><input id="me-produto"/></div>
+    <div class="row2">
+      <div class="field"><label>Quantidade</label><input id="me-qtd"/></div>
+      <div class="field"><label>Telefone</label><input id="me-tel" type="tel" inputmode="numeric"/></div>
+    </div>
+    <div class="row2">
+      <div class="field"><label>Fornecedor</label><input id="me-forn" placeholder="Ex: Panpharma"/></div>
+      <div class="field"><label>Previsão de chegada</label><input id="me-prev" type="date"/></div>
+    </div>
+    <div class="row2">
+      <div class="field"><label>Pagamento</label>
+        <select id="me-pgto">
+          <option>Paga ao receber</option><option>Já pago</option><option>Notar quando entregar</option>
+        </select>
+      </div>
+      <div class="field"><label>Status</label>
+        <select id="me-status">
+          <option value="pendente">A pedir</option>
+          <option value="pedido">Pedido feito</option>
+          <option value="chegou">Chegou</option>
+          <option value="entregue">Entregue</option>
+          <option value="cancelado">Cancelado</option>
+        </select>
+      </div>
+    </div>
+    <div class="field"><label>Observação</label><input id="me-obs"/></div>
+    <div class="modal-acoes">
+      <button class="btn btn-danger btn-sm" onclick="excluirEncomenda()">Excluir</button>
+      <button class="btn btn-outline" onclick="fecharModal()">Cancelar</button>
+      <button class="btn btn-primary" onclick="salvarModal()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL VENDEDOR -->
+<div class="modal" id="modal-vend">
+  <div class="modal-box" style="max-width:400px">
+    <h3>Quem está usando?</h3>
+    <div class="chips" id="lista-vend"></div>
+    <div class="modal-acoes">
+      <button class="btn btn-outline" onclick="document.getElementById('modal-vend').classList.remove('show')">Fechar</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+/* ══════════════ CONFIG ══════════════ */
+const SB_URL = 'https://uofcbqqbubvvltnzvhsx.supabase.co';
+const SB_KEY = 'sb_publishable_SQ0x7RDU9B0u5lqvn2pr1Q_4NwoJMY9';
+const sb = supabase.createClient(SB_URL, SB_KEY);
+
+const VENDEDORES = ['Jefferson','Veruska','Lucas','Karol','Jayane','Jeruza','Viennyr'];
+
+let FALTAS = [], ENCOMENDAS = [], vendedor = localStorage.getItem('fe_vendedor') || '';
+let encEditando = null;
+
+/* ══════════════ UTIL ══════════════ */
+const $ = id => document.getElementById(id);
+const esc = s => (s==null?'':String(s)).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+function toast(msg, erro){
+  const t = $('toast');
+  t.textContent = msg; t.className = 'show' + (erro ? ' erro' : '');
+  clearTimeout(t._t); t._t = setTimeout(()=>t.className='', 3000);
+}
+function dataBR(iso){
+  if(!iso) return '';
+  const d = new Date(iso);
+  return d.toLocaleDateString('pt-BR') + ' ' + d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+}
+function dataCurta(iso){
+  if(!iso) return '';
+  const d = new Date(iso + (iso.length === 10 ? 'T12:00:00' : ''));
+  return d.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'});
+}
+function diasAtras(n){ const d = new Date(); d.setHours(0,0,0,0); d.setDate(d.getDate()-n); return d; }
+function pick(btn){
+  [...btn.parentElement.children].forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+}
+function valorChip(id){
+  const on = $(id).querySelector('.chip.on');
+  return on ? on.dataset.v : '';
+}
+function fone(t){
+  const d = (t||'').replace(/\D/g,'');
+  if(d.length < 10) return '';
+  return d.length <= 11 ? '55'+d : d;
+}
+
+/* ══════════════ NAVEGAÇÃO ══════════════ */
+function irPara(p){
+  document.querySelectorAll('.page').forEach(x=>x.classList.remove('ativo'));
+  $('p-'+p).classList.add('ativo');
+  document.querySelectorAll('.nav button').forEach(b=>b.classList.toggle('ativo', b.dataset.p === p));
+  window.scrollTo(0,0);
+  if(p==='resumo') renderResumo();
+}
+function subTab(t){
+  $('st-falta').classList.toggle('ativo', t==='falta');
+  $('st-enc').classList.toggle('ativo', t==='enc');
+  $('form-falta').classList.toggle('hidden', t!=='falta');
+  $('form-enc').classList.toggle('hidden', t!=='enc');
+}
+
+/* ══════════════ VENDEDOR ══════════════ */
+function montarVendedores(){
+  $('lista-vend').innerHTML = VENDEDORES.map(v =>
+    `<button class="chip ${v===vendedor?'on':''}" onclick="setVendedor('${v}')">${v}</button>`).join('');
+  const opts = '<option value="">Todos</option>' + VENDEDORES.map(v=>`<option>${v}</option>`).join('');
+  $('ff-vend').innerHTML = opts; $('fe-vend').innerHTML = opts;
+  $('chip-vendedor').textContent = vendedor || 'Quem é você?';
+}
+function setVendedor(v){
+  vendedor = v; localStorage.setItem('fe_vendedor', v);
+  $('modal-vend').classList.remove('show');
+  montarVendedores(); renderUltimos();
+}
+function trocarVendedor(){ montarVendedores(); $('modal-vend').classList.add('show'); }
+function exigeVendedor(){
+  if(!vendedor){ trocarVendedor(); toast('Selecione seu nome primeiro', true); return false; }
+  return true;
+}
+
+/* ══════════════ CARREGAR ══════════════ */
+async function carregar(){
+  const [f, e] = await Promise.all([
+    sb.from('fe_faltas').select('*').order('created_at',{ascending:false}).limit(3000),
+    sb.from('fe_encomendas').select('*').order('created_at',{ascending:false}).limit(3000)
+  ]);
+  if(f.error || e.error){ toast('Erro ao carregar dados', true); console.error(f.error||e.error); return; }
+  FALTAS = f.data || []; ENCOMENDAS = e.data || [];
+  renderTudo();
+}
+function renderTudo(){
+  renderFaltas(); renderEncomendas(); renderUltimos(); renderResumo(); contadores();
+}
+function contadores(){
+  const nf = FALTAS.filter(x=>x.status==='pendente').length;
+  const ne = ENCOMENDAS.filter(x=>['pendente','pedido','chegou'].includes(x.status)).length;
+  $('cnt-faltas').textContent = nf; $('cnt-faltas').classList.toggle('hidden', nf===0);
+  $('cnt-enc').textContent = ne; $('cnt-enc').classList.toggle('hidden', ne===0);
+}
+
+/* ══════════════ TEMPO REAL ══════════════ */
+function assinar(){
+  sb.channel('fe-live')
+    .on('postgres_changes',{event:'*',schema:'public',table:'fe_faltas'}, p => aplicar(FALTAS, p, x=>FALTAS=x))
+    .on('postgres_changes',{event:'*',schema:'public',table:'fe_encomendas'}, p => aplicar(ENCOMENDAS, p, x=>ENCOMENDAS=x))
+    .subscribe();
+}
+function aplicar(lista, p, set){
+  if(p.eventType === 'INSERT'){
+    if(!lista.some(x=>x.id===p.new.id)) set([p.new, ...lista]);
+  } else if(p.eventType === 'UPDATE'){
+    set(lista.map(x => x.id===p.new.id ? p.new : x));
+  } else if(p.eventType === 'DELETE'){
+    set(lista.filter(x => x.id !== p.old.id));
+  }
+  renderTudo();
+}
+
+/* ══════════════ SALVAR FALTA ══════════════ */
+async function salvarFalta(){
+  if(!exigeVendedor()) return;
+  const produto = $('f-produto').value.trim();
+  if(!produto){ toast('Informe o produto', true); $('f-produto').focus(); return; }
+  const btn = $('btn-falta'); btn.disabled = true; btn.textContent = 'Salvando...';
+  const { error } = await sb.from('fe_faltas').insert({
+    produto: produto.toUpperCase(),
+    motivo: valorChip('f-motivo'),
+    vendedor,
+    observacao: $('f-obs').value.trim() || null
+  });
+  btn.disabled = false; btn.textContent = 'Registrar falta';
+  if(error){ toast('Erro ao salvar: ' + error.message, true); return; }
+  $('f-produto').value = ''; $('f-obs').value = '';
+  $('f-produto').focus();
+  toast('Falta registrada');
+  carregar();
+}
+
+/* ══════════════ SALVAR ENCOMENDA ══════════════ */
+async function salvarEncomenda(){
+  if(!exigeVendedor()) return;
+  const cliente = $('e-cliente').value.trim(), produto = $('e-produto').value.trim();
+  if(!cliente){ toast('Informe o cliente', true); $('e-cliente').focus(); return; }
+  if(!produto){ toast('Informe o produto', true); $('e-produto').focus(); return; }
+  const btn = $('btn-enc'); btn.disabled = true; btn.textContent = 'Salvando...';
+  const { error } = await sb.from('fe_encomendas').insert({
+    cliente, produto: produto.toUpperCase(),
+    quantidade: $('e-qtd').value.trim() || '1',
+    telefone: $('e-tel').value.trim() || null,
+    vendedor, pagamento: valorChip('e-pgto'),
+    observacao: $('e-obs').value.trim() || null
+  });
+  btn.disabled = false; btn.textContent = 'Registrar encomenda';
+  if(error){ toast('Erro ao salvar: ' + error.message, true); return; }
+  ['e-cliente','e-produto','e-qtd','e-tel','e-obs'].forEach(i => $(i).value = '');
+  $('e-cliente').focus();
+  toast('Encomenda registrada');
+  carregar();
+}
+
+/* ══════════════ ÚLTIMOS REGISTROS ══════════════ */
+function renderUltimos(){
+  if(!vendedor){ $('ultimos-lista').innerHTML = '<div class="vazio">Escolha seu nome no topo para começar.</div>'; return; }
+  const hoje = diasAtras(0);
+  const meus = [
+    ...FALTAS.filter(f=>f.vendedor===vendedor && new Date(f.created_at)>=hoje).map(f=>({t:'Falta', d:f.created_at, txt:f.produto, sub:f.motivo})),
+    ...ENCOMENDAS.filter(e=>e.vendedor===vendedor && new Date(e.created_at)>=hoje).map(e=>({t:'Encomenda', d:e.created_at, txt:e.produto, sub:e.cliente}))
+  ].sort((a,b)=> new Date(b.d)-new Date(a.d)).slice(0,8);
+  if(!meus.length){ $('ultimos-lista').innerHTML = '<div class="vazio">Nenhum registro seu hoje.</div>'; return; }
+  $('ultimos-lista').innerHTML = '<table class="tbl"><tbody>' + meus.map(m=>`
+    <tr>
+      <td data-l="Tipo"><span class="badge ${m.t==='Falta'?'b-ouro':'b-azul'}">${m.t}</span></td>
+      <td data-l="Item"><span class="prod">${esc(m.txt)}</span></td>
+      <td data-l="Detalhe">${esc(m.sub||'')}</td>
+      <td data-l="Hora" class="mono">${dataBR(m.d).split(' ')[1]}</td>
+    </tr>`).join('') + '</tbody></table>';
+}
+
+/* ══════════════ FALTAS ══════════════ */
+function filtrarFaltas(){
+  const b = $('ff-busca').value.trim().toUpperCase(), st = $('ff-status').value,
+        mo = $('ff-motivo').value, vd = $('ff-vend').value, per = +$('ff-per').value;
+  const lim = diasAtras(per);
+  return FALTAS.filter(f =>
+    (!b || f.produto.toUpperCase().includes(b)) &&
+    (!st || f.status === st) &&
+    (!mo || f.motivo === mo) &&
+    (!vd || f.vendedor === vd) &&
+    new Date(f.created_at) >= lim
+  );
+}
+function renderFaltas(){
+  const lista = filtrarFaltas();
+  const pend = FALTAS.filter(f=>f.status==='pendente').length;
+  $('faltas-sub').textContent = `${lista.length} registro(s) na tela • ${pend} pendente(s) no total`;
+  contadores();
+  if(!lista.length){ $('faltas-tabela').innerHTML = '<div class="vazio">Nenhuma falta encontrada com esses filtros.</div>'; return; }
+  const cont = {};
+  lista.forEach(f => cont[f.produto] = (cont[f.produto]||0)+1);
+  $('faltas-tabela').innerHTML = '<table class="tbl"><thead><tr>' +
+    '<th>Data</th><th>Produto</th><th>Motivo</th><th>Vendedor</th><th>Status</th><th></th>' +
+    '</tr></thead><tbody>' + lista.map(f => `
+    <tr>
+      <td data-l="Data" class="mono">${dataBR(f.created_at)}</td>
+      <td data-l="Produto"><span class="prod ${f.status==='comprado'?'risc':''}">${esc(f.produto)}</span>${cont[f.produto]>1?`<span class="rep">${cont[f.produto]}x</span>`:''}${f.observacao?`<div style="font-size:11px;color:#94a3b8">${esc(f.observacao)}</div>`:''}</td>
+      <td data-l="Motivo"><span class="badge ${f.motivo==='Venda perdida'?'b-vermelho':'b-ouro'}">${esc(f.motivo)}</span></td>
+      <td data-l="Vendedor">${esc(f.vendedor)}</td>
+      <td data-l="Status"><span class="badge ${f.status==='comprado'?'b-verde':'b-cinza'}">${f.status==='comprado'?'Comprado':'Pendente'}</span></td>
+      <td data-l="Ações"><div class="acoes">
+        ${f.status==='pendente'
+          ? `<button class="btn btn-primary btn-sm" onclick="marcarFalta('${f.id}','comprado')">Comprado</button>`
+          : `<button class="btn btn-outline btn-sm" onclick="marcarFalta('${f.id}','pendente')">Reabrir</button>`}
+        <button class="btn btn-outline btn-sm" onclick="excluirFalta('${f.id}')">Excluir</button>
+      </div></td>
+    </tr>`).join('') + '</tbody></table>';
+}
+async function marcarFalta(id, status){
+  const { error } = await sb.from('fe_faltas').update({ status, resolvido_em: status==='comprado' ? new Date().toISOString() : null }).eq('id', id);
+  if(error){ toast('Erro: ' + error.message, true); return; }
+  const f = FALTAS.find(x=>x.id===id); if(f) f.status = status;
+  renderTudo(); toast(status==='comprado' ? 'Marcada como comprada' : 'Reaberta');
+}
+async function excluirFalta(id){
+  if(!confirm('Excluir este registro de falta?')) return;
+  const { error } = await sb.from('fe_faltas').delete().eq('id', id);
+  if(error){ toast('Erro: ' + error.message, true); return; }
+  FALTAS = FALTAS.filter(x=>x.id!==id); renderTudo(); toast('Excluído');
+}
+
+/* ══════════════ ENCOMENDAS ══════════════ */
+const ST_ENC = {
+  pendente:{txt:'A pedir', cls:'b-ouro'},
+  pedido:{txt:'Pedido feito', cls:'b-azul'},
+  chegou:{txt:'Chegou', cls:'b-roxo'},
+  entregue:{txt:'Entregue', cls:'b-verde'},
+  cancelado:{txt:'Cancelado', cls:'b-cinza'}
+};
+function filtrarEncomendas(){
+  const b = $('fe-busca').value.trim().toUpperCase(), st = $('fe-status').value,
+        vd = $('fe-vend').value, per = +$('fe-per').value;
+  const lim = diasAtras(per);
+  return ENCOMENDAS.filter(e =>
+    (!b || (e.produto+' '+e.cliente).toUpperCase().includes(b)) &&
+    (st==='abertas' ? ['pendente','pedido','chegou'].includes(e.status) : (!st || e.status===st)) &&
+    (!vd || e.vendedor === vd) &&
+    new Date(e.created_at) >= lim
+  );
+}
+function renderEncomendas(){
+  const lista = filtrarEncomendas();
+  const ab = ENCOMENDAS.filter(e=>['pendente','pedido','chegou'].includes(e.status)).length;
+  const ch = ENCOMENDAS.filter(e=>e.status==='chegou').length;
+  $('enc-sub').textContent = `${lista.length} na tela • ${ab} em aberto • ${ch} aguardando o cliente buscar`;
+  contadores();
+  if(!lista.length){ $('enc-tabela').innerHTML = '<div class="vazio">Nenhuma encomenda encontrada com esses filtros.</div>'; return; }
+  $('enc-tabela').innerHTML = '<table class="tbl"><thead><tr>' +
+    '<th>Data</th><th>Cliente</th><th>Produto</th><th>Qtd</th><th>Vendedor</th><th>Pagamento</th><th>Status</th><th></th>' +
+    '</tr></thead><tbody>' + lista.map(e => {
+    const w = fone(e.telefone);
+    const risc = ['entregue','cancelado'].includes(e.status) ? 'risc' : '';
+    return `
+    <tr>
+      <td data-l="Data" class="mono">${dataBR(e.created_at)}</td>
+      <td data-l="Cliente"><span class="prod ${risc}">${esc(e.cliente)}</span>${e.telefone?`<div class="mono">${esc(e.telefone)}</div>`:''}</td>
+      <td data-l="Produto"><span class="${risc}">${esc(e.produto)}</span>${e.observacao?`<div style="font-size:11px;color:#94a3b8">${esc(e.observacao)}</div>`:''}${e.fornecedor||e.previsao?`<div style="font-size:11px;color:#64748b">${esc(e.fornecedor||'')}${e.previsao?' • chega '+dataCurta(e.previsao):''}</div>`:''}</td>
+      <td data-l="Qtd">${esc(e.quantidade||'')}</td>
+      <td data-l="Vendedor">${esc(e.vendedor)}</td>
+      <td data-l="Pagamento">${esc(e.pagamento||'')}</td>
+      <td data-l="Status"><span class="badge ${ST_ENC[e.status].cls}">${ST_ENC[e.status].txt}</span></td>
+      <td data-l="Ações" class="full"><div class="acoes">
+        ${e.status==='pendente' ? `<button class="btn btn-blue btn-sm" onclick="statusEnc('${e.id}','pedido')">Pedido feito</button>` : ''}
+        ${e.status==='pedido' ? `<button class="btn btn-blue btn-sm" onclick="statusEnc('${e.id}','chegou')">Chegou</button>` : ''}
+        ${e.status==='chegou' ? `<button class="btn btn-primary btn-sm" onclick="statusEnc('${e.id}','entregue')">Entregue</button>` : ''}
+        ${e.status==='chegou' && w ? `<button class="btn btn-wa btn-sm" onclick="avisar('${e.id}')">Avisar no WhatsApp</button>` : ''}
+        <button class="btn btn-outline btn-sm" onclick="abrirModal('${e.id}')">Editar</button>
+      </div></td>
+    </tr>`; }).join('') + '</tbody></table>';
+}
+async function statusEnc(id, status){
+  const patch = { status };
+  if(status==='entregue') patch.entregue_em = new Date().toISOString();
+  const { error } = await sb.from('fe_encomendas').update(patch).eq('id', id);
+  if(error){ toast('Erro: ' + error.message, true); return; }
+  const e = ENCOMENDAS.find(x=>x.id===id); if(e) Object.assign(e, patch);
+  renderTudo(); toast('Status atualizado: ' + ST_ENC[status].txt);
+}
+function avisar(id){
+  const e = ENCOMENDAS.find(x=>x.id===id); if(!e) return;
+  const w = fone(e.telefone); if(!w){ toast('Telefone inválido', true); return; }
+  const msg = `Olá, ${e.cliente}! Aqui é da Drogaria Florânia. Sua encomenda *${e.produto}* já chegou e está reservada aqui na farmácia. 😊`;
+  window.open(`https://wa.me/${w}?text=${encodeURIComponent(msg)}`, '_blank');
+}
+
+/* ── MODAL ── */
+function abrirModal(id){
+  const e = ENCOMENDAS.find(x=>x.id===id); if(!e) return;
+  encEditando = id;
+  $('me-titulo').textContent = 'Encomenda de ' + e.cliente;
+  $('me-cliente').value = e.cliente || ''; $('me-produto').value = e.produto || '';
+  $('me-qtd').value = e.quantidade || ''; $('me-tel').value = e.telefone || '';
+  $('me-forn').value = e.fornecedor || ''; $('me-prev').value = e.previsao || '';
+  $('me-pgto').value = e.pagamento || 'Paga ao receber'; $('me-status').value = e.status;
+  $('me-obs').value = e.observacao || '';
+  $('modal-enc').classList.add('show');
+}
+function fecharModal(){ $('modal-enc').classList.remove('show'); encEditando = null; }
+async function salvarModal(){
+  if(!encEditando) return;
+  const patch = {
+    cliente: $('me-cliente').value.trim(), produto: $('me-produto').value.trim().toUpperCase(),
+    quantidade: $('me-qtd').value.trim(), telefone: $('me-tel').value.trim() || null,
+    fornecedor: $('me-forn').value.trim() || null, previsao: $('me-prev').value || null,
+    pagamento: $('me-pgto').value, status: $('me-status').value,
+    observacao: $('me-obs').value.trim() || null
+  };
+  if(patch.status === 'entregue') patch.entregue_em = new Date().toISOString();
+  const { error } = await sb.from('fe_encomendas').update(patch).eq('id', encEditando);
+  if(error){ toast('Erro: ' + error.message, true); return; }
+  const e = ENCOMENDAS.find(x=>x.id===encEditando); if(e) Object.assign(e, patch);
+  fecharModal(); renderTudo(); toast('Encomenda atualizada');
+}
+async function excluirEncomenda(){
+  if(!encEditando || !confirm('Excluir esta encomenda?')) return;
+  const { error } = await sb.from('fe_encomendas').delete().eq('id', encEditando);
+  if(error){ toast('Erro: ' + error.message, true); return; }
+  ENCOMENDAS = ENCOMENDAS.filter(x=>x.id!==encEditando);
+  fecharModal(); renderTudo(); toast('Excluída');
+}
+
+/* ══════════════ RESUMO ══════════════ */
+function renderResumo(){
+  const hoje = diasAtras(0), m30 = diasAtras(30);
+  const fHoje = FALTAS.filter(f=>new Date(f.created_at)>=hoje).length;
+  const fPend = FALTAS.filter(f=>f.status==='pendente').length;
+  const eAbertas = ENCOMENDAS.filter(e=>['pendente','pedido'].includes(e.status)).length;
+  const eChegou = ENCOMENDAS.filter(e=>e.status==='chegou').length;
+  const eHoje = ENCOMENDAS.filter(e=>new Date(e.created_at)>=hoje).length;
+  $('resumo-stats').innerHTML = `
+    <div class="stat vermelho"><b>${fPend}</b><span>Faltas pendentes</span></div>
+    <div class="stat ouro"><b>${fHoje}</b><span>Faltas hoje</span></div>
+    <div class="stat azul"><b>${eAbertas}</b><span>Encomendas a pedir/pedidas</span></div>
+    <div class="stat roxo"><b>${eChegou}</b><span>Chegaram — avisar cliente</span></div>
+    <div class="stat"><b>${eHoje}</b><span>Encomendas hoje</span></div>`;
+
+  const f30 = FALTAS.filter(f=>new Date(f.created_at)>=m30);
+  const e30 = ENCOMENDAS.filter(e=>new Date(e.created_at)>=m30);
+  $('rank-produtos').innerHTML = ranking(f30, 'produto', 15, 'produto');
+  $('rank-vend').innerHTML = ranking(f30, 'vendedor', 20, 'vendedor');
+  $('rank-vend-enc').innerHTML = ranking(e30, 'vendedor', 20, 'vendedor');
+}
+function ranking(lista, campo, top, rotulo){
+  const c = {};
+  lista.forEach(x => c[x[campo]] = (c[x[campo]]||0)+1);
+  const arr = Object.entries(c).sort((a,b)=>b[1]-a[1]).slice(0, top);
+  if(!arr.length) return '<div class="vazio">Sem dados no período.</div>';
+  const max = arr[0][1];
+  return '<table class="tbl"><tbody>' + arr.map(([k,v])=>`
+    <tr>
+      <td data-l="${rotulo}"><span class="prod">${esc(k)}</span>
+        <div style="height:5px;border-radius:3px;background:#15a563;width:${Math.max(6, v/max*100)}%;margin-top:5px;opacity:.65"></div>
+      </td>
+      <td data-l="Qtd" style="text-align:right;font-weight:800;color:#15a563;white-space:nowrap">${v}</td>
+    </tr>`).join('') + '</tbody></table>';
+}
+
+/* ══════════════ EXPORTAR ══════════════ */
+function baixar(linhas, nome, aba){
+  const ws = XLSX.utils.json_to_sheet(linhas);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, aba);
+  XLSX.writeFile(wb, nome + '_' + new Date().toISOString().slice(0,10) + '.xlsx');
+}
+function exportarFaltas(){
+  const l = filtrarFaltas().map(f=>({
+    Data: dataBR(f.created_at), Produto: f.produto, Motivo: f.motivo,
+    Vendedor: f.vendedor, Status: f.status, Observação: f.observacao||''
+  }));
+  if(!l.length){ toast('Nada para exportar', true); return; }
+  baixar(l, 'Faltas', 'Faltas');
+}
+function exportarEncomendas(){
+  const l = filtrarEncomendas().map(e=>({
+    Data: dataBR(e.created_at), Cliente: e.cliente, Produto: e.produto, Quantidade: e.quantidade||'',
+    Telefone: e.telefone||'', Vendedor: e.vendedor, Pagamento: e.pagamento||'',
+    Fornecedor: e.fornecedor||'', Previsão: e.previsao||'', Status: ST_ENC[e.status].txt, Observação: e.observacao||''
+  }));
+  if(!l.length){ toast('Nada para exportar', true); return; }
+  baixar(l, 'Encomendas', 'Encomendas');
+}
+
+/* ══════════════ INÍCIO ══════════════ */
+montarVendedores();
+carregar();
+assinar();
+if(!vendedor) setTimeout(trocarVendedor, 400);
+setInterval(carregar, 120000); // rede de segurança a cada 2 min
+document.addEventListener('keydown', e => { if(e.key==='Escape'){ fecharModal(); $('modal-vend').classList.remove('show'); } });
+</script>
+</body>
+</html>
