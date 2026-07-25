@@ -167,6 +167,8 @@ body{font-family:'Inter',sans-serif;background:#f5f7fa;color:#1a1a2e}
 .ped-table th{padding:8px 10px;text-align:left;font-weight:600;color:#475569;border-bottom:2px solid #e2e8f0;font-size:12px}
 .ped-table td{padding:8px 10px;border-bottom:1px solid #f1f5f9;vertical-align:top}
 .ped-total-row td{font-weight:700;background:#f8fafc;border-top:2px solid #e2e8f0}
+.ped-alt-sem{background:#fef2f2;color:#b91c1c;font-weight:600;margin-top:6px;border-top:1px dashed #fecaca}
+.ped-alt-sem:hover{background:#fee2e2}
 .ped-alt-panel{background:#f0fdf4;border-radius:8px;margin:6px 0 2px;padding:8px;display:none}
 .ped-alt-panel.aberto{display:block}
 .ped-alt-opt{display:flex;justify-content:space-between;align-items:center;padding:6px 10px;border-radius:6px;cursor:pointer;font-size:12px;border:1.5px solid #e0e0e0;margin-bottom:4px;transition:all .2s;background:#fff}
@@ -1122,6 +1124,7 @@ function renderPedido(){
   const est=_pedGetEstado();
   const faturado=est.faturado||{};
   const excluidos=new Set(est.excluidos||[]);
+  const forcedSem=new Set(est.semCotacao||[]);
   const itensAtivos=itens.filter(i=>!excluidos.has(i.id));
   const termos=_pedTermos();
   const itensVisiveis=termos.length?itensAtivos.filter(i=>_pedCasa(i,termos)):itensAtivos;
@@ -1129,7 +1132,7 @@ function renderPedido(){
   if(infoEl)infoEl.textContent=termos.length?`${itensVisiveis.length} de ${itensAtivos.length} produto(s)`:'';
   const grupos={};
   comResp.forEach(lnk=>{grupos[lnk.fornecedor_id]={nome:lnk.fornecedores?.nome||'—',itens:[]};});
-  itensVisiveis.forEach(item=>{const fId=pedidoState[item.id];if(fId&&grupos[fId])grupos[fId].itens.push(item.id);});
+  itensVisiveis.forEach(item=>{if(forcedSem.has(item.id))return;const fId=pedidoState[item.id];if(fId&&grupos[fId])grupos[fId].itens.push(item.id);});
   const html=Object.entries(grupos).filter(([,g])=>g.itens.length>0).map(([fornId,g])=>{
     let totalForn=0;let totalFat=0;let contFat=0;
     const rows=g.itens.map(itemId=>{
@@ -1145,7 +1148,9 @@ function renderPedido(){
         return{fornId:lnk.fornecedor_id,nome:lnk.fornecedores?.nome||'—',preco:ar?.preco??null};
       }).filter(a=>a.preco!=null&&a.preco>0).sort((a,b)=>a.preco-b.preco);
       const altsHtml=alts.map(a=>`<div class="ped-alt-opt ${a.fornId===fornId?'ativo':''}" onclick="${a.fornId!==fornId?`trocarVencedor('${itemId}','${a.fornId}')`:''}">`+
-        `<span>${a.nome}</span><span>${fmtR(a.preco)}</span></div>`).join('');
+        `<span>${a.nome}</span><span>${fmtR(a.preco)}</span></div>`).join('')+
+        `<div class="ped-alt-opt ped-alt-sem" onclick="marcarSemCotacao('${itemId}')" title="Tirar do pedido e jogar na lista de produtos a buscar fora">`+
+        `<span>❌ Não encaixou — mandar para "sem cotação"</span><span>→</span></div>`;
       const rowStyle=fat?'background:#f0fdf4;opacity:.8;':''  ;
       return `<tr style="${rowStyle}"><td style="text-align:center;width:36px"><input type="checkbox" ${fat?'checked':''} title="Faturado" style="width:16px;height:16px;cursor:pointer;accent-color:#15a563" onchange="toggleFaturado('${itemId}')"></td>`+
         `<td><div style="display:flex;align-items:center;gap:6px"><button class="btn-alt" onclick="toggleAlt('${itemId}')" title="Trocar fornecedor">⇄</button><span style="${fat?'text-decoration:line-through;color:#94a3b8;':''}">${_pedDestaca(item.descricao,termos)}</span></div>`+
@@ -1171,6 +1176,7 @@ function renderPedido(){
   // Calcular os três totalizadores
   let totalMinimo=0,totalMaximo=0,totalPedido=0;
   itensAtivos.forEach(item=>{
+    if(forcedSem.has(item.id))return;
     const qty=item.quantidade||1;
     const precos=comResp.map(lnk=>{const r=resps.find(x=>x.item_id===item.id&&x.fornecedor_id===lnk.fornecedor_id);return r?.preco??null;}).filter(p=>p!=null&&p>0);
     if(precos.length){totalMinimo+=Math.min(...precos)*qty;totalMaximo+=Math.max(...precos)*qty;}
@@ -1181,12 +1187,23 @@ function renderPedido(){
   const pctEco=totalMaximo>0?Math.round(economia/totalMaximo*100):0;
   // Produtos que nenhum fornecedor lançado precificou — precisa correr atrás em outro lugar.
   const semCotacaoItens=itensVisiveis.filter(item=>{
+    if(forcedSem.has(item.id))return true;
     const temPreco=comResp.some(lnk=>{const r=resps.find(x=>x.item_id===item.id&&x.fornecedor_id===lnk.fornecedor_id);return r?.preco>0;});
     return !temPreco;
   });
+  const nManuais=semCotacaoItens.filter(i=>forcedSem.has(i.id)).length;
+  const linhasSem=semCotacaoItens.map(i=>{
+    const manual=forcedSem.has(i.id);
+    const tag=manual?` <span style="font-size:10px;font-weight:700;color:#92400e;background:#fef3c7;border-radius:4px;padding:1px 5px">não encaixou</span>`+
+      ` <button onclick="devolverParaFornecedor('${i.id}')" title="Devolver para o fornecedor de menor preço" style="background:none;border:none;cursor:pointer;color:#15a563;font-size:11px;font-weight:700;padding:0 2px">↩ devolver</button>`:'';
+    return `• ${_pedDestaca(i.descricao,termos)} <span style="color:#b91c1c;font-weight:600">(qtd ${i.quantidade||1})</span>${tag}`;
+  }).join('<br>');
   const semCotacaoHtml=semCotacaoItens.length?`<div style="background:#fef2f2;border:1px solid #fecaca;border-radius:12px;padding:16px 20px;margin-bottom:20px">
-    <div style="font-size:12px;font-weight:700;color:#991b1b;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">⚠️ ${semCotacaoItens.length} produto(s) sem nenhuma cotação — buscar outro fornecedor</div>
-    <div style="font-size:12px;color:#7f1d1d;line-height:1.8">${semCotacaoItens.map(i=>`• ${i.descricao} <span style="color:#b91c1c;font-weight:600">(qtd ${i.quantidade||1})</span>`).join('<br>')}</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:8px">
+      <div style="font-size:12px;font-weight:700;color:#991b1b;text-transform:uppercase;letter-spacing:.5px">⚠️ ${semCotacaoItens.length} produto(s) sem cotação — buscar outro fornecedor${nManuais?` <span style="font-weight:600;text-transform:none;color:#b45309">(${nManuais} enviado(s) manualmente)</span>`:''}</div>
+      <button class="btn btn-outline btn-sm" onclick="exportarExcelSemCotacao()">📥 Exportar Excel</button>
+    </div>
+    <div style="font-size:12px;color:#7f1d1d;line-height:1.9">${linhasSem}</div>
   </div>`:'';
   const resumoHtml=`<div style="background:#fff;border-radius:12px;padding:18px 22px;margin-bottom:20px;box-shadow:0 1px 4px rgba(0,0,0,.08);display:flex;gap:24px;flex-wrap:wrap;align-items:center;border-left:5px solid #15a563">
     <div style="flex:1;min-width:160px">
@@ -1218,6 +1235,93 @@ function trocarVencedor(itemId,novoFornId){
   const est=_pedGetEstado();est.vencedores=est.vencedores||{};est.vencedores[itemId]=novoFornId;_pedSaveEstado(est);
   renderPedido();
   setTimeout(()=>{const panel=document.getElementById('pedalt-'+itemId);if(panel)panel.classList.add('aberto');},10);
+}
+// Manda um produto já cotado para a lista de "sem cotação" (não conseguimos encaixar em nenhum fornecedor)
+function marcarSemCotacao(itemId){
+  const est=_pedGetEstado();
+  est.semCotacao=est.semCotacao||[];
+  if(!est.semCotacao.includes(itemId))est.semCotacao.push(itemId);
+  if(est.vencedores)delete est.vencedores[itemId];
+  _pedSaveEstado(est);
+  delete pedidoState[itemId];
+  renderPedido();
+  toast('Produto movido para "sem cotação".','ok');
+}
+// Devolve o produto ao pedido, reassumindo o fornecedor de menor preço
+function devolverParaFornecedor(itemId){
+  const est=_pedGetEstado();
+  est.semCotacao=(est.semCotacao||[]).filter(x=>x!==itemId);
+  _pedSaveEstado(est);
+  const{comResp,resps}=pedidoData;
+  let melhorForn=null,melhorPreco=Infinity;
+  comResp.forEach(lnk=>{
+    const r=resps.find(x=>x.item_id===itemId&&x.fornecedor_id===lnk.fornecedor_id);
+    if(r?.preco!=null&&r.preco>0&&r.preco<melhorPreco){melhorPreco=r.preco;melhorForn=lnk.fornecedor_id;}
+  });
+  if(melhorForn)pedidoState[itemId]=melhorForn;
+  renderPedido();
+  toast(melhorForn?'Produto devolvido ao pedido.':'Produto sem proposta — segue na lista.','ok');
+}
+// Lista dos produtos sem cotação (sem proposta + os mandados manualmente), usada na tela e no Excel
+function _pedItensSemCotacao(){
+  if(!pedidoData)return[];
+  const{itens,comResp,resps}=pedidoData;
+  const est=_pedGetEstado();
+  const excluidos=new Set(est.excluidos||[]);
+  const forcedSem=new Set(est.semCotacao||[]);
+  return itens.filter(i=>!excluidos.has(i.id)).map(item=>{
+    const precos=comResp.map(lnk=>{
+      const r=resps.find(x=>x.item_id===item.id&&x.fornecedor_id===lnk.fornecedor_id);
+      return r?.preco>0?{nome:lnk.fornecedores?.nome||'—',preco:r.preco}:null;
+    }).filter(Boolean).sort((a,b)=>a.preco-b.preco);
+    if(forcedSem.has(item.id))return{item,motivo:'Não encaixou no pedido',melhor:precos[0]||null};
+    if(precos.length===0)return{item,motivo:'Nenhum fornecedor cotou',melhor:null};
+    return null;
+  }).filter(Boolean);
+}
+function exportarExcelSemCotacao(){
+  const lista=_pedItensSemCotacao();
+  if(lista.length===0){toast('Nenhum produto sem cotação.','err');return;}
+  const cotTitulo=pedidoData?.cotTitulo||'';
+  const wb=XLSX.utils.book_new();
+  const ws={};
+  const sTitle={font:{bold:true,sz:14,color:{rgb:'1A1A2E'}}};
+  const sSub={font:{bold:true,sz:11,color:{rgb:'B91C1C'}}};
+  const sInfo={font:{sz:10,color:{rgb:'94A3B8'},italic:true}};
+  const sHdr=(left)=>({font:{bold:true,color:{rgb:'FFFFFF'},sz:11},fill:{fgColor:{rgb:'B91C1C'}},alignment:{horizontal:left?'left':'center',vertical:'center'}});
+  const sRow=(par)=>({fill:{fgColor:{rgb:par?'FEF2F2':'FFFFFF'}},alignment:{horizontal:'left',vertical:'center'}});
+  const sCtr=(par)=>({fill:{fgColor:{rgb:par?'FEF2F2':'FFFFFF'}},alignment:{horizontal:'center',vertical:'center'}});
+  const sNum=(par)=>({fill:{fgColor:{rgb:par?'FEF2F2':'FFFFFF'}},alignment:{horizontal:'right',vertical:'center'},numFmt:'#,##0.00'});
+  ws['A1']={v:`Produtos sem cotação — ${cotTitulo}`,t:'s',s:sTitle};
+  ws['A2']={v:`${lista.length} produto(s) para buscar em outro fornecedor`,t:'s',s:sSub};
+  ws['A3']={v:`Gerado em: ${new Date().toLocaleString('pt-BR')}`,t:'s',s:sInfo};
+  ws['A5']={v:'Descrição',t:'s',s:sHdr(true)};
+  ws['B5']={v:'EAN/Cód.',t:'s',s:sHdr(false)};
+  ws['C5']={v:'Qtd',t:'s',s:sHdr(false)};
+  ws['D5']={v:'Últ. Preço (R$)',t:'s',s:sHdr(false)};
+  ws['E5']={v:'Motivo',t:'s',s:sHdr(true)};
+  ws['F5']={v:'Melhor preço cotado (R$)',t:'s',s:sHdr(false)};
+  ws['G5']={v:'Fornecedor do melhor preço',t:'s',s:sHdr(true)};
+  let row=6;
+  lista.forEach((l,idx)=>{
+    const par=idx%2===0;const item=l.item;
+    ws[`A${row}`]={v:item.descricao||'',t:'s',s:sRow(par)};
+    ws[`B${row}`]={v:item.ean||'',t:'s',s:sCtr(par)};
+    ws[`C${row}`]={v:item.quantidade||1,t:'n',s:sCtr(par)};
+    if(item.ultimo_preco)ws[`D${row}`]={v:item.ultimo_preco,t:'n',s:sNum(par)};
+    else ws[`D${row}`]={v:'—',t:'s',s:sCtr(par)};
+    ws[`E${row}`]={v:l.motivo,t:'s',s:sRow(par)};
+    if(l.melhor){ws[`F${row}`]={v:l.melhor.preco,t:'n',s:sNum(par)};ws[`G${row}`]={v:l.melhor.nome,t:'s',s:sRow(par)};}
+    else{ws[`F${row}`]={v:'—',t:'s',s:sCtr(par)};ws[`G${row}`]={v:'—',t:'s',s:sCtr(par)};}
+    row++;
+  });
+  ws['!ref']=`A1:G${row-1}`;
+  ws['!cols']=[{wch:42},{wch:14},{wch:8},{wch:16},{wch:24},{wch:22},{wch:26}];
+  ws['!views']=[{showGridLines:false}];
+  XLSX.utils.book_append_sheet(wb,ws,'Sem cotação');
+  const dataHoje=new Date().toLocaleDateString('pt-BR').replace(/\//g,'-');
+  XLSX.writeFile(wb,`Sem_cotacao_${dataHoje}.xlsx`);
+  toast('Excel dos produtos sem cotação gerado!','ok');
 }
 function exportarExcelForn(fornId,fornNome){
   if(!pedidoData)return;
