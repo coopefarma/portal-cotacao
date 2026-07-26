@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-<title>Faltas & Encomendas — Drogaria Florânia</title>
+<title>Faltas &amp; Encomendas — Drogaria Florânia</title>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
@@ -30,22 +30,23 @@ body{font-family:'Inter',sans-serif;background:#f5f7fa;color:#1a1a2e;padding-bot
 .b-vermelho{background:#fde2e4;color:#b3161f}.b-roxo{background:#ede9fe;color:#5b21b6}
 
 /* ── TOPBAR ── */
-.topbar{background:#15a563;color:#fff;padding:0 18px;height:58px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 2px 10px rgba(0,0,0,.15);position:sticky;top:0;z-index:50}
+.topbar{background:#15a563;color:#fff;padding:0 14px;height:58px;display:flex;align-items:center;justify-content:space-between;gap:10px;box-shadow:0 2px 10px rgba(0,0,0,.15);position:sticky;top:0;z-index:50}
 .topbar-logo{display:flex;align-items:center;gap:10px;line-height:1.15;min-width:0}
 .topbar-logo .marca{background:#fff;border-radius:8px;padding:4px 7px;display:flex;align-items:center;flex-shrink:0}
 .topbar-logo .marca img{height:26px;width:auto;display:block}
 .topbar-logo .txt{display:flex;flex-direction:column;min-width:0}
 .topbar-logo b{font-family:'Poppins',sans-serif;font-size:15px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .topbar-logo small{font-size:11px;opacity:.85;white-space:nowrap}
-@media(max-width:420px){.topbar-logo b{font-size:13px}.topbar-logo .marca img{height:22px}}
-.topbar-user{display:flex;align-items:center;gap:8px;font-size:13px}
-.user-chip{background:rgba(255,255,255,.18);padding:6px 12px;border-radius:20px;font-weight:600;cursor:pointer;border:none;color:#fff;font-family:'Inter',sans-serif;font-size:13px}
-.dot-live{width:8px;height:8px;border-radius:50%;background:#b9f6ca;box-shadow:0 0 0 0 rgba(185,246,202,.8);animation:pulse 2s infinite}
+.topbar-user{display:flex;align-items:center;gap:8px;font-size:13px;flex-shrink:0}
+.user-chip{background:rgba(255,255,255,.18);padding:6px 12px;border-radius:20px;font-weight:600;cursor:pointer;border:none;color:#fff;font-family:'Inter',sans-serif;font-size:13px;display:flex;align-items:center;gap:6px}
+.user-chip .pp{background:rgba(255,255,255,.85);color:#0f8a52;border-radius:20px;padding:1px 7px;font-size:10px;font-weight:800;text-transform:uppercase}
+.dot-live{width:8px;height:8px;border-radius:50%;background:#b9f6ca;animation:pulse 2s infinite;flex-shrink:0}
 @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(185,246,202,.7)}70%{box-shadow:0 0 0 8px rgba(185,246,202,0)}100%{box-shadow:0 0 0 0 rgba(185,246,202,0)}}
+@media(max-width:460px){.topbar-logo b{font-size:13px}.topbar-logo .marca img{height:22px}.topbar-logo small{display:none}}
 
 /* ── NAV ── */
 .nav{display:flex;background:#fff;border-bottom:1px solid #e2e8f0;position:sticky;top:58px;z-index:49;overflow-x:auto}
-.nav button{flex:1;min-width:90px;padding:13px 8px;background:none;border:none;border-bottom:3px solid transparent;font-family:'Inter',sans-serif;font-size:13px;font-weight:600;color:#64748b;cursor:pointer;white-space:nowrap;transition:all .18s}
+.nav button{flex:1;min-width:92px;padding:13px 8px;background:none;border:none;border-bottom:3px solid transparent;font-family:'Inter',sans-serif;font-size:13px;font-weight:600;color:#64748b;cursor:pointer;white-space:nowrap;transition:all .18s}
 .nav button.ativo{color:#15a563;border-bottom-color:#15a563;background:#f0faf5}
 .nav .cnt{display:inline-block;background:#e8112d;color:#fff;border-radius:10px;padding:1px 6px;font-size:10px;margin-left:4px;vertical-align:top}
 
@@ -53,25 +54,26 @@ body{font-family:'Inter',sans-serif;background:#f5f7fa;color:#1a1a2e;padding-bot
 .page{display:none}.page.ativo{display:block}
 .page-title{font-family:'Poppins',sans-serif;font-size:19px;font-weight:800;margin-bottom:2px}
 .page-sub{color:#64748b;font-size:13px;margin-bottom:16px}
+.aviso-ro{background:#fff3cd;color:#856404;border-radius:10px;padding:10px 14px;font-size:12px;font-weight:600;margin-bottom:14px}
 
 /* ── CARDS / FORM ── */
 .card{background:#fff;border-radius:14px;padding:20px;box-shadow:0 2px 10px rgba(0,0,0,.06);margin-bottom:16px}
-.card h3{font-family:'Poppins',sans-serif;font-size:15px;font-weight:700;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.card h3{font-family:'Poppins',sans-serif;font-size:15px;font-weight:700;margin-bottom:14px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .field{margin-bottom:14px}
 .field label{font-size:11px;font-weight:700;color:#64748b;display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px}
 .field input,.field select,.field textarea{width:100%;padding:12px 14px;border:1.5px solid #e2e8f0;border-radius:9px;font-size:15px;font-family:'Inter',sans-serif;outline:none;transition:border .18s;background:#fff}
 .field input:focus,.field select:focus,.field textarea:focus{border-color:#15a563}
-.field textarea{resize:vertical;min-height:60px;font-size:14px}
 .field .hint{font-size:11px;color:#94a3b8;margin-top:5px;line-height:1.4}
 .row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 @media(max-width:600px){.row2{grid-template-columns:1fr}}
 
-/* ── CHIPS (vendedor / opções) ── */
+/* ── CHIPS ── */
 .chips{display:flex;flex-wrap:wrap;gap:8px}
-.chip{padding:9px 15px;border:1.5px solid #e2e8f0;border-radius:22px;background:#fff;font-size:13px;font-weight:600;color:#475569;cursor:pointer;font-family:'Inter',sans-serif;transition:all .15s}
+.chip{padding:9px 15px;border:1.5px solid #e2e8f0;border-radius:22px;background:#fff;font-size:13px;font-weight:600;color:#475569;cursor:pointer;font-family:'Inter',sans-serif;transition:all .15s;display:inline-flex;align-items:center;gap:6px}
 .chip:hover{border-color:#15a563}
 .chip.on{background:#15a563;border-color:#15a563;color:#fff}
 .chip.on.alt{background:#e8112d;border-color:#e8112d}
+.chip .lock{font-size:11px;opacity:.7}
 
 /* ── SUBTABS ── */
 .subtabs{display:flex;gap:8px;margin-bottom:16px}
@@ -108,17 +110,15 @@ body{font-family:'Inter',sans-serif;background:#f5f7fa;color:#1a1a2e;padding-bot
   .tbl td.full{display:block;text-align:left;border-top:1px solid #f1f5f9;margin-top:8px;padding-top:10px}
   .tbl td.full:before{display:block;margin-bottom:6px}
   .tbl .acoes{justify-content:flex-end}
+  .tbl td.chk{justify-content:flex-start}
+  .tbl td.chk:before{content:"Selecionar"}
 }
 
 /* ── SELEÇÃO EM MASSA ── */
-.barra-sel{display:flex;align-items:center;gap:10px;background:#1a1a2e;color:#fff;border-radius:11px;padding:10px 14px;margin-bottom:12px;flex-wrap:wrap;font-size:13px;font-weight:600}
-.barra-sel .cresce{flex:1}
+.barra-sel{display:flex;align-items:center;gap:8px;background:#1a1a2e;color:#fff;border-radius:11px;padding:10px 14px;margin-bottom:12px;flex-wrap:wrap;font-size:13px;font-weight:600}
+.barra-sel .cresce{flex:1;min-width:130px}
 input[type=checkbox].sel{width:20px;height:20px;accent-color:#15a563;cursor:pointer;margin:0}
 .tbl td.chk,.tbl th.chk{width:34px;text-align:center}
-@media(max-width:760px){
-  .tbl td.chk:before{content:"Selecionar"}
-  .tbl td.chk{width:auto}
-}
 
 /* ── STATS ── */
 .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:18px}
@@ -129,7 +129,7 @@ input[type=checkbox].sel{width:20px;height:20px;accent-color:#15a563;cursor:poin
 .stat span{font-size:12px;color:#64748b;font-weight:600}
 
 /* ── TOAST ── */
-#toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%) translateY(120px);background:#1a1a2e;color:#fff;padding:14px 22px;border-radius:12px;font-size:14px;font-weight:600;box-shadow:0 10px 30px rgba(0,0,0,.3);z-index:200;transition:transform .3s;max-width:92vw;text-align:center}
+#toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%) translateY(140px);background:#1a1a2e;color:#fff;padding:14px 22px;border-radius:12px;font-size:14px;font-weight:600;box-shadow:0 10px 30px rgba(0,0,0,.3);z-index:200;transition:transform .3s;max-width:92vw;text-align:center}
 #toast.show{transform:translateX(-50%) translateY(0)}
 #toast.erro{background:#e8112d}
 
@@ -153,7 +153,7 @@ input[type=checkbox].sel{width:20px;height:20px;accent-color:#15a563;cursor:poin
   </div>
   <div class="topbar-user">
     <span class="dot-live" title="Atualizando em tempo real"></span>
-    <button class="user-chip" onclick="trocarVendedor()" id="chip-vendedor">Quem é você?</button>
+    <button class="user-chip" onclick="abrirLogin()" id="chip-user">Quem é você?</button>
   </div>
 </div>
 
@@ -161,7 +161,7 @@ input[type=checkbox].sel{width:20px;height:20px;accent-color:#15a563;cursor:poin
   <button class="ativo" data-p="registrar" onclick="irPara('registrar')">Registrar</button>
   <button data-p="faltas" onclick="irPara('faltas')">Faltas <span class="cnt hidden" id="cnt-faltas">0</span></button>
   <button data-p="encomendas" onclick="irPara('encomendas')">Encomendas <span class="cnt hidden" id="cnt-enc">0</span></button>
-  <button data-p="resumo" onclick="irPara('resumo')">Resumo</button>
+  <button data-p="resumo" onclick="irPara('resumo')">Dashboard</button>
 </div>
 
 <div class="main">
@@ -173,7 +173,6 @@ input[type=checkbox].sel{width:20px;height:20px;accent-color:#15a563;cursor:poin
     <button id="st-enc" onclick="subTab('enc')">Encomenda</button>
   </div>
 
-  <!-- FALTA -->
   <div class="card" id="form-falta">
     <h3>Registrar falta</h3>
     <div class="field">
@@ -195,7 +194,6 @@ input[type=checkbox].sel{width:20px;height:20px;accent-color:#15a563;cursor:poin
     <button class="btn btn-primary btn-block" id="btn-falta" onclick="salvarFalta()">Registrar falta</button>
   </div>
 
-  <!-- ENCOMENDA -->
   <div class="card hidden" id="form-enc">
     <h3>Registrar encomenda</h3>
     <div class="field">
@@ -233,7 +231,7 @@ input[type=checkbox].sel{width:20px;height:20px;accent-color:#15a563;cursor:poin
     <button class="btn btn-primary btn-block" id="btn-enc" onclick="salvarEncomenda()">Registrar encomenda</button>
   </div>
 
-  <div class="card" id="ultimos">
+  <div class="card">
     <h3>Seus últimos registros</h3>
     <div id="ultimos-lista"></div>
   </div>
@@ -243,6 +241,7 @@ input[type=checkbox].sel{width:20px;height:20px;accent-color:#15a563;cursor:poin
 <div class="page" id="p-faltas">
   <div class="page-title">Faltas</div>
   <div class="page-sub" id="faltas-sub">—</div>
+  <div class="aviso-ro hidden" id="ro-faltas">Modo consulta: só os gestores podem dar baixa ou excluir registros.</div>
   <div class="filtros">
     <input type="search" id="ff-busca" placeholder="Buscar produto..." oninput="renderFaltas()"/>
     <select id="ff-status" onchange="renderFaltas()">
@@ -272,6 +271,7 @@ input[type=checkbox].sel{width:20px;height:20px;accent-color:#15a563;cursor:poin
 <div class="page" id="p-encomendas">
   <div class="page-title">Encomendas</div>
   <div class="page-sub" id="enc-sub">—</div>
+  <div class="aviso-ro hidden" id="ro-enc">Modo consulta: só os gestores podem alterar status, editar ou excluir. Avisar o cliente no WhatsApp está liberado.</div>
   <div class="filtros">
     <input type="search" id="fe-busca" placeholder="Buscar cliente ou produto..." oninput="renderEncomendas()"/>
     <select id="fe-status" onchange="renderEncomendas()">
@@ -295,9 +295,9 @@ input[type=checkbox].sel{width:20px;height:20px;accent-color:#15a563;cursor:poin
   <div id="enc-tabela"></div>
 </div>
 
-<!-- ══════════ RESUMO ══════════ -->
+<!-- ══════════ DASHBOARD ══════════ -->
 <div class="page" id="p-resumo">
-  <div class="page-title">Resumo</div>
+  <div class="page-title">Dashboard</div>
   <div class="page-sub">Situação de hoje e ranking dos últimos 30 dias</div>
   <div class="stats" id="resumo-stats"></div>
   <div class="card">
@@ -312,6 +312,15 @@ input[type=checkbox].sel{width:20px;height:20px;accent-color:#15a563;cursor:poin
     <div class="card">
       <h3>Encomendas por vendedor (30 dias)</h3>
       <div id="rank-vend-enc"></div>
+    </div>
+  </div>
+
+  <div class="card hidden" id="card-usuarios">
+    <h3>Usuários <span class="badge b-verde">área do gestor</span></h3>
+    <div id="lista-usuarios"></div>
+    <div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn btn-primary btn-sm" onclick="abrirUsuario()">+ Novo usuário</button>
+      <button class="btn btn-outline btn-sm" onclick="abrirUsuario(sessao&&sessao.nome)">Trocar minha senha</button>
     </div>
   </div>
 </div>
@@ -357,13 +366,47 @@ input[type=checkbox].sel{width:20px;height:20px;accent-color:#15a563;cursor:poin
   </div>
 </div>
 
-<!-- MODAL VENDEDOR -->
-<div class="modal" id="modal-vend">
+<!-- MODAL LOGIN -->
+<div class="modal" id="modal-login">
   <div class="modal-box" style="max-width:400px">
     <h3>Quem está usando?</h3>
-    <div class="chips" id="lista-vend"></div>
+    <div class="chips" id="lista-login"></div>
+    <div id="area-senha" class="hidden" style="margin-top:18px;border-top:1px solid #f1f5f9;padding-top:16px">
+      <div class="field" style="margin-bottom:8px">
+        <label id="lbl-senha">Senha</label>
+        <input type="password" id="in-senha" placeholder="••••••••" autocomplete="current-password"
+               onkeydown="if(event.key==='Enter')entrarGestor()"/>
+      </div>
+      <div id="erro-senha" style="color:#e8112d;font-size:12px;font-weight:600;min-height:16px;margin-bottom:8px"></div>
+      <button class="btn btn-primary btn-block" onclick="entrarGestor()">Entrar</button>
+    </div>
     <div class="modal-acoes">
-      <button class="btn btn-outline" onclick="document.getElementById('modal-vend').classList.remove('show')">Fechar</button>
+      <button class="btn btn-outline btn-sm" onclick="sair()">Sair da conta</button>
+      <button class="btn btn-outline" onclick="fecharLogin()">Fechar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL USUÁRIO -->
+<div class="modal" id="modal-user">
+  <div class="modal-box" style="max-width:400px">
+    <h3 id="mu-titulo">Novo usuário</h3>
+    <div class="field"><label>Nome *</label><input id="mu-nome" autocomplete="off"/></div>
+    <div class="field">
+      <label>Perfil</label>
+      <select id="mu-papel" onchange="mostraSenhaUser()">
+        <option value="vendedor">Vendedor — registra e consulta</option>
+        <option value="gestor">Gestor — edita tudo e gerencia usuários</option>
+      </select>
+    </div>
+    <div class="field" id="mu-box-senha">
+      <label>Senha do gestor</label>
+      <input type="password" id="mu-senha" placeholder="deixe em branco para não alterar" autocomplete="new-password"/>
+      <div class="hint">Vendedor entra só escolhendo o nome, sem senha.</div>
+    </div>
+    <div class="modal-acoes">
+      <button class="btn btn-outline" onclick="fecharUsuario()">Cancelar</button>
+      <button class="btn btn-primary" onclick="salvarUsuario()">Salvar</button>
     </div>
   </div>
 </div>
@@ -376,19 +419,33 @@ const SB_URL = 'https://uofcbqqbubvvltnzvhsx.supabase.co';
 const SB_KEY = 'sb_publishable_SQ0x7RDU9B0u5lqvn2pr1Q_4NwoJMY9';
 const sb = supabase.createClient(SB_URL, SB_KEY);
 
-const VENDEDORES = ['Jefferson','Veruska','Lucas','Karol','Jayane','Jeruza','Viennyr'];
+/* usado só se a tabela fe_usuarios ainda não existir */
+const FALLBACK = [
+  {nome:'Jefferson', papel:'gestor',   senha_hash:null, ativo:true},
+  {nome:'Veruska',   papel:'gestor',   senha_hash:null, ativo:true},
+  {nome:'Lucas',     papel:'vendedor', senha_hash:null, ativo:true},
+  {nome:'Karol',     papel:'vendedor', senha_hash:null, ativo:true},
+  {nome:'Jayane',    papel:'vendedor', senha_hash:null, ativo:true},
+  {nome:'Jeruza',    papel:'vendedor', senha_hash:null, ativo:true},
+  {nome:'Viennyr',   papel:'vendedor', senha_hash:null, ativo:true}
+];
 
-let FALTAS = [], ENCOMENDAS = [], vendedor = localStorage.getItem('fe_vendedor') || '';
-let encEditando = null;
+let FALTAS = [], ENCOMENDAS = [], USUARIOS = [];
+let sessao = null;
+try { sessao = JSON.parse(localStorage.getItem('fe_sessao') || 'null'); } catch(e){ sessao = null; }
+let encEditando = null, userEditando = null, loginPendente = null;
+let selFaltas = new Set();
 
 /* ══════════════ UTIL ══════════════ */
 const $ = id => document.getElementById(id);
 const esc = s => (s==null?'':String(s)).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const ehGestor = () => !!sessao && sessao.papel === 'gestor';
+const meuNome  = () => sessao ? sessao.nome : '';
 
 function toast(msg, erro){
   const t = $('toast');
   t.textContent = msg; t.className = 'show' + (erro ? ' erro' : '');
-  clearTimeout(t._t); t._t = setTimeout(()=>t.className='', 3000);
+  clearTimeout(t._t); t._t = setTimeout(()=>t.className='', 3200);
 }
 function dataBR(iso){
   if(!iso) return '';
@@ -397,7 +454,7 @@ function dataBR(iso){
 }
 function dataCurta(iso){
   if(!iso) return '';
-  const d = new Date(iso + (iso.length === 10 ? 'T12:00:00' : ''));
+  const d = new Date(iso + (String(iso).length === 10 ? 'T12:00:00' : ''));
   return d.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'});
 }
 function diasAtras(n){ const d = new Date(); d.setHours(0,0,0,0); d.setDate(d.getDate()-n); return d; }
@@ -413,6 +470,16 @@ function fone(t){
   const d = (t||'').replace(/\D/g,'');
   if(d.length < 10) return '';
   return d.length <= 11 ? '55'+d : d;
+}
+async function sha256(txt){
+  if(!crypto || !crypto.subtle) return 'SEM_CRYPTO';
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(txt));
+  return [...new Uint8Array(buf)].map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+function soGestor(){
+  if(ehGestor()) return true;
+  toast('Só os gestores podem fazer essa alteração', true);
+  return false;
 }
 
 /* ══════════════ NAVEGAÇÃO ══════════════ */
@@ -430,30 +497,162 @@ function subTab(t){
   $('form-enc').classList.toggle('hidden', t!=='enc');
 }
 
-/* ══════════════ VENDEDOR ══════════════ */
-function montarVendedores(){
-  $('lista-vend').innerHTML = VENDEDORES.map(v =>
-    `<button class="chip ${v===vendedor?'on':''}" onclick="setVendedor('${v}')">${v}</button>`).join('');
-  const opts = '<option value="">Todos</option>' + VENDEDORES.map(v=>`<option>${v}</option>`).join('');
+/* ══════════════ USUÁRIOS / LOGIN ══════════════ */
+async function carregarUsuarios(){
+  const { data, error } = await sb.from('fe_usuarios').select('*').order('papel').order('nome');
+  USUARIOS = (error || !data || !data.length) ? FALLBACK.slice() : data;
+  if(error) console.warn('fe_usuarios indisponível, usando lista local:', error.message);
+  // se o usuário logado foi alterado/removido, revalida a sessão
+  if(sessao){
+    const u = USUARIOS.find(x=>x.nome===sessao.nome);
+    if(!u || u.ativo === false) sair(true);
+    else if(u.papel !== sessao.papel){
+      if(u.papel === 'gestor' && u.senha_hash) sair(true);
+      else { sessao.papel = u.papel; localStorage.setItem('fe_sessao', JSON.stringify(sessao)); }
+    }
+  }
+  montarLogin(); aplicarPermissoes();
+}
+function montarLogin(){
+  const ativos = USUARIOS.filter(u=>u.ativo !== false);
+  $('lista-login').innerHTML = ativos.map(u => `
+    <button class="chip ${u.nome===meuNome()?'on':''}" onclick="escolherUsuario('${esc(u.nome)}')">
+      ${esc(u.nome)}${u.papel==='gestor'?'<span class="lock">🔒</span>':''}
+    </button>`).join('');
+  const opts = '<option value="">Todos</option>' + ativos.map(u=>`<option>${esc(u.nome)}</option>`).join('');
   $('ff-vend').innerHTML = opts; $('fe-vend').innerHTML = opts;
-  $('chip-vendedor').textContent = vendedor || 'Quem é você?';
+  $('chip-user').innerHTML = sessao
+    ? `${esc(sessao.nome)}${ehGestor()?'<span class="pp">gestor</span>':''}`
+    : 'Quem é você?';
 }
-function setVendedor(v){
-  vendedor = v; localStorage.setItem('fe_vendedor', v);
-  $('modal-vend').classList.remove('show');
-  montarVendedores(); renderUltimos();
+function abrirLogin(){ montarLogin(); $('area-senha').classList.add('hidden'); loginPendente = null; $('modal-login').classList.add('show'); }
+function fecharLogin(){ $('modal-login').classList.remove('show'); $('area-senha').classList.add('hidden'); loginPendente = null; }
+function escolherUsuario(nome){
+  const u = USUARIOS.find(x=>x.nome===nome); if(!u) return;
+  if(u.papel === 'gestor' && u.senha_hash){
+    loginPendente = u;
+    $('lbl-senha').textContent = 'Senha de ' + u.nome;
+    $('erro-senha').textContent = ''; $('in-senha').value = '';
+    $('area-senha').classList.remove('hidden');
+    setTimeout(()=>$('in-senha').focus(), 80);
+    return;
+  }
+  logar(u.nome, u.papel);
 }
-function trocarVendedor(){ montarVendedores(); $('modal-vend').classList.add('show'); }
-function exigeVendedor(){
-  if(!vendedor){ trocarVendedor(); toast('Selecione seu nome primeiro', true); return false; }
+async function entrarGestor(){
+  if(!loginPendente) return;
+  const h = await sha256($('in-senha').value);
+  if(h !== loginPendente.senha_hash){ $('erro-senha').textContent = 'Senha incorreta.'; return; }
+  logar(loginPendente.nome, 'gestor');
+}
+function logar(nome, papel){
+  sessao = { nome, papel };
+  localStorage.setItem('fe_sessao', JSON.stringify(sessao));
+  fecharLogin(); montarLogin(); aplicarPermissoes(); renderTudo();
+  toast('Bem-vindo, ' + nome + (papel==='gestor' ? ' (gestor)' : ''));
+}
+function sair(silencioso){
+  sessao = null; localStorage.removeItem('fe_sessao');
+  montarLogin(); aplicarPermissoes(); renderTudo();
+  if(!silencioso){ fecharLogin(); toast('Você saiu da conta'); abrirLogin(); }
+}
+function aplicarPermissoes(){
+  const g = ehGestor();
+  $('card-usuarios').classList.toggle('hidden', !g);
+  $('ro-faltas').classList.toggle('hidden', g || !sessao);
+  $('ro-enc').classList.toggle('hidden', g || !sessao);
+  if(g) renderUsuarios();
+}
+function exigeLogin(){
+  if(!sessao){ abrirLogin(); toast('Selecione seu nome primeiro', true); return false; }
   return true;
+}
+
+/* ── CRUD de usuários (só gestor) ── */
+function renderUsuarios(){
+  if(!USUARIOS.length){ $('lista-usuarios').innerHTML = '<div class="vazio">Sem usuários.</div>'; return; }
+  $('lista-usuarios').innerHTML = '<table class="tbl"><thead><tr>' +
+    '<th>Nome</th><th>Perfil</th><th>Senha</th><th>Situação</th><th></th></tr></thead><tbody>' +
+    USUARIOS.map(u => `
+    <tr>
+      <td data-l="Nome"><span class="prod">${esc(u.nome)}</span></td>
+      <td data-l="Perfil"><span class="badge ${u.papel==='gestor'?'b-roxo':'b-cinza'}">${u.papel}</span></td>
+      <td data-l="Senha">${u.senha_hash?'definida':'—'}</td>
+      <td data-l="Situação"><span class="badge ${u.ativo===false?'b-vermelho':'b-verde'}">${u.ativo===false?'inativo':'ativo'}</span></td>
+      <td data-l="Ações" class="full"><div class="acoes">
+        <button class="btn btn-outline btn-sm" onclick="abrirUsuario('${esc(u.nome)}')">Editar</button>
+        <button class="btn btn-outline btn-sm" onclick="alternarAtivo('${esc(u.nome)}')">${u.ativo===false?'Reativar':'Desativar'}</button>
+        ${u.nome===meuNome()?'':`<button class="btn btn-danger btn-sm" onclick="excluirUsuario('${esc(u.nome)}')">Excluir</button>`}
+      </div></td>
+    </tr>`).join('') + '</tbody></table>';
+}
+function mostraSenhaUser(){
+  $('mu-box-senha').classList.toggle('hidden', $('mu-papel').value !== 'gestor');
+}
+function abrirUsuario(nome){
+  if(!soGestor()) return;
+  const u = nome ? USUARIOS.find(x=>x.nome===nome) : null;
+  userEditando = u ? u.nome : null;
+  $('mu-titulo').textContent = u ? 'Editar ' + u.nome : 'Novo usuário';
+  $('mu-nome').value = u ? u.nome : '';
+  $('mu-papel').value = u ? u.papel : 'vendedor';
+  $('mu-senha').value = '';
+  mostraSenhaUser();
+  $('modal-user').classList.add('show');
+}
+function fecharUsuario(){ $('modal-user').classList.remove('show'); userEditando = null; }
+async function salvarUsuario(){
+  if(!soGestor()) return;
+  const nome = $('mu-nome').value.trim(), papel = $('mu-papel').value, senha = $('mu-senha').value;
+  if(!nome){ toast('Informe o nome', true); return; }
+  if(papel === 'gestor' && !senha && !(userEditando && (USUARIOS.find(x=>x.nome===userEditando)||{}).senha_hash)){
+    toast('Gestor precisa de senha', true); return;
+  }
+  const dados = { nome, papel };
+  if(senha){
+    const h = await sha256(senha);
+    if(h === 'SEM_CRYPTO'){ toast('Abra o app pelo link https para definir senha', true); return; }
+    dados.senha_hash = h;
+  }
+  if(papel === 'vendedor') dados.senha_hash = null;
+
+  let error;
+  if(userEditando){
+    ({ error } = await sb.from('fe_usuarios').update(dados).eq('nome', userEditando));
+  } else {
+    dados.ativo = true;
+    ({ error } = await sb.from('fe_usuarios').insert(dados));
+  }
+  if(error){ toast('Erro: ' + error.message, true); return; }
+  // se troquei a minha própria senha/perfil, atualiza a sessão
+  if(userEditando === meuNome() && sessao){
+    sessao.nome = nome; sessao.papel = papel;
+    localStorage.setItem('fe_sessao', JSON.stringify(sessao));
+  }
+  fecharUsuario(); await carregarUsuarios(); renderTudo();
+  toast('Usuário salvo');
+}
+async function alternarAtivo(nome){
+  if(!soGestor()) return;
+  const u = USUARIOS.find(x=>x.nome===nome); if(!u) return;
+  const novo = u.ativo === false;
+  const { error } = await sb.from('fe_usuarios').update({ ativo: novo }).eq('nome', nome);
+  if(error){ toast('Erro: ' + error.message, true); return; }
+  await carregarUsuarios(); toast(novo ? 'Reativado' : 'Desativado');
+}
+async function excluirUsuario(nome){
+  if(!soGestor()) return;
+  if(!confirm(`Excluir o usuário ${nome}? Os registros que ele já fez continuam no histórico.`)) return;
+  const { error } = await sb.from('fe_usuarios').delete().eq('nome', nome);
+  if(error){ toast('Erro: ' + error.message, true); return; }
+  await carregarUsuarios(); toast('Usuário excluído');
 }
 
 /* ══════════════ CARREGAR ══════════════ */
 async function carregar(){
   const [f, e] = await Promise.all([
-    sb.from('fe_faltas').select('*').order('created_at',{ascending:false}).limit(3000),
-    sb.from('fe_encomendas').select('*').order('created_at',{ascending:false}).limit(3000)
+    sb.from('fe_faltas').select('*').order('created_at',{ascending:false}).limit(5000),
+    sb.from('fe_encomendas').select('*').order('created_at',{ascending:false}).limit(5000)
   ]);
   if(f.error || e.error){ toast('Erro ao carregar dados', true); console.error(f.error||e.error); return; }
   FALTAS = f.data || []; ENCOMENDAS = e.data || [];
@@ -472,7 +671,7 @@ function contadores(){
 /* ══════════════ TEMPO REAL ══════════════ */
 function assinar(){
   sb.channel('fe-live')
-    .on('postgres_changes',{event:'*',schema:'public',table:'fe_faltas'}, p => aplicar(FALTAS, p, x=>FALTAS=x))
+    .on('postgres_changes',{event:'*',schema:'public',table:'fe_faltas'},     p => aplicar(FALTAS, p, x=>FALTAS=x))
     .on('postgres_changes',{event:'*',schema:'public',table:'fe_encomendas'}, p => aplicar(ENCOMENDAS, p, x=>ENCOMENDAS=x))
     .subscribe();
 }
@@ -487,29 +686,25 @@ function aplicar(lista, p, set){
   renderTudo();
 }
 
-/* ══════════════ SALVAR FALTA ══════════════ */
+/* ══════════════ REGISTRAR ══════════════ */
 async function salvarFalta(){
-  if(!exigeVendedor()) return;
+  if(!exigeLogin()) return;
   const produto = $('f-produto').value.trim();
   if(!produto){ toast('Informe o produto', true); $('f-produto').focus(); return; }
   const btn = $('btn-falta'); btn.disabled = true; btn.textContent = 'Salvando...';
   const { error } = await sb.from('fe_faltas').insert({
     produto: produto.toUpperCase(),
     motivo: valorChip('f-motivo'),
-    vendedor,
+    vendedor: meuNome(),
     observacao: $('f-obs').value.trim() || null
   });
   btn.disabled = false; btn.textContent = 'Registrar falta';
   if(error){ toast('Erro ao salvar: ' + error.message, true); return; }
-  $('f-produto').value = ''; $('f-obs').value = '';
-  $('f-produto').focus();
-  toast('Falta registrada');
-  carregar();
+  $('f-produto').value = ''; $('f-obs').value = ''; $('f-produto').focus();
+  toast('Falta registrada'); carregar();
 }
-
-/* ══════════════ SALVAR ENCOMENDA ══════════════ */
 async function salvarEncomenda(){
-  if(!exigeVendedor()) return;
+  if(!exigeLogin()) return;
   const cliente = $('e-cliente').value.trim(), produto = $('e-produto').value.trim();
   if(!cliente){ toast('Informe o cliente', true); $('e-cliente').focus(); return; }
   if(!produto){ toast('Informe o produto', true); $('e-produto').focus(); return; }
@@ -518,24 +713,21 @@ async function salvarEncomenda(){
     cliente, produto: produto.toUpperCase(),
     quantidade: $('e-qtd').value.trim() || '1',
     telefone: $('e-tel').value.trim() || null,
-    vendedor, pagamento: valorChip('e-pgto'),
+    vendedor: meuNome(), pagamento: valorChip('e-pgto'),
     observacao: $('e-obs').value.trim() || null
   });
   btn.disabled = false; btn.textContent = 'Registrar encomenda';
   if(error){ toast('Erro ao salvar: ' + error.message, true); return; }
   ['e-cliente','e-produto','e-qtd','e-tel','e-obs'].forEach(i => $(i).value = '');
   $('e-cliente').focus();
-  toast('Encomenda registrada');
-  carregar();
+  toast('Encomenda registrada'); carregar();
 }
-
-/* ══════════════ ÚLTIMOS REGISTROS ══════════════ */
 function renderUltimos(){
-  if(!vendedor){ $('ultimos-lista').innerHTML = '<div class="vazio">Escolha seu nome no topo para começar.</div>'; return; }
-  const hoje = diasAtras(0);
+  if(!sessao){ $('ultimos-lista').innerHTML = '<div class="vazio">Escolha seu nome no topo para começar.</div>'; return; }
+  const hoje = diasAtras(0), eu = meuNome();
   const meus = [
-    ...FALTAS.filter(f=>f.vendedor===vendedor && new Date(f.created_at)>=hoje).map(f=>({t:'Falta', d:f.created_at, txt:f.produto, sub:f.motivo})),
-    ...ENCOMENDAS.filter(e=>e.vendedor===vendedor && new Date(e.created_at)>=hoje).map(e=>({t:'Encomenda', d:e.created_at, txt:e.produto, sub:e.cliente}))
+    ...FALTAS.filter(f=>f.vendedor===eu && new Date(f.created_at)>=hoje).map(f=>({t:'Falta', d:f.created_at, txt:f.produto, sub:f.motivo})),
+    ...ENCOMENDAS.filter(e=>e.vendedor===eu && new Date(e.created_at)>=hoje).map(e=>({t:'Encomenda', d:e.created_at, txt:e.produto, sub:e.cliente}))
   ].sort((a,b)=> new Date(b.d)-new Date(a.d)).slice(0,8);
   if(!meus.length){ $('ultimos-lista').innerHTML = '<div class="vazio">Nenhum registro seu hoje.</div>'; return; }
   $('ultimos-lista').innerHTML = '<table class="tbl"><tbody>' + meus.map(m=>`
@@ -553,16 +745,15 @@ function filtrarFaltas(){
         mo = $('ff-motivo').value, vd = $('ff-vend').value, per = +$('ff-per').value;
   const lim = diasAtras(per);
   return FALTAS.filter(f =>
-    (!b || f.produto.toUpperCase().includes(b)) &&
+    (!b || (f.produto||'').toUpperCase().includes(b)) &&
     (!st || f.status === st) &&
     (!mo || f.motivo === mo) &&
     (!vd || f.vendedor === vd) &&
     new Date(f.created_at) >= lim
   );
 }
-let selFaltas = new Set();
 function renderFaltas(){
-  const lista = filtrarFaltas();
+  const lista = filtrarFaltas(), g = ehGestor();
   const pend = FALTAS.filter(f=>f.status==='pendente').length;
   $('faltas-sub').textContent = `${lista.length} registro(s) na tela • ${pend} pendente(s) no total`;
   contadores();
@@ -574,22 +765,22 @@ function renderFaltas(){
   lista.forEach(f => cont[f.produto] = (cont[f.produto]||0)+1);
   const todos = lista.length && lista.every(f=>selFaltas.has(f.id));
   $('faltas-tabela').innerHTML = '<table class="tbl"><thead><tr>' +
-    `<th class="chk"><input type="checkbox" class="sel" ${todos?'checked':''} onchange="selTodasFaltas(this.checked)"/></th>` +
-    '<th>Data</th><th>Produto</th><th>Motivo</th><th>Vendedor</th><th>Status</th><th></th>' +
+    (g?`<th class="chk"><input type="checkbox" class="sel" ${todos?'checked':''} onchange="selTodasFaltas(this.checked)"/></th>`:'') +
+    '<th>Data</th><th>Produto</th><th>Motivo</th><th>Vendedor</th><th>Status</th>' + (g?'<th></th>':'') +
     '</tr></thead><tbody>' + lista.map(f => `
     <tr>
-      <td class="chk"><input type="checkbox" class="sel" ${selFaltas.has(f.id)?'checked':''} onchange="selFalta('${f.id}',this.checked)"/></td>
+      ${g?`<td class="chk"><input type="checkbox" class="sel" ${selFaltas.has(f.id)?'checked':''} onchange="selFalta('${f.id}',this.checked)"/></td>`:''}
       <td data-l="Data" class="mono">${dataBR(f.created_at)}</td>
       <td data-l="Produto"><span class="prod ${f.status==='comprado'?'risc':''}">${esc(f.produto)}</span>${cont[f.produto]>1?`<span class="rep">${cont[f.produto]}x</span>`:''}${f.observacao?`<div style="font-size:11px;color:#94a3b8">${esc(f.observacao)}</div>`:''}</td>
       <td data-l="Motivo"><span class="badge ${f.motivo==='Venda perdida'?'b-vermelho':'b-ouro'}">${esc(f.motivo)}</span></td>
       <td data-l="Vendedor">${esc(f.vendedor)}</td>
       <td data-l="Status"><span class="badge ${f.status==='comprado'?'b-verde':'b-cinza'}">${f.status==='comprado'?'Comprado':'Pendente'}</span></td>
-      <td data-l="Ações"><div class="acoes">
+      ${g?`<td data-l="Ações" class="full"><div class="acoes">
         ${f.status==='pendente'
           ? `<button class="btn btn-primary btn-sm" onclick="marcarFalta('${f.id}','comprado')">Comprado</button>`
           : `<button class="btn btn-outline btn-sm" onclick="marcarFalta('${f.id}','pendente')">Reabrir</button>`}
         <button class="btn btn-outline btn-sm" onclick="excluirFalta('${f.id}')">Excluir</button>
-      </div></td>
+      </div></td>`:''}
     </tr>`).join('') + '</tbody></table>';
 }
 function selFalta(id, on){
@@ -601,10 +792,10 @@ function selTodasFaltas(on){
   on ? lista.forEach(f=>selFaltas.add(f.id)) : (selFaltas = new Set());
   renderFaltas();
 }
-function renderBulkFaltas(lista){
+function renderBulkFaltas(){
   const n = selFaltas.size, box = $('faltas-bulk');
-  box.classList.toggle('hidden', n === 0);
-  if(!n) return;
+  box.classList.toggle('hidden', n === 0 || !ehGestor());
+  if(!n || !ehGestor()) return;
   box.innerHTML = `<div class="barra-sel">
     <span class="cresce">${n} falta(s) selecionada(s)</span>
     <button class="btn btn-primary btn-sm" onclick="massaFaltas('comprado')">Marcar como comprada</button>
@@ -614,31 +805,36 @@ function renderBulkFaltas(lista){
   </div>`;
 }
 async function massaFaltas(status){
+  if(!soGestor()) return;
   const ids = [...selFaltas]; if(!ids.length) return;
   const { error } = await sb.from('fe_faltas')
     .update({ status, resolvido_em: status==='comprado' ? new Date().toISOString() : null })
     .in('id', ids);
   if(error){ toast('Erro: ' + error.message, true); return; }
   FALTAS.forEach(f => { if(ids.includes(f.id)) f.status = status; });
-  selFaltas = new Set();
-  renderTudo(); toast(`${ids.length} falta(s) atualizada(s)`);
+  selFaltas = new Set(); renderTudo();
+  toast(`${ids.length} falta(s) atualizada(s)`);
 }
 async function massaExcluirFaltas(){
+  if(!soGestor()) return;
   const ids = [...selFaltas]; if(!ids.length) return;
   if(!confirm(`Excluir ${ids.length} registro(s) de falta? Isso apaga do histórico.`)) return;
   const { error } = await sb.from('fe_faltas').delete().in('id', ids);
   if(error){ toast('Erro: ' + error.message, true); return; }
   FALTAS = FALTAS.filter(f => !ids.includes(f.id));
-  selFaltas = new Set();
-  renderTudo(); toast(`${ids.length} excluído(s)`);
+  selFaltas = new Set(); renderTudo();
+  toast(`${ids.length} excluído(s)`);
 }
 async function marcarFalta(id, status){
-  const { error } = await sb.from('fe_faltas').update({ status, resolvido_em: status==='comprado' ? new Date().toISOString() : null }).eq('id', id);
+  if(!soGestor()) return;
+  const { error } = await sb.from('fe_faltas')
+    .update({ status, resolvido_em: status==='comprado' ? new Date().toISOString() : null }).eq('id', id);
   if(error){ toast('Erro: ' + error.message, true); return; }
   const f = FALTAS.find(x=>x.id===id); if(f) f.status = status;
   renderTudo(); toast(status==='comprado' ? 'Marcada como comprada' : 'Reaberta');
 }
 async function excluirFalta(id){
+  if(!soGestor()) return;
   if(!confirm('Excluir este registro de falta?')) return;
   const { error } = await sb.from('fe_faltas').delete().eq('id', id);
   if(error){ toast('Erro: ' + error.message, true); return; }
@@ -658,14 +854,14 @@ function filtrarEncomendas(){
         vd = $('fe-vend').value, per = +$('fe-per').value;
   const lim = diasAtras(per);
   return ENCOMENDAS.filter(e =>
-    (!b || (e.produto+' '+e.cliente).toUpperCase().includes(b)) &&
+    (!b || ((e.produto||'')+' '+(e.cliente||'')).toUpperCase().includes(b)) &&
     (st==='abertas' ? ['pendente','pedido','chegou'].includes(e.status) : (!st || e.status===st)) &&
     (!vd || e.vendedor === vd) &&
     new Date(e.created_at) >= lim
   );
 }
 function renderEncomendas(){
-  const lista = filtrarEncomendas();
+  const lista = filtrarEncomendas(), g = ehGestor();
   const ab = ENCOMENDAS.filter(e=>['pendente','pedido','chegou'].includes(e.status)).length;
   const ch = ENCOMENDAS.filter(e=>e.status==='chegou').length;
   $('enc-sub').textContent = `${lista.length} na tela • ${ab} em aberto • ${ch} aguardando o cliente buscar`;
@@ -680,21 +876,22 @@ function renderEncomendas(){
     <tr>
       <td data-l="Data" class="mono">${dataBR(e.created_at)}</td>
       <td data-l="Cliente"><span class="prod ${risc}">${esc(e.cliente)}</span>${e.telefone?`<div class="mono">${esc(e.telefone)}</div>`:''}</td>
-      <td data-l="Produto"><span class="${risc}">${esc(e.produto)}</span>${e.observacao?`<div style="font-size:11px;color:#94a3b8">${esc(e.observacao)}</div>`:''}${e.fornecedor||e.previsao?`<div style="font-size:11px;color:#64748b">${esc(e.fornecedor||'')}${e.previsao?' • chega '+dataCurta(e.previsao):''}</div>`:''}</td>
+      <td data-l="Produto"><span class="${risc}">${esc(e.produto)}</span>${e.observacao?`<div style="font-size:11px;color:#94a3b8">${esc(e.observacao)}</div>`:''}${(e.fornecedor||e.previsao)?`<div style="font-size:11px;color:#64748b">${esc(e.fornecedor||'')}${e.previsao?' • chega '+dataCurta(e.previsao):''}</div>`:''}</td>
       <td data-l="Qtd">${esc(e.quantidade||'')}</td>
       <td data-l="Vendedor">${esc(e.vendedor)}</td>
       <td data-l="Pagamento">${esc(e.pagamento||'')}</td>
       <td data-l="Status"><span class="badge ${ST_ENC[e.status].cls}">${ST_ENC[e.status].txt}</span></td>
       <td data-l="Ações" class="full"><div class="acoes">
-        ${e.status==='pendente' ? `<button class="btn btn-blue btn-sm" onclick="statusEnc('${e.id}','pedido')">Pedido feito</button>` : ''}
-        ${e.status==='pedido' ? `<button class="btn btn-blue btn-sm" onclick="statusEnc('${e.id}','chegou')">Chegou</button>` : ''}
-        ${e.status==='chegou' ? `<button class="btn btn-primary btn-sm" onclick="statusEnc('${e.id}','entregue')">Entregue</button>` : ''}
+        ${g && e.status==='pendente' ? `<button class="btn btn-blue btn-sm" onclick="statusEnc('${e.id}','pedido')">Pedido feito</button>` : ''}
+        ${g && e.status==='pedido' ? `<button class="btn btn-blue btn-sm" onclick="statusEnc('${e.id}','chegou')">Chegou</button>` : ''}
+        ${g && e.status==='chegou' ? `<button class="btn btn-primary btn-sm" onclick="statusEnc('${e.id}','entregue')">Entregue</button>` : ''}
         ${e.status==='chegou' && w ? `<button class="btn btn-wa btn-sm" onclick="avisar('${e.id}')">Avisar no WhatsApp</button>` : ''}
-        <button class="btn btn-outline btn-sm" onclick="abrirModal('${e.id}')">Editar</button>
+        ${g ? `<button class="btn btn-outline btn-sm" onclick="abrirModal('${e.id}')">Editar</button>` : ''}
       </div></td>
     </tr>`; }).join('') + '</tbody></table>';
 }
 async function statusEnc(id, status){
+  if(!soGestor()) return;
   const patch = { status };
   if(status==='entregue') patch.entregue_em = new Date().toISOString();
   const { error } = await sb.from('fe_encomendas').update(patch).eq('id', id);
@@ -705,12 +902,11 @@ async function statusEnc(id, status){
 function avisar(id){
   const e = ENCOMENDAS.find(x=>x.id===id); if(!e) return;
   const w = fone(e.telefone); if(!w){ toast('Telefone inválido', true); return; }
-  const msg = `Olá, ${e.cliente}! Aqui é da Drogaria Florânia. Sua encomenda *${e.produto}* já chegou e está reservada aqui na farmácia. 😊`;
+  const msg = `Olá, ${e.cliente}! Aqui é da Drogaria Florânia. Sua encomenda *${e.produto}* já chegou e está reservada aqui na farmácia.`;
   window.open(`https://wa.me/${w}?text=${encodeURIComponent(msg)}`, '_blank');
 }
-
-/* ── MODAL ── */
 function abrirModal(id){
+  if(!soGestor()) return;
   const e = ENCOMENDAS.find(x=>x.id===id); if(!e) return;
   encEditando = id;
   $('me-titulo').textContent = 'Encomenda de ' + e.cliente;
@@ -723,7 +919,7 @@ function abrirModal(id){
 }
 function fecharModal(){ $('modal-enc').classList.remove('show'); encEditando = null; }
 async function salvarModal(){
-  if(!encEditando) return;
+  if(!encEditando || !soGestor()) return;
   const patch = {
     cliente: $('me-cliente').value.trim(), produto: $('me-produto').value.trim().toUpperCase(),
     quantidade: $('me-qtd').value.trim(), telefone: $('me-tel').value.trim() || null,
@@ -738,14 +934,15 @@ async function salvarModal(){
   fecharModal(); renderTudo(); toast('Encomenda atualizada');
 }
 async function excluirEncomenda(){
-  if(!encEditando || !confirm('Excluir esta encomenda?')) return;
+  if(!encEditando || !soGestor()) return;
+  if(!confirm('Excluir esta encomenda?')) return;
   const { error } = await sb.from('fe_encomendas').delete().eq('id', encEditando);
   if(error){ toast('Erro: ' + error.message, true); return; }
   ENCOMENDAS = ENCOMENDAS.filter(x=>x.id!==encEditando);
   fecharModal(); renderTudo(); toast('Excluída');
 }
 
-/* ══════════════ RESUMO ══════════════ */
+/* ══════════════ DASHBOARD ══════════════ */
 function renderResumo(){
   const hoje = diasAtras(0), m30 = diasAtras(30);
   const fHoje = FALTAS.filter(f=>new Date(f.created_at)>=hoje).length;
@@ -759,12 +956,11 @@ function renderResumo(){
     <div class="stat azul"><b>${eAbertas}</b><span>Encomendas a pedir/pedidas</span></div>
     <div class="stat roxo"><b>${eChegou}</b><span>Chegaram — avisar cliente</span></div>
     <div class="stat"><b>${eHoje}</b><span>Encomendas hoje</span></div>`;
-
   const f30 = FALTAS.filter(f=>new Date(f.created_at)>=m30);
   const e30 = ENCOMENDAS.filter(e=>new Date(e.created_at)>=m30);
-  $('rank-produtos').innerHTML = ranking(f30, 'produto', 15, 'produto');
-  $('rank-vend').innerHTML = ranking(f30, 'vendedor', 20, 'vendedor');
-  $('rank-vend-enc').innerHTML = ranking(e30, 'vendedor', 20, 'vendedor');
+  $('rank-produtos').innerHTML  = ranking(f30, 'produto', 15, 'Produto');
+  $('rank-vend').innerHTML      = ranking(f30, 'vendedor', 20, 'Vendedor');
+  $('rank-vend-enc').innerHTML  = ranking(e30, 'vendedor', 20, 'Vendedor');
 }
 function ranking(lista, campo, top, rotulo){
   const c = {};
@@ -807,12 +1003,17 @@ function exportarEncomendas(){
 }
 
 /* ══════════════ INÍCIO ══════════════ */
-montarVendedores();
-carregar();
-assinar();
-if(!vendedor) setTimeout(trocarVendedor, 400);
-setInterval(carregar, 120000); // rede de segurança a cada 2 min
-document.addEventListener('keydown', e => { if(e.key==='Escape'){ fecharModal(); $('modal-vend').classList.remove('show'); } });
+(async function init(){
+  await carregarUsuarios();
+  await carregar();
+  assinar();
+  if(!sessao) setTimeout(abrirLogin, 300);
+  setInterval(carregar, 120000);          // rede de segurança
+  setInterval(carregarUsuarios, 300000);  // atualiza permissões a cada 5 min
+})();
+document.addEventListener('keydown', e => {
+  if(e.key === 'Escape'){ fecharModal(); fecharLogin(); fecharUsuario(); }
+});
 </script>
 </body>
 </html>
