@@ -104,6 +104,10 @@ body{font-family:'Inter',sans-serif;background:#f5f7fa;color:#1a1a2e;padding-bot
 .tbl tr:last-child td{border-bottom:none}
 .tbl tr:hover td{background:#fafbfc}
 .tbl .acoes{display:flex;gap:6px;flex-wrap:wrap}
+.tbl th.sortavel{cursor:pointer;user-select:none;transition:color .15s}
+.tbl th.sortavel:hover{color:#15a563}
+.seta{font-size:9px;opacity:.35;margin-left:2px}
+.seta.on{opacity:1;color:#15a563}
 .prod{font-weight:600;color:#1a1a2e}
 .mono{font-family:'Courier New',monospace;font-size:12px;color:#64748b;white-space:nowrap}
 .rep{background:#fff3cd;color:#856404;border-radius:6px;padding:1px 6px;font-size:10px;font-weight:800;margin-left:6px}
@@ -291,6 +295,15 @@ input[type=checkbox].sel{width:20px;height:20px;accent-color:#15a563;cursor:poin
       <option value="7">7 dias</option>
       <option value="30" selected>30 dias</option>
       <option value="9999">Tudo</option>
+    </select>
+    <select id="ff-ord" onchange="ordemPorSelect(this.value)" title="Ordenação">
+      <option value="created_at|desc">Data ↓ mais recente</option>
+      <option value="created_at|asc">Data ↑ mais antiga</option>
+      <option value="produto|asc">Produto A → Z</option>
+      <option value="produto|desc">Produto Z → A</option>
+      <option value="motivo|asc">Motivo A → Z</option>
+      <option value="vendedor|asc">Vendedor A → Z</option>
+      <option value="status|asc">Status A → Z</option>
     </select>
     <button class="btn btn-outline btn-sm" onclick="exportarFaltas()">Exportar XLSX</button>
   </div>
@@ -775,13 +788,41 @@ function filtrarFaltas(){
   const b = $('ff-busca').value.trim().toUpperCase(), st = $('ff-status').value,
         mo = $('ff-motivo').value, vd = $('ff-vend').value, per = +$('ff-per').value;
   const lim = diasAtras(per);
-  return FALTAS.filter(f =>
+  return ordenar(FALTAS.filter(f =>
     (!b || (f.produto||'').toUpperCase().includes(b)) &&
     (!st || f.status === st) &&
     (!mo || f.motivo === mo) &&
     (!vd || f.vendedor === vd) &&
     new Date(f.created_at) >= lim
-  );
+  ));
+}
+
+/* ── ordenação da tabela de faltas ── */
+let ordemFaltas = { campo: 'created_at', dir: 'desc' };
+function ordenar(lista){
+  const { campo, dir } = ordemFaltas, m = dir === 'asc' ? 1 : -1;
+  return lista.sort((a, b) => {
+    if(campo === 'created_at') return (new Date(a.created_at) - new Date(b.created_at)) * m;
+    const x = (a[campo]||'').toString().toUpperCase(), y = (b[campo]||'').toString().toUpperCase();
+    if(x === y) return (new Date(b.created_at) - new Date(a.created_at));
+    return x < y ? -m : m;
+  });
+}
+function ordenarPor(campo){
+  if(ordemFaltas.campo === campo) ordemFaltas.dir = ordemFaltas.dir === 'asc' ? 'desc' : 'asc';
+  else ordemFaltas = { campo, dir: campo === 'created_at' ? 'desc' : 'asc' };
+  $('ff-ord').value = ordemFaltas.campo + '|' + ordemFaltas.dir;
+  renderFaltas();
+}
+function ordemPorSelect(v){
+  const [campo, dir] = v.split('|');
+  ordemFaltas = { campo, dir };
+  renderFaltas();
+}
+function thOrd(campo, rotulo){
+  const on = ordemFaltas.campo === campo;
+  const seta = on ? (ordemFaltas.dir === 'asc' ? '▲' : '▼') : '▼';
+  return `<th class="sortavel" onclick="ordenarPor('${campo}')">${rotulo}<span class="seta${on?' on':''}">${seta}</span></th>`;
 }
 function renderFaltas(){
   const lista = filtrarFaltas(), g = ehGestor();
@@ -797,7 +838,8 @@ function renderFaltas(){
   const todos = lista.length && lista.every(f=>selFaltas.has(f.id));
   $('faltas-tabela').innerHTML = '<table class="tbl"><thead><tr>' +
     (g?`<th class="chk"><input type="checkbox" class="sel" ${todos?'checked':''} onchange="selTodasFaltas(this.checked)"/></th>`:'') +
-    '<th>Data</th><th>Produto</th><th>Motivo</th><th>Vendedor</th><th>Status</th>' + (g?'<th></th>':'') +
+    thOrd('created_at','Data') + thOrd('produto','Produto') + thOrd('motivo','Motivo') +
+    thOrd('vendedor','Vendedor') + thOrd('status','Status') + (g?'<th></th>':'') +
     '</tr></thead><tbody>' + lista.map(f => `
     <tr>
       ${g?`<td class="chk"><input type="checkbox" class="sel" ${selFaltas.has(f.id)?'checked':''} onchange="selFalta('${f.id}',this.checked)"/></td>`:''}
