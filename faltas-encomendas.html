@@ -203,6 +203,12 @@ input[type=checkbox].sel{width:20px;height:20px;accent-color:#15a563;cursor:poin
 
 <!-- ══════════ REGISTRAR ══════════ -->
 <div class="page ativo" id="p-registrar">
+  <div class="card" id="card-quem">
+    <h3><svg class="ic ic-18"><use href="#i-usuario"/></svg> Quem está registrando?</h3>
+    <div class="chips" id="quem-chips"></div>
+    <div class="hint" id="quem-hint" style="margin-top:10px;font-size:11px;color:#94a3b8">Escolha seu nome a cada lançamento — a seleção é apagada depois de cada envio.</div>
+  </div>
+
   <div class="subtabs">
     <button class="ativo" id="st-falta" onclick="subTab('falta')"><svg class="ic ic-18"><use href="#i-falta"/></svg> Falta</button>
     <button id="st-enc" onclick="subTab('enc')"><svg class="ic ic-18"><use href="#i-encomenda"/></svg> Encomenda</button>
@@ -267,7 +273,7 @@ input[type=checkbox].sel{width:20px;height:20px;accent-color:#15a563;cursor:poin
   </div>
 
   <div class="card">
-    <h3><svg class="ic ic-18"><use href="#i-relogio"/></svg> Seus últimos registros</h3>
+    <h3><svg class="ic ic-18"><use href="#i-relogio"/></svg> Últimos registros de hoje</h3>
     <div id="ultimos-lista"></div>
   </div>
 </div>
@@ -413,7 +419,8 @@ input[type=checkbox].sel{width:20px;height:20px;accent-color:#15a563;cursor:poin
 <!-- MODAL LOGIN -->
 <div class="modal" id="modal-login">
   <div class="modal-box" style="max-width:400px">
-    <h3>Quem está usando?</h3>
+    <h3>Acesso do gestor</h3>
+    <div class="hint" style="font-size:12px;color:#64748b;margin-bottom:12px">Para registrar faltas e encomendas não precisa entrar — basta escolher seu nome na tela Registrar. O acesso com senha libera a edição.</div>
     <div class="chips" id="lista-login"></div>
     <div id="area-senha" class="hidden" style="margin-top:18px;border-top:1px solid #f1f5f9;padding-top:16px">
       <div class="field" style="margin-bottom:8px">
@@ -559,21 +566,40 @@ async function carregarUsuarios(){
 }
 function montarLogin(){
   const ativos = USUARIOS.filter(u=>u.ativo !== false);
-  $('lista-login').innerHTML = ativos.map(u => `
+  const gestores = ativos.filter(u=>u.papel === 'gestor');
+  $('lista-login').innerHTML = gestores.map(u => `
     <button class="chip ${u.nome===meuNome()?'on':''}" onclick="escolherUsuario('${esc(u.nome)}')">
-      ${esc(u.nome)}${u.papel==='gestor'?'<span class="lock">🔒</span>':''}
-    </button>`).join('');
+      ${esc(u.nome)}<span class="lock">🔒</span>
+    </button>`).join('') || '<div class="hint">Nenhum gestor cadastrado.</div>';
   const opts = '<option value="">Todos</option>' + ativos.map(u=>`<option>${esc(u.nome)}</option>`).join('');
   $('ff-vend').innerHTML = opts; $('fe-vend').innerHTML = opts;
   $('chip-user').innerHTML = sessao
-    ? `${esc(sessao.nome)}${ehGestor()?'<span class="pp">gestor</span>':''}`
-    : 'Quem é você?';
+    ? `${esc(sessao.nome)}<span class="pp">gestor</span>`
+    : 'Acesso do gestor';
+  montarQuem();
+}
+
+/* quem está registrando — escolhido a cada lançamento, nunca fica salvo */
+let quem = '';
+function montarQuem(){
+  const ativos = USUARIOS.filter(u=>u.ativo !== false);
+  $('quem-chips').innerHTML = ativos.map(u =>
+    `<button class="chip ${u.nome===quem?'on':''}" onclick="setQuem('${esc(u.nome)}')">${esc(u.nome)}</button>`).join('');
+}
+function setQuem(nome){ quem = (quem === nome ? '' : nome); montarQuem(); }
+function limparQuem(){ quem = ''; montarQuem(); }
+function exigeQuem(){
+  if(quem) return true;
+  toast('Escolha seu nome antes de registrar', true);
+  $('card-quem').scrollIntoView({behavior:'smooth', block:'center'});
+  return false;
 }
 function abrirLogin(){ montarLogin(); $('area-senha').classList.add('hidden'); loginPendente = null; $('modal-login').classList.add('show'); }
 function fecharLogin(){ $('modal-login').classList.remove('show'); $('area-senha').classList.add('hidden'); loginPendente = null; }
 function escolherUsuario(nome){
   const u = USUARIOS.find(x=>x.nome===nome); if(!u) return;
   if(u.papel === 'gestor' && u.senha_hash){
+    // gestor sem senha definida entra direto (caso de fallback)
     loginPendente = u;
     $('lbl-senha').textContent = 'Senha de ' + u.nome;
     $('erro-senha').textContent = ''; $('in-senha').value = '';
@@ -603,13 +629,9 @@ function sair(silencioso){
 function aplicarPermissoes(){
   const g = ehGestor();
   $('card-usuarios').classList.toggle('hidden', !g);
-  $('ro-faltas').classList.toggle('hidden', g || !sessao);
-  $('ro-enc').classList.toggle('hidden', g || !sessao);
+  $('ro-faltas').classList.toggle('hidden', g);
+  $('ro-enc').classList.toggle('hidden', g);
   if(g) renderUsuarios();
-}
-function exigeLogin(){
-  if(!sessao){ abrirLogin(); toast('Selecione seu nome primeiro', true); return false; }
-  return true;
 }
 
 /* ── CRUD de usuários (só gestor) ── */
@@ -732,23 +754,24 @@ function aplicar(lista, p, set){
 
 /* ══════════════ REGISTRAR ══════════════ */
 async function salvarFalta(){
-  if(!exigeLogin()) return;
+  if(!exigeQuem()) return;
   const produto = $('f-produto').value.trim();
   if(!produto){ toast('Informe o produto', true); $('f-produto').focus(); return; }
   const btn = $('btn-falta'); btn.disabled = true; btn.innerHTML = 'Salvando...';
   const { error } = await sb.from('fe_faltas').insert({
     produto: produto.toUpperCase(),
     motivo: valorChip('f-motivo'),
-    vendedor: meuNome(),
+    vendedor: quem,
     observacao: $('f-obs').value.trim() || null
   });
   btn.disabled = false; btn.innerHTML = '<svg class="ic"><use href="#i-registrar"/></svg> Registrar falta';
   if(error){ toast('Erro ao salvar: ' + error.message, true); return; }
-  $('f-produto').value = ''; $('f-obs').value = ''; $('f-produto').focus();
-  toast('Falta registrada'); carregar();
+  const autor = quem;
+  $('f-produto').value = ''; $('f-obs').value = ''; limparQuem(); $('f-produto').focus();
+  toast('Falta registrada por ' + autor); carregar();
 }
 async function salvarEncomenda(){
-  if(!exigeLogin()) return;
+  if(!exigeQuem()) return;
   const cliente = $('e-cliente').value.trim(), produto = $('e-produto').value.trim();
   if(!cliente){ toast('Informe o cliente', true); $('e-cliente').focus(); return; }
   if(!produto){ toast('Informe o produto', true); $('e-produto').focus(); return; }
@@ -757,28 +780,29 @@ async function salvarEncomenda(){
     cliente, produto: produto.toUpperCase(),
     quantidade: $('e-qtd').value.trim() || '1',
     telefone: $('e-tel').value.trim() || null,
-    vendedor: meuNome(), pagamento: valorChip('e-pgto'),
+    vendedor: quem, pagamento: valorChip('e-pgto'),
     observacao: $('e-obs').value.trim() || null
   });
   btn.disabled = false; btn.innerHTML = '<svg class="ic"><use href="#i-registrar"/></svg> Registrar encomenda';
   if(error){ toast('Erro ao salvar: ' + error.message, true); return; }
+  const autor = quem;
   ['e-cliente','e-produto','e-qtd','e-tel','e-obs'].forEach(i => $(i).value = '');
-  $('e-cliente').focus();
-  toast('Encomenda registrada'); carregar();
+  limparQuem(); $('e-cliente').focus();
+  toast('Encomenda registrada por ' + autor); carregar();
 }
 function renderUltimos(){
-  if(!sessao){ $('ultimos-lista').innerHTML = '<div class="vazio">Escolha seu nome no topo para começar.</div>'; return; }
-  const hoje = diasAtras(0), eu = meuNome();
-  const meus = [
-    ...FALTAS.filter(f=>f.vendedor===eu && new Date(f.created_at)>=hoje).map(f=>({t:'Falta', d:f.created_at, txt:f.produto, sub:f.motivo})),
-    ...ENCOMENDAS.filter(e=>e.vendedor===eu && new Date(e.created_at)>=hoje).map(e=>({t:'Encomenda', d:e.created_at, txt:e.produto, sub:e.cliente}))
-  ].sort((a,b)=> new Date(b.d)-new Date(a.d)).slice(0,8);
-  if(!meus.length){ $('ultimos-lista').innerHTML = '<div class="vazio">Nenhum registro seu hoje.</div>'; return; }
-  $('ultimos-lista').innerHTML = '<table class="tbl"><tbody>' + meus.map(m=>`
+  const hoje = diasAtras(0);
+  const lista = [
+    ...FALTAS.filter(f=>new Date(f.created_at)>=hoje).map(f=>({t:'Falta', d:f.created_at, txt:f.produto, sub:f.motivo, v:f.vendedor})),
+    ...ENCOMENDAS.filter(e=>new Date(e.created_at)>=hoje).map(e=>({t:'Encomenda', d:e.created_at, txt:e.produto, sub:e.cliente, v:e.vendedor}))
+  ].sort((a,b)=> new Date(b.d)-new Date(a.d)).slice(0,10);
+  if(!lista.length){ $('ultimos-lista').innerHTML = '<div class="vazio">Nenhum registro hoje ainda.</div>'; return; }
+  $('ultimos-lista').innerHTML = '<table class="tbl"><tbody>' + lista.map(m=>`
     <tr>
       <td data-l="Tipo"><span class="badge ${m.t==='Falta'?'b-ouro':'b-azul'}">${m.t}</span></td>
       <td data-l="Item"><span class="prod">${esc(m.txt)}</span></td>
       <td data-l="Detalhe">${esc(m.sub||'')}</td>
+      <td data-l="Por">${esc(m.v||'')}</td>
       <td data-l="Hora" class="mono">${dataBR(m.d).split(' ')[1]}</td>
     </tr>`).join('') + '</tbody></table>';
 }
@@ -1080,7 +1104,6 @@ function exportarEncomendas(){
   await carregarUsuarios();
   await carregar();
   assinar();
-  if(!sessao) setTimeout(abrirLogin, 300);
   setInterval(carregar, 120000);          // rede de segurança
   setInterval(carregarUsuarios, 300000);  // atualiza permissões a cada 5 min
 })();
