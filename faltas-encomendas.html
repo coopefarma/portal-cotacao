@@ -286,7 +286,9 @@ input[type=checkbox].sel{width:20px;height:20px;accent-color:#15a563;cursor:poin
   <div class="filtros">
     <input type="search" id="ff-busca" placeholder="Buscar produto..." oninput="renderFaltas()"/>
     <select id="ff-status" onchange="renderFaltas()">
-      <option value="pendente">Pendentes</option>
+      <option value="aberto" selected>Em aberto</option>
+      <option value="pendente">Só a pedir</option>
+      <option value="pedido">Só já pedidas</option>
       <option value="comprado">Compradas</option>
       <option value="">Todas</option>
     </select>
@@ -728,7 +730,7 @@ function renderTudo(){
   renderFaltas(); renderEncomendas(); renderUltimos(); renderResumo(); contadores();
 }
 function contadores(){
-  const nf = FALTAS.filter(x=>x.status==='pendente').length;
+  const nf = FALTAS.filter(x=>['pendente','pedido'].includes(x.status)).length;
   const ne = ENCOMENDAS.filter(x=>['pendente','pedido','chegou'].includes(x.status)).length;
   $('cnt-faltas').textContent = nf; $('cnt-faltas').classList.toggle('hidden', nf===0);
   $('cnt-enc').textContent = ne; $('cnt-enc').classList.toggle('hidden', ne===0);
@@ -814,7 +816,7 @@ function filtrarFaltas(){
   const lim = diasAtras(per);
   return ordenar(FALTAS.filter(f =>
     (!b || (f.produto||'').toUpperCase().includes(b)) &&
-    (!st || f.status === st) &&
+    (st === 'aberto' ? ['pendente','pedido'].includes(f.status) : (!st || f.status === st)) &&
     (!mo || f.motivo === mo) &&
     (!vd || f.vendedor === vd) &&
     new Date(f.created_at) >= lim
@@ -848,10 +850,16 @@ function thOrd(campo, rotulo){
   const seta = on ? (ordemFaltas.dir === 'asc' ? '▲' : '▼') : '▼';
   return `<th class="sortavel" onclick="ordenarPor('${campo}')">${rotulo}<span class="seta${on?' on':''}">${seta}</span></th>`;
 }
+const ST_FALTA = {
+  pendente:{txt:'A pedir', cls:'b-cinza'},
+  pedido:{txt:'Pedida', cls:'b-azul'},
+  comprado:{txt:'Comprado', cls:'b-verde'}
+};
 function renderFaltas(){
   const lista = filtrarFaltas(), g = ehGestor();
-  const pend = FALTAS.filter(f=>f.status==='pendente').length;
-  $('faltas-sub').textContent = `${lista.length} registro(s) na tela • ${pend} pendente(s) no total`;
+  const aPedir = FALTAS.filter(f=>f.status==='pendente').length;
+  const pedidas = FALTAS.filter(f=>f.status==='pedido').length;
+  $('faltas-sub').textContent = `${lista.length} na tela • ${aPedir} a pedir • ${pedidas} já pedida(s), aguardando chegar`;
   contadores();
   const visiveis = new Set(lista.map(f=>f.id));
   selFaltas = new Set([...selFaltas].filter(id => visiveis.has(id)));
@@ -863,19 +871,24 @@ function renderFaltas(){
   $('faltas-tabela').innerHTML = '<table class="tbl"><thead><tr>' +
     (g?`<th class="chk"><input type="checkbox" class="sel" ${todos?'checked':''} onchange="selTodasFaltas(this.checked)"/></th>`:'') +
     thOrd('created_at','Data') + thOrd('produto','Produto') + thOrd('motivo','Motivo') +
-    thOrd('vendedor','Vendedor') + thOrd('status','Status') + (g?'<th></th>':'') +
+    thOrd('vendedor','Vendedor') + '<th class="chk">Pedida</th>' + thOrd('status','Status') + (g?'<th></th>':'') +
     '</tr></thead><tbody>' + lista.map(f => `
     <tr>
       ${g?`<td class="chk"><input type="checkbox" class="sel" ${selFaltas.has(f.id)?'checked':''} onchange="selFalta('${f.id}',this.checked)"/></td>`:''}
       <td data-l="Data" class="mono">${dataBR(f.created_at)}</td>
-      <td data-l="Produto"><span class="prod ${f.status==='comprado'?'risc':''}">${esc(f.produto)}</span>${cont[f.produto]>1?`<span class="rep">${cont[f.produto]}x</span>`:''}${f.observacao?`<div style="font-size:11px;color:#94a3b8">${esc(f.observacao)}</div>`:''}</td>
+      <td data-l="Produto"><span class="prod ${f.status==='comprado'?'risc':''}">${esc(f.produto)}</span>${cont[f.produto]>1?`<span class="rep">${cont[f.produto]}x</span>`:''}${f.observacao?`<div style="font-size:11px;color:#94a3b8">${esc(f.observacao)}</div>`:''}${f.pedido_em?`<div style="font-size:11px;color:#1e40af">pedida em ${dataBR(f.pedido_em).split(' ')[0]}</div>`:''}</td>
       <td data-l="Motivo"><span class="badge ${f.motivo==='Venda perdida'?'b-vermelho':'b-ouro'}">${esc(f.motivo)}</span></td>
       <td data-l="Vendedor">${esc(f.vendedor)}</td>
-      <td data-l="Status"><span class="badge ${f.status==='comprado'?'b-verde':'b-cinza'}">${f.status==='comprado'?'Comprado':'Pendente'}</span></td>
+      <td data-l="Pedida" class="chk">${
+        f.status==='comprado' ? '<span class="mono">—</span>'
+        : g ? `<input type="checkbox" class="sel ped" ${f.status==='pedido'?'checked':''} onchange="marcarPedida('${f.id}',this.checked)" title="Marcar que o produto já foi pedido ao fornecedor"/>`
+            : (f.status==='pedido' ? '<span class="badge b-azul">sim</span>' : '<span class="mono">não</span>')
+      }</td>
+      <td data-l="Status"><span class="badge ${ST_FALTA[f.status].cls}">${ST_FALTA[f.status].txt}</span></td>
       ${g?`<td data-l="Ações" class="full"><div class="acoes">
-        ${f.status==='pendente'
-          ? `<button class="btn btn-primary btn-sm" onclick="marcarFalta('${f.id}','comprado')"><svg class="ic"><use href="#i-check"/></svg> Comprado</button>`
-          : `<button class="btn btn-outline btn-sm" onclick="marcarFalta('${f.id}','pendente')">Reabrir</button>`}
+        ${f.status==='comprado'
+          ? `<button class="btn btn-outline btn-sm" onclick="marcarFalta('${f.id}','pendente')">Reabrir</button>`
+          : `<button class="btn btn-primary btn-sm" onclick="marcarFalta('${f.id}','comprado')"><svg class="ic"><use href="#i-check"/></svg> Comprado</button>`}
         <button class="btn btn-outline btn-sm" onclick="excluirFalta('${f.id}')">Excluir</button>
       </div></td>`:''}
     </tr>`).join('') + '</tbody></table>';
@@ -895,22 +908,35 @@ function renderBulkFaltas(){
   if(!n || !ehGestor()) return;
   box.innerHTML = `<div class="barra-sel">
     <span class="cresce">${n} falta(s) selecionada(s)</span>
+    <button class="btn btn-blue btn-sm" onclick="massaFaltas('pedido')"><svg class="ic"><use href="#i-carrinho"/></svg> Marcar como pedida</button>
     <button class="btn btn-primary btn-sm" onclick="massaFaltas('comprado')"><svg class="ic"><use href="#i-check"/></svg> Marcar como comprada</button>
-    <button class="btn btn-outline btn-sm" onclick="massaFaltas('pendente')">Reabrir</button>
+    <button class="btn btn-outline btn-sm" onclick="massaFaltas('pendente')">Voltar para a pedir</button>
     <button class="btn btn-danger btn-sm" onclick="massaExcluirFaltas()">Excluir</button>
     <button class="btn btn-outline btn-sm" onclick="selTodasFaltas(false)">Limpar</button>
   </div>`;
 }
+function patchFalta(status){
+  const agora = new Date().toISOString();
+  return {
+    status,
+    resolvido_em: status === 'comprado' ? agora : null,
+    pedido_em:    status === 'pedido'   ? agora : (status === 'comprado' ? undefined : null)
+  };
+}
+async function marcarPedida(id, on){
+  if(!soGestor()) return;
+  await marcarFalta(id, on ? 'pedido' : 'pendente');
+}
 async function massaFaltas(status){
   if(!soGestor()) return;
   const ids = [...selFaltas]; if(!ids.length) return;
-  const { error } = await sb.from('fe_faltas')
-    .update({ status, resolvido_em: status==='comprado' ? new Date().toISOString() : null })
-    .in('id', ids);
+  const patch = patchFalta(status);
+  if(patch.pedido_em === undefined) delete patch.pedido_em;
+  const { error } = await sb.from('fe_faltas').update(patch).in('id', ids);
   if(error){ toast('Erro: ' + error.message, true); return; }
-  FALTAS.forEach(f => { if(ids.includes(f.id)) f.status = status; });
+  FALTAS.forEach(f => { if(ids.includes(f.id)) Object.assign(f, patch); });
   selFaltas = new Set(); renderTudo();
-  toast(`${ids.length} falta(s) atualizada(s)`);
+  toast(`${ids.length} falta(s) → ${ST_FALTA[status].txt}`);
 }
 async function massaExcluirFaltas(){
   if(!soGestor()) return;
@@ -924,11 +950,12 @@ async function massaExcluirFaltas(){
 }
 async function marcarFalta(id, status){
   if(!soGestor()) return;
-  const { error } = await sb.from('fe_faltas')
-    .update({ status, resolvido_em: status==='comprado' ? new Date().toISOString() : null }).eq('id', id);
+  const patch = patchFalta(status);
+  if(patch.pedido_em === undefined) delete patch.pedido_em;
+  const { error } = await sb.from('fe_faltas').update(patch).eq('id', id);
   if(error){ toast('Erro: ' + error.message, true); return; }
-  const f = FALTAS.find(x=>x.id===id); if(f) f.status = status;
-  renderTudo(); toast(status==='comprado' ? 'Marcada como comprada' : 'Reaberta');
+  const f = FALTAS.find(x=>x.id===id); if(f) Object.assign(f, patch);
+  renderTudo(); toast('Falta → ' + ST_FALTA[status].txt);
 }
 async function excluirFalta(id){
   if(!soGestor()) return;
@@ -1044,11 +1071,13 @@ function renderResumo(){
   const hoje = diasAtras(0), m30 = diasAtras(30);
   const fHoje = FALTAS.filter(f=>new Date(f.created_at)>=hoje).length;
   const fPend = FALTAS.filter(f=>f.status==='pendente').length;
+  const fPedidas = FALTAS.filter(f=>f.status==='pedido').length;
   const eAbertas = ENCOMENDAS.filter(e=>['pendente','pedido'].includes(e.status)).length;
   const eChegou = ENCOMENDAS.filter(e=>e.status==='chegou').length;
   const eHoje = ENCOMENDAS.filter(e=>new Date(e.created_at)>=hoje).length;
   $('resumo-stats').innerHTML = `
-    <div class="stat vermelho"><svg class="ic"><use href="#i-falta"/></svg><b>${fPend}</b><span>Faltas pendentes</span></div>
+    <div class="stat vermelho"><svg class="ic"><use href="#i-falta"/></svg><b>${fPend}</b><span>Faltas a pedir</span></div>
+    <div class="stat azul"><svg class="ic"><use href="#i-carrinho"/></svg><b>${fPedidas}</b><span>Faltas já pedidas</span></div>
     <div class="stat ouro"><svg class="ic"><use href="#i-relogio"/></svg><b>${fHoje}</b><span>Faltas hoje</span></div>
     <div class="stat azul"><svg class="ic"><use href="#i-carrinho"/></svg><b>${eAbertas}</b><span>Encomendas a pedir/pedidas</span></div>
     <div class="stat roxo"><svg class="ic"><use href="#i-sino"/></svg><b>${eChegou}</b><span>Chegaram — avisar cliente</span></div>
@@ -1084,7 +1113,8 @@ function baixar(linhas, nome, aba){
 function exportarFaltas(){
   const l = filtrarFaltas().map(f=>({
     Data: dataBR(f.created_at), Produto: f.produto, Motivo: f.motivo,
-    Vendedor: f.vendedor, Status: f.status, Observação: f.observacao||''
+    Vendedor: f.vendedor, Status: ST_FALTA[f.status] ? ST_FALTA[f.status].txt : f.status,
+    'Pedida em': f.pedido_em ? dataBR(f.pedido_em) : '', Observação: f.observacao||''
   }));
   if(!l.length){ toast('Nada para exportar', true); return; }
   baixar(l, 'Faltas', 'Faltas');
