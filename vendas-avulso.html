@@ -312,7 +312,7 @@ body{font-family:'Inter',sans-serif;background:#f5f7fa;color:#1a1a2e;padding-bot
     <div class="eco hidden" id="cart-eco"></div>
     <div class="row2" style="margin-top:14px">
       <div class="field"><label>Pagamento</label>
-        <select id="vnd-pag"><option>Dinheiro</option><option>Pix</option><option>Cartão</option><option>Fiado</option></select>
+        <select id="vnd-pag"><option>Dinheiro</option><option>Pix</option><option>Cartão</option><option>Crediário</option></select>
       </div>
       <div class="field"><label>Cliente (opcional)</label><input id="vnd-cliente" placeholder="Nome do cliente"/></div>
     </div>
@@ -1158,6 +1158,7 @@ function renderVendasHoje(){
         <span style="display:flex;align-items:center;gap:9px">
           <span class="mono"><b>${brl(g.total)}</b></span>
           <button class="btn btn-outline btn-sm" onclick="reimprimir(${gi})" title="2ª via do cupom"><svg class="ic"><use href="#i-cupom"/></svg></button>
+          ${ehGestor()?`<button class="btn btn-danger btn-sm" onclick="cancelarVenda(${gi})" title="Cancelar esta venda"><svg class="ic"><use href="#i-x"/></svg></button>`:''}
         </span>
       </div>
       <div style="color:#64748b;font-size:12px;margin-top:2px">
@@ -1298,9 +1299,36 @@ function renderMov(){
   </table>
   ${lista.length>600?`<div style="text-align:center;color:#94a3b8;font-size:12px;padding:12px">Mostrando os 600 mais recentes de ${lista.length}. Use os filtros ou exporte para Excel.</div>`:''}`;
 }
+async function cancelarVenda(ix){
+  if(!soGestor()) return;
+  const g = VENDAS_HOJE[ix]; if(!g) return;
+  await desfazerVenda(g.itens, g.total);
+}
+async function desfazerVenda(itens, total){
+  if(!soGestor()) return;
+  const resumo = itens.map(m => '· ' + qtdTxt(m.quantidade) + '× ' + m.descricao).join('\n');
+  if(!confirm('CANCELAR ESTA VENDA?\n\n' + resumo + '\n\nTotal: ' + brl(total) +
+              '\n\nAs quantidades voltam para o estoque e a venda some do histórico.')) return;
+  for(const m of itens){
+    if(m.produto_id) await ajustarEstoque(m.produto_id, nz(m.quantidade));
+    const { error } = await sb.from('ea_movimentos').delete().eq('id', m.id);
+    if(error){ toast('Erro ao cancelar: ' + error.message, true); return; }
+  }
+  await carregarProdutos(); await carregarMovimentos();
+  renderEstoque(); renderMov(); renderVendasHoje();
+  toast('Venda de ' + brl(total) + ' cancelada — estoque devolvido');
+}
 async function estornar(id){
   if(!soGestor()) return;
   const m = MOVIMENTOS.find(x=>x.id===id); if(!m) return;
+  /* venda com mais de um item: cancela a venda inteira, não só a linha */
+  if(m.tipo === 'venda' && m.venda_id){
+    const itens = MOVIMENTOS.filter(x => x.venda_id === m.venda_id);
+    if(itens.length > 1){
+      await desfazerVenda(itens, itens.reduce((s,x)=>s+nz(x.total),0));
+      return;
+    }
+  }
   if(!confirm('Estornar este movimento?\n\n' + m.tipo.toUpperCase() + ' — ' + qtdTxt(m.quantidade) + '× ' + m.descricao +
               '\n\nO estoque volta ao que era antes e a linha some do histórico.')) return;
   if(m.produto_id){
