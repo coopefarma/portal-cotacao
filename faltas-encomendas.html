@@ -576,7 +576,7 @@ function montarLogin(){
   const opts = '<option value="">Todos</option>' + ativos.map(u=>`<option>${esc(u.nome)}</option>`).join('');
   $('ff-vend').innerHTML = opts; $('fe-vend').innerHTML = opts;
   $('chip-user').innerHTML = sessao
-    ? `${esc(sessao.nome)}<span class="pp">gestor</span>`
+    ? `${esc(sessao.nome)}` + (ehGestor() ? '<span class="pp">gestor</span>' : '')
     : 'Acesso do gestor';
   montarQuem();
 }
