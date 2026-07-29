@@ -114,6 +114,11 @@ body{font-family:'Inter',sans-serif;background:#f5f7fa;color:#1a1a2e;padding-bot
 .seta{font-size:9px;opacity:.35;margin-left:2px}
 .seta.on{opacity:1;color:#15a563}
 .num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.tbl th.num{text-align:right}
+.tbl th.acao,.tbl td.acao{text-align:right;width:1%}
+.tbl td.acao .acoes{justify-content:flex-end;flex-wrap:nowrap}
+.tbl col.c-num{width:98px}.tbl col.c-venda{width:172px}.tbl col.c-fab{width:16%}.tbl col.c-acao{width:118px}
+.tbl td .sub-mono{display:block;font-family:'Courier New',monospace;font-size:11px;color:#94a3b8;font-weight:400;margin-top:2px}
 .prod{font-weight:600;color:#1a1a2e}
 .mono{font-family:'Courier New',monospace;font-size:12px;color:#64748b;white-space:nowrap}
 .vazio{text-align:center;padding:46px 20px;color:#94a3b8;font-size:14px;background:#fff;border-radius:12px}
@@ -130,6 +135,8 @@ body{font-family:'Inter',sans-serif;background:#f5f7fa;color:#1a1a2e;padding-bot
   .tbl td.full:before{display:block;margin-bottom:3px}
   .tbl tr:hover td{background:transparent}
   .num{text-align:right}
+  .tbl td.acao{display:flex}
+  .tbl td .sub-mono{display:inline;margin-left:6px}
 }
 
 /* ── CARRINHO ── */
@@ -172,7 +179,7 @@ body{font-family:'Inter',sans-serif;background:#f5f7fa;color:#1a1a2e;padding-bot
 #toast.erro{background:#e8112d}
 
 .preco-de{text-decoration:line-through;color:#94a3b8;font-weight:500}
-.tag-promo{background:#e8112d;color:#fff;border-radius:5px;padding:1px 6px;font-size:10px;font-weight:800;letter-spacing:.4px;margin-left:6px}
+.tag-promo{display:inline-block;background:#e8112d;color:#fff;border-radius:5px;padding:0 5px;font-size:9px;line-height:15px;font-weight:800;letter-spacing:.4px;margin-left:5px;vertical-align:1px}
 .eco{background:#fff3cd;color:#856404;border-radius:9px;padding:9px 13px;font-size:12px;font-weight:700;margin-top:10px;text-align:center}
 #frame-cupom{position:fixed;width:0;height:0;border:0;visibility:hidden}
 .rodape{text-align:center;color:#94a3b8;font-size:11px;padding:22px 12px}
@@ -742,6 +749,9 @@ function renderEstoque(){
   const st = c => `<span class="seta ${ordEstoque.col===c?'on':''}">${ordEstoque.col===c?(ordEstoque.dir>0?'▲':'▼'):'▲'}</span>`;
   $('tbl-estoque').innerHTML = `
   <table class="tbl">
+    <colgroup>
+      <col/><col class="c-fab"/><col class="c-num"/><col class="c-num"/><col class="c-venda"/><col class="c-num"/><col class="c-acao"/>
+    </colgroup>
     <thead><tr>
       <th class="sortavel" onclick="ordenar('descricao')">Produto ${st('descricao')}</th>
       <th class="sortavel" onclick="ordenar('fabricante')">Fabricante ${st('fabricante')}</th>
@@ -749,7 +759,7 @@ function renderEstoque(){
       <th class="num sortavel" onclick="ordenar('preco_custo')">Custo ${st('preco_custo')}</th>
       <th class="num sortavel" onclick="ordenar('preco_venda')">Venda ${st('preco_venda')}</th>
       <th class="num">Total custo</th>
-      <th></th>
+      <th class="acao"></th>
     </tr></thead>
     <tbody>${lista.map(p => {
       const s = situacao(p);
@@ -759,13 +769,13 @@ function renderEstoque(){
           ${p.codigo_barras ? `<div class="mono">${esc(p.codigo_barras)}</div>` : '<div class="mono">sem código</div>'}</td>
         <td data-l="Fabricante">${esc(p.fabricante||'—')}</td>
         <td class="num" data-l="Estoque"><span class="${cls}">${qtdTxt(p.estoque)} ${esc(p.unidade||'UN')}</span>
-          ${nz(p.estoque_min)>0?`<div class="mono">mín ${qtdTxt(p.estoque_min)}</div>`:''}</td>
+          ${nz(p.estoque_min)>0?`<span class="sub-mono">mín ${qtdTxt(p.estoque_min)}</span>`:''}</td>
         <td class="num" data-l="Custo">${brl(p.preco_custo)}</td>
         <td class="num" data-l="Venda">${temPromo(p)
-            ? `<span class="preco-de">${brl(p.preco_venda)}</span> <b>${brl(p.preco_promo)}</b><span class="tag-promo">PROMO</span>`
+            ? `<b>${brl(p.preco_promo)}</b><span class="tag-promo">PROMO</span><span class="sub-mono preco-de">${brl(p.preco_venda)}</span>`
             : brl(p.preco_venda)}</td>
         <td class="num" data-l="Total custo">${brl(nz(p.estoque)*nz(p.preco_custo))}</td>
-        <td data-l="Ações"><div class="acoes">
+        <td class="acao" data-l="Ações"><div class="acoes">
           <button class="btn btn-outline btn-sm" onclick="abrirAjuste('${p.id}')" title="Ajustar estoque"><svg class="ic"><use href="#i-ajuste"/></svg></button>
           <button class="btn btn-outline btn-sm" onclick="editarProduto('${p.id}')" title="Editar"><svg class="ic"><use href="#i-editar"/></svg></button>
           ${ehGestor()?`<button class="btn btn-danger btn-sm" onclick="excluirProduto('${p.id}')" title="Excluir"><svg class="ic"><use href="#i-lixo"/></svg></button>`:''}
