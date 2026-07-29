@@ -171,6 +171,10 @@ body{font-family:'Inter',sans-serif;background:#f5f7fa;color:#1a1a2e;padding-bot
 #toast.show{transform:translateX(-50%) translateY(0)}
 #toast.erro{background:#e8112d}
 
+.preco-de{text-decoration:line-through;color:#94a3b8;font-weight:500}
+.tag-promo{background:#e8112d;color:#fff;border-radius:5px;padding:1px 6px;font-size:10px;font-weight:800;letter-spacing:.4px;margin-left:6px}
+.eco{background:#fff3cd;color:#856404;border-radius:9px;padding:9px 13px;font-size:12px;font-weight:700;margin-top:10px;text-align:center}
+#frame-cupom{position:fixed;width:0;height:0;border:0;visibility:hidden}
 .rodape{text-align:center;color:#94a3b8;font-size:11px;padding:22px 12px}
 </style>
 </head>
@@ -194,6 +198,7 @@ body{font-family:'Inter',sans-serif;background:#f5f7fa;color:#1a1a2e;padding-bot
   <symbol id="i-user" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></symbol>
   <symbol id="i-ajuste" viewBox="0 0 24 24"><path d="M4 21v-7"/><path d="M4 10V3"/><path d="M12 21v-9"/><path d="M12 8V3"/><path d="M20 21v-5"/><path d="M20 12V3"/><path d="M1 14h6"/><path d="M9 8h6"/><path d="M17 16h6"/></symbol>
   <symbol id="i-mais" viewBox="0 0 24 24"><path d="M12 5v14"/><path d="M5 12h14"/></symbol>
+  <symbol id="i-cupom" viewBox="0 0 24 24"><path d="M4 2v20l2-1.5L8 22l2-1.5L12 22l2-1.5L16 22l2-1.5L20 22V2l-2 1.5L16 2l-2 1.5L12 2l-2 1.5L8 2 6 3.5 4 2z"/><path d="M8 8h8"/><path d="M8 12h8"/><path d="M8 16h5"/></symbol>
   <symbol id="i-cadeado" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></symbol>
 </svg>
 
@@ -297,6 +302,7 @@ body{font-family:'Inter',sans-serif;background:#f5f7fa;color:#1a1a2e;padding-bot
     <h3><svg class="ic ic-18"><use href="#i-venda"/></svg> Itens da venda</h3>
     <div id="carrinho"><div style="color:#94a3b8;font-size:13px;padding:8px 0">Carrinho vazio.</div></div>
     <div class="cart-total"><span class="lab">Total</span><span class="val" id="cart-total">R$ 0,00</span></div>
+    <div class="eco hidden" id="cart-eco"></div>
     <div class="row2" style="margin-top:14px">
       <div class="field"><label>Pagamento</label>
         <select id="vnd-pag"><option>Dinheiro</option><option>Pix</option><option>Cartão</option><option>Fiado</option></select>
@@ -334,7 +340,8 @@ body{font-family:'Inter',sans-serif;background:#f5f7fa;color:#1a1a2e;padding-bot
       <div class="field"><label>Preço de custo (R$)</label><input id="cad-custo" type="number" step="0.01" min="0" placeholder="0,00"/></div>
       <div class="field"><label>Preço de venda (R$)</label><input id="cad-venda" type="number" step="0.01" min="0" placeholder="0,00"/></div>
     </div>
-    <div class="row2">
+    <div class="row3">
+      <div class="field"><label>Preço promocional (R$)</label><input id="cad-promo" type="number" step="0.01" min="0" placeholder="0,00"/><div class="hint">Deixe vazio se não estiver em promoção. Quando preenchido, a venda usa este preço sozinha.</div></div>
       <div class="field"><label>Estoque inicial</label><input id="cad-est" type="number" step="0.001" min="0" placeholder="0"/><div class="hint">Gera uma entrada no histórico.</div></div>
       <div class="field"><label>Estoque mínimo (alerta)</label><input id="cad-min" type="number" step="0.001" min="0" placeholder="0"/></div>
     </div>
@@ -387,7 +394,8 @@ body{font-family:'Inter',sans-serif;background:#f5f7fa;color:#1a1a2e;padding-bot
       <div class="field"><label>Custo (R$)</label><input id="mp-custo" type="number" step="0.01" min="0"/></div>
       <div class="field"><label>Venda (R$)</label><input id="mp-venda" type="number" step="0.01" min="0"/></div>
     </div>
-    <div class="row2">
+    <div class="row3">
+      <div class="field"><label>Promocional (R$)</label><input id="mp-promo" type="number" step="0.01" min="0"/></div>
       <div class="field" id="mp-est-wrap"><label>Estoque inicial</label><input id="mp-est" type="number" step="0.001" min="0"/></div>
       <div class="field"><label>Estoque mínimo</label><input id="mp-min" type="number" step="0.001" min="0"/></div>
     </div>
@@ -458,6 +466,7 @@ body{font-family:'Inter',sans-serif;background:#f5f7fa;color:#1a1a2e;padding-bot
   </div>
 </div>
 
+<iframe id="frame-cupom"></iframe>
 <div id="toast"></div>
 
 <script>
@@ -477,6 +486,7 @@ let prodAjustando = null;
 let recSelecionado = null;
 let senhaAlvo = null;       /* usuário cujo senha está sendo trocada */
 let ordEstoque = {col:'descricao', dir:1};
+let VENDAS_HOJE = [];
 
 /* ══════════════ UTIL ══════════════ */
 const $ = id => document.getElementById(id);
@@ -557,6 +567,14 @@ function aplicarSessao(){
   $('tela-login').style.display = 'none';
   $('chip-user').innerHTML = `<svg class="ic"><use href="#i-user"/></svg> ${esc(sessao.nome)}` +
     (ehGestor() ? '<span class="pp">gestor</span>' : '');
+  aplicarPermissoes();
+}
+function aplicarPermissoes(){
+  const g = ehGestor();
+  document.querySelectorAll('.nav button').forEach(b => {
+    b.classList.toggle('hidden', !g && b.dataset.p !== 'vendas');
+  });
+  if(!g) irPara('vendas');
 }
 function abrirMenuUsuario(){
   if(!sessao){ $('tela-login').style.display='flex'; return; }
@@ -674,6 +692,8 @@ function situacao(p){
   if(m > 0 && e <= m) return 'baixo';
   return 'ok';
 }
+function temPromo(p){ return nz(p.preco_promo) > 0 && nz(p.preco_promo) < nz(p.preco_venda); }
+function precoDeVenda(p){ return temPromo(p) ? nz(p.preco_promo) : nz(p.preco_venda); }
 function filtrarEstoque(){
   const q = norm($('f-busca').value), sit = $('f-situacao').value, fab = $('f-fab').value;
   let lista = PRODUTOS.filter(p => {
@@ -741,7 +761,9 @@ function renderEstoque(){
         <td class="num" data-l="Estoque"><span class="${cls}">${qtdTxt(p.estoque)} ${esc(p.unidade||'UN')}</span>
           ${nz(p.estoque_min)>0?`<div class="mono">mín ${qtdTxt(p.estoque_min)}</div>`:''}</td>
         <td class="num" data-l="Custo">${brl(p.preco_custo)}</td>
-        <td class="num" data-l="Venda">${brl(p.preco_venda)}</td>
+        <td class="num" data-l="Venda">${temPromo(p)
+            ? `<span class="preco-de">${brl(p.preco_venda)}</span> <b>${brl(p.preco_promo)}</b><span class="tag-promo">PROMO</span>`
+            : brl(p.preco_venda)}</td>
         <td class="num" data-l="Total custo">${brl(nz(p.estoque)*nz(p.preco_custo))}</td>
         <td data-l="Ações"><div class="acoes">
           <button class="btn btn-outline btn-sm" onclick="abrirAjuste('${p.id}')" title="Ajustar estoque"><svg class="ic"><use href="#i-ajuste"/></svg></button>
@@ -769,7 +791,7 @@ async function ajustarEstoque(produtoId, delta){
   }
 }
 function limparCadastro(){
-  ['cad-desc','cad-cb','cad-fab','cad-custo','cad-venda','cad-est','cad-min','cad-obs'].forEach(i=>$(i).value='');
+  ['cad-desc','cad-cb','cad-fab','cad-custo','cad-venda','cad-promo','cad-est','cad-min','cad-obs'].forEach(i=>$(i).value='');
   $('cad-un').value = 'UN';
 }
 async function criarProduto(dados, estoqueInicial){
@@ -797,6 +819,7 @@ async function salvarProduto(){
     unidade: $('cad-un').value,
     preco_custo: nz($('cad-custo').value),
     preco_venda: nz($('cad-venda').value),
+    preco_promo: nz($('cad-promo').value),
     estoque_min: nz($('cad-min').value),
     observacao: ($('cad-obs').value||'').trim() || null
   }, $('cad-est').value);
@@ -809,7 +832,7 @@ function novoProdutoModal(codigo, descricao){
   $('mp-sub').textContent = 'Cadastro rápido — depois é só lançar a entrada.';
   $('mp-desc').value = descricao || '';
   $('mp-cb').value = codigo || '';
-  ['mp-fab','mp-custo','mp-venda','mp-est','mp-min','mp-obs'].forEach(i=>$(i).value='');
+  ['mp-fab','mp-custo','mp-venda','mp-promo','mp-est','mp-min','mp-obs'].forEach(i=>$(i).value='');
   $('mp-un').value = 'UN';
   $('mp-est-wrap').classList.remove('hidden');
   $('modal-prod').classList.add('show');
@@ -826,6 +849,7 @@ function editarProduto(id){
   $('mp-un').value = p.unidade || 'UN';
   $('mp-custo').value = p.preco_custo || '';
   $('mp-venda').value = p.preco_venda || '';
+  $('mp-promo').value = nz(p.preco_promo) || '';
   $('mp-min').value = p.estoque_min || '';
   $('mp-obs').value = p.observacao || '';
   $('mp-est-wrap').classList.add('hidden');
@@ -842,6 +866,7 @@ async function salvarProdModal(){
     unidade: $('mp-un').value,
     preco_custo: nz($('mp-custo').value),
     preco_venda: nz($('mp-venda').value),
+    preco_promo: nz($('mp-promo').value),
     estoque_min: nz($('mp-min').value),
     observacao: ($('mp-obs').value||'').trim() || null
   };
@@ -946,6 +971,9 @@ function selecionarReceb(id){
       <div class="field"><label>Custo unitário (R$)</label><input id="rec-custo" type="number" step="0.01" min="0" value="${nz(p.preco_custo)||''}" placeholder="0,00"/></div>
       <div class="field"><label>Preço de venda (R$)</label><input id="rec-venda" type="number" step="0.01" min="0" value="${nz(p.preco_venda)||''}" placeholder="0,00"/></div>
     </div>
+    <div class="row3">
+      <div class="field"><label>Preço promocional (R$)</label><input id="rec-promo" type="number" step="0.01" min="0" value="${nz(p.preco_promo)||''}" placeholder="sem promoção"/></div>
+    </div>
     <div class="row2">
       <div class="field"><label>Fornecedor / onde comprou</label><input id="rec-forn" placeholder="Opcional"/></div>
       <div class="field"><label>Observação</label><input id="rec-obs" placeholder="Validade, lote, etc."/></div>
@@ -968,6 +996,7 @@ async function confirmarReceb(){
   if(qtd <= 0){ toast('Informe a quantidade', true); $('rec-qtd').focus(); return; }
   const custo = nz($('rec-custo').value);
   const venda = nz($('rec-venda').value);
+  const promo = nz($('rec-promo').value);
   const forn  = ($('rec-forn').value||'').trim() || null;
   const obs   = ($('rec-obs').value||'').trim() || null;
 
@@ -975,6 +1004,7 @@ async function confirmarReceb(){
   const up = {updated_at: new Date().toISOString()};
   if(custo > 0 && custo !== nz(p.preco_custo)) up.preco_custo = custo;
   if(venda > 0 && venda !== nz(p.preco_venda)) up.preco_venda = venda;
+  if(promo !== nz(p.preco_promo)) up.preco_promo = promo;
   if(Object.keys(up).length > 1) await sb.from('ea_produtos').update(up).eq('id', p.id);
 
   await inserirMovimento({produto_id:p.id, descricao:p.descricao, tipo:'entrada', quantidade:qtd,
@@ -1004,6 +1034,7 @@ function addCarrinho(){
   const r = buscarProduto(t);
   if(r.tipo === 'vazio') return;
   if(r.tipo === 'nenhum'){
+    if(!ehGestor()){ toast('Produto não cadastrado — avise o gestor', true); return; }
     toast('Produto não cadastrado: ' + t, true);
     if(confirm('Produto não cadastrado.\n\nCadastrar agora?')) novoProdutoModal(soDigitos(t)?t:'', soDigitos(t)?'':t);
     return;
@@ -1023,7 +1054,8 @@ function porNoCarrinho(p){
   const item = carrinho.find(i => i.id === p.id);
   if(item) item.qtd = nz(item.qtd) + 1;
   else carrinho.push({id:p.id, descricao:p.descricao, codigo:p.codigo_barras||'', unidade:p.unidade||'UN',
-                      qtd:1, preco:nz(p.preco_venda), custo:nz(p.preco_custo)});
+                      qtd:1, preco:precoDeVenda(p), precoNormal:nz(p.preco_venda),
+                      promo:temPromo(p), custo:nz(p.preco_custo)});
   if(nz(p.estoque) <= 0) toast('Atenção: ' + p.descricao + ' está com estoque zerado', true);
   renderCarrinho();
 }
@@ -1037,9 +1069,10 @@ function renderCarrinho(){
     const p = PRODUTOS.find(x=>x.id===i.id);
     const est = p ? nz(p.estoque) : 0;
     const falta = i.qtd > est;
+    const emPromo = nz(i.preco) < nz(i.precoNormal);
     return `<div class="cart-item">
-      <div class="ci-nome">${esc(i.descricao)}
-        <small>${esc(i.codigo||'sem código')} · estoque ${qtdTxt(est)}${falta?' ⚠️':''}</small></div>
+      <div class="ci-nome">${esc(i.descricao)}${emPromo?'<span class="tag-promo">PROMO</span>':''}
+        <small>${esc(i.codigo||'sem código')} · estoque ${qtdTxt(est)}${falta?' ⚠️':''}${emPromo?' · de <span class="preco-de">'+brl(i.precoNormal)+'</span>':''}</small></div>
       <input type="number" step="0.001" min="0" value="${i.qtd}" title="Quantidade" onchange="setQtd(${ix}, this.value)"/>
       <input type="number" step="0.01" min="0" value="${i.preco}" title="Preço unitário" onchange="setPreco(${ix}, this.value)"/>
       <span class="ci-sub">${brl(i.qtd*i.preco)}</span>
@@ -1047,6 +1080,13 @@ function renderCarrinho(){
     </div>`;
   }).join('');
   $('cart-total').textContent = brl(carrinho.reduce((s,i)=>s+nz(i.qtd)*nz(i.preco),0));
+  const eco = economia(carrinho);
+  const box = $('cart-eco');
+  if(eco > 0){ box.textContent = 'Economia do cliente nesta compra: ' + brl(eco); box.classList.remove('hidden'); }
+  else box.classList.add('hidden');
+}
+function economia(itens){
+  return itens.reduce((s,i)=> s + Math.max(0, (nz(i.precoNormal) - nz(i.preco))) * nz(i.qtd), 0);
 }
 function setQtd(ix, v){ carrinho[ix].qtd = nz(v); if(carrinho[ix].qtd <= 0) carrinho.splice(ix,1); renderCarrinho(); }
 function setPreco(ix, v){ carrinho[ix].preco = nz(v); renderCarrinho(); }
@@ -1068,14 +1108,18 @@ async function finalizarVenda(){
       await ajustarEstoque(i.id, -nz(i.qtd));
       await inserirMovimento({produto_id:i.id, descricao:i.descricao, tipo:'venda', quantidade:nz(i.qtd),
         preco_unit:nz(i.preco), total:nz(i.qtd)*nz(i.preco), custo_unit:nz(i.custo),
-        pagamento:pag, cliente:cli, venda_id:vid});
+        pagamento:pag, cliente:cli, venda_id:vid,
+        observacao: nz(i.preco) < nz(i.precoNormal) ? ('Promoção — de ' + brl(i.precoNormal)) : null});
       total += nz(i.qtd)*nz(i.preco);
     }
+    const cupom = {itens: carrinho.map(i=>({desc:i.descricao, qtd:nz(i.qtd), preco:nz(i.preco), precoNormal:nz(i.precoNormal), un:i.unidade})),
+                   total, pag, cliente:cli, usuario:meuNome(), hora:new Date(), eco:economia(carrinho)};
     carrinho = []; $('vnd-cliente').value = '';
     renderCarrinho();
     await carregarProdutos(); await carregarMovimentos();
     renderEstoque(); renderVendasHoje();
     toast('Venda de ' + brl(total) + ' registrada');
+    imprimirCupom(cupom);
   } catch(e){
     toast('Erro ao finalizar: ' + e.message, true);
   } finally {
@@ -1085,6 +1129,7 @@ async function finalizarVenda(){
 function renderVendasHoje(){
   const hoje = new Date(); hoje.setHours(0,0,0,0);
   const vendas = MOVIMENTOS.filter(m => m.tipo === 'venda' && new Date(m.created_at) >= hoje);
+  VENDAS_HOJE = [];
   if(!vendas.length){ $('vendas-hoje').innerHTML = '<div style="color:#94a3b8;font-size:13px">Nenhuma venda hoje.</div>'; return; }
   const grupos = {};
   vendas.forEach(m => {
@@ -1094,12 +1139,16 @@ function renderVendasHoje(){
     if(new Date(m.created_at) > new Date(grupos[k].hora)) grupos[k].hora = m.created_at;
   });
   const lista = Object.values(grupos).sort((a,b)=> new Date(b.hora) - new Date(a.hora));
+  VENDAS_HOJE = lista;
   const totDia = lista.reduce((s,g)=>s+g.total,0);
-  $('vendas-hoje').innerHTML = lista.slice(0,20).map(g=>`
+  $('vendas-hoje').innerHTML = lista.slice(0,20).map((g,gi)=>`
     <div style="padding:9px 0;border-bottom:1px solid #f1f5f9;font-size:13px">
-      <div style="display:flex;justify-content:space-between;gap:10px">
+      <div style="display:flex;justify-content:space-between;gap:10px;align-items:center">
         <b>${new Date(g.hora).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}</b>
-        <span class="mono"><b>${brl(g.total)}</b></span>
+        <span style="display:flex;align-items:center;gap:9px">
+          <span class="mono"><b>${brl(g.total)}</b></span>
+          <button class="btn btn-outline btn-sm" onclick="reimprimir(${gi})" title="2ª via do cupom"><svg class="ic"><use href="#i-cupom"/></svg></button>
+        </span>
       </div>
       <div style="color:#64748b;font-size:12px;margin-top:2px">
         ${g.itens.map(i=>qtdTxt(i.quantidade)+'× '+esc(i.descricao)).join(' · ')}
@@ -1107,6 +1156,85 @@ function renderVendasHoje(){
       </div>
     </div>`).join('') +
     `<div class="cart-total"><span class="lab">Total do dia</span><span class="val" style="font-size:20px">${brl(totDia)}</span></div>`;
+}
+
+/* ══════════════ CUPOM (impressora térmica 80mm) ══════════════ */
+function linhaCupom(esq, dir, negrito){
+  return `<div class="l"><span class="${negrito?'b':''}">${esq}</span><span class="${negrito?'b':''}">${dir}</span></div>`;
+}
+function montarCupom(v){
+  const d = new Date(v.hora);
+  const itens = v.itens.map(i => {
+    const promo = nz(i.precoNormal) > nz(i.preco);
+    return `<div class="item">
+      <div class="d">${esc(i.desc)}${promo?' <span class="pm">PROMO</span>':''}</div>
+      <div class="l"><span>${qtdTxt(i.qtd)} ${esc(i.un||'UN')} x ${brl(i.preco).replace('R$ ','')}${promo?' (de '+brl(i.precoNormal).replace('R$ ','')+')':''}</span><span>${brl(nz(i.qtd)*nz(i.preco)).replace('R$ ','')}</span></div>
+    </div>`;
+  }).join('');
+  return `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"/>
+<title>Cupom</title>
+<style>
+  @page{size:80mm auto;margin:0}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{width:76mm;margin:0 auto;padding:4mm 3mm 8mm;font-family:'Courier New',Courier,monospace;font-size:12px;color:#000;line-height:1.35}
+  .c{text-align:center}
+  .b{font-weight:700}
+  h1{font-size:15px;letter-spacing:1px;margin-bottom:2px}
+  .sub{font-size:11px}
+  .div{border-top:1px dashed #000;margin:6px 0}
+  .l{display:flex;justify-content:space-between;gap:8px}
+  .item{margin-bottom:5px}
+  .item .d{font-weight:700;word-break:break-word}
+  .pm{background:#000;color:#fff;padding:0 3px;font-size:10px}
+  .tot{font-size:17px;font-weight:700}
+  .eco{text-align:center;font-weight:700;margin-top:4px}
+  .rod{text-align:center;font-size:10px;margin-top:8px;line-height:1.5}
+</style></head><body>
+  <div class="c">
+    <h1>COOPEFARMA</h1>
+    <div class="sub">Comprovante de venda</div>
+    <div class="sub b">NÃO É DOCUMENTO FISCAL</div>
+  </div>
+  <div class="div"></div>
+  ${linhaCupom('Data', d.toLocaleDateString('pt-BR') + ' ' + d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}))}
+  ${linhaCupom('Atendente', esc(v.usuario||'-'))}
+  ${v.cliente ? linhaCupom('Cliente', esc(v.cliente)) : ''}
+  <div class="div"></div>
+  ${itens}
+  <div class="div"></div>
+  <div class="l tot"><span>TOTAL</span><span>${brl(v.total)}</span></div>
+  ${linhaCupom('Pagamento', esc(v.pag||'-'), true)}
+  ${nz(v.eco) > 0 ? `<div class="eco">VOCÊ ECONOMIZOU ${brl(v.eco)}</div>` : ''}
+  <div class="div"></div>
+  <div class="rod">
+    Obrigado pela preferência!<br/>
+    Guarde este comprovante para trocas.
+  </div>
+</body></html>`;
+}
+function imprimirCupom(v){
+  try {
+    const f = $('frame-cupom');
+    const doc = f.contentWindow.document;
+    doc.open(); doc.write(montarCupom(v)); doc.close();
+    setTimeout(() => { f.contentWindow.focus(); f.contentWindow.print(); }, 350);
+  } catch(e){
+    toast('Não consegui abrir a impressão: ' + e.message, true);
+  }
+}
+function reimprimir(ix){
+  const g = VENDAS_HOJE[ix]; if(!g) return;
+  imprimirCupom({
+    itens: g.itens.map(m => ({desc:m.descricao, qtd:nz(m.quantidade), preco:nz(m.preco_unit),
+      precoNormal: /Promoção — de/.test(m.observacao||'') ? nz(String(m.observacao).replace(/[^0-9,]/g,'').replace(',','.')) : nz(m.preco_unit),
+      un:'UN'})),
+    total: g.total, pag: g.pag, cliente: g.cli, usuario: g.user, hora: g.hora,
+    eco: g.itens.reduce((s,m) => {
+      if(!/Promoção — de/.test(m.observacao||'')) return s;
+      const normal = nz(String(m.observacao).replace(/[^0-9,]/g,'').replace(',','.'));
+      return s + Math.max(0, normal - nz(m.preco_unit)) * nz(m.quantidade);
+    }, 0)
+  });
 }
 
 /* ══════════════ MOVIMENTOS ══════════════ */
