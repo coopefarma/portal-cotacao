@@ -323,7 +323,7 @@ input[type=checkbox].sel{width:20px;height:20px;accent-color:#15a563;cursor:poin
 <div class="page" id="p-encomendas">
   <div class="page-title"><svg class="ic ic-22"><use href="#i-encomenda"/></svg> Encomendas</div>
   <div class="page-sub" id="enc-sub">—</div>
-  <div class="aviso-ro hidden" id="ro-enc">Modo consulta: só os gestores podem alterar status, editar ou excluir. Avisar o cliente no WhatsApp está liberado.</div>
+  <div class="aviso-ro hidden" id="ro-enc">Você pode marcar <b>Entregue</b> e avisar o cliente no WhatsApp. Registrar pedido, marcar chegada, editar e excluir é só para os gestores.</div>
   <div class="filtros">
     <input type="search" id="fe-busca" placeholder="Buscar cliente ou produto..." oninput="renderEncomendas()"/>
     <select id="fe-status" onchange="renderEncomendas()">
@@ -1008,14 +1008,15 @@ function renderEncomendas(){
       <td data-l="Ações" class="full"><div class="acoes">
         ${g && e.status==='pendente' ? `<button class="btn btn-blue btn-sm" onclick="statusEnc('${e.id}','pedido')"><svg class="ic"><use href="#i-carrinho"/></svg> Pedido feito</button>` : ''}
         ${g && e.status==='pedido' ? `<button class="btn btn-blue btn-sm" onclick="statusEnc('${e.id}','chegou')"><svg class="ic"><use href="#i-caixa"/></svg> Chegou</button>` : ''}
-        ${g && e.status==='chegou' ? `<button class="btn btn-primary btn-sm" onclick="statusEnc('${e.id}','entregue')"><svg class="ic"><use href="#i-check"/></svg> Entregue</button>` : ''}
+        ${e.status==='chegou' ? `<button class="btn btn-primary btn-sm" onclick="statusEnc('${e.id}','entregue')"><svg class="ic"><use href="#i-check"/></svg> Entregue</button>` : ''}
         ${e.status==='chegou' && w ? `<button class="btn btn-wa btn-sm" onclick="avisar('${e.id}')"><svg class="ic"><use href="#i-sino"/></svg> Avisar no WhatsApp</button>` : ''}
         ${g ? `<button class="btn btn-outline btn-sm" onclick="abrirModal('${e.id}')"><svg class="ic"><use href="#i-registrar"/></svg> Editar</button>` : ''}
       </div></td>
     </tr>`; }).join('') + '</tbody></table>';
 }
 async function statusEnc(id, status){
-  if(!soGestor()) return;
+  // marcar como entregue é liberado para toda a equipe; os demais status são do gestor
+  if(status !== 'entregue' && !soGestor()) return;
   const patch = { status };
   if(status==='entregue') patch.entregue_em = new Date().toISOString();
   const { error } = await sb.from('fe_encomendas').update(patch).eq('id', id);
