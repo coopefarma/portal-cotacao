@@ -429,7 +429,7 @@ body{font-family:'Inter',sans-serif;background:#f5f7fa;color:#1a1a2e}
   <div class="modal" style="max-width:780px">
     <div class="modal-titulo">⚡ Auto-cotar por OLs</div>
     <p style="font-size:13px;color:#64748b;margin-bottom:4px">O sistema cruzou o falteiro com as OLs importadas. Clique em um card para ativar/desativar. Cards verdes serão lançados no ranking.</p>
-    <div style="font-size:11px;color:#94a3b8;margin-bottom:14px">🔒 EAN = match exato &nbsp;·&nbsp; % = similaridade por descrição inteira &nbsp;·&nbsp; 🔤 % = similaridade pelo nome do princípio ativo (ignora sal/forma/embalagem) — confira sempre o nome mostrado no card antes de confirmar</div>
+    <div style="font-size:11px;color:#94a3b8;margin-bottom:14px">🔒 EAN = match exato &nbsp;·&nbsp; % = similaridade por descrição inteira &nbsp;·&nbsp; 🔤 % = similaridade pelo nome do princípio ativo (ignora sal/forma/embalagem) &nbsp;·&nbsp; ✋ manual = escolhido por você &nbsp;·&nbsp; use <b>🔍 buscar</b> no card para achar na OL o que o sistema não encontrou — confira sempre o nome mostrado no card antes de confirmar</div>
     <div id="mac-corpo" style="max-height:60vh;overflow-y:auto"></div>
     <div class="modal-btns">
       <button class="btn btn-outline" onclick="fecharModal('modal-autocotar')">Cancelar</button>
@@ -475,7 +475,12 @@ function parsePreco(s){if(!s||String(s).trim()==='')return null;const n=parseFlo
 const fmtData=d=>d?new Date(d).toLocaleDateString('pt-BR'):'';
 function toast(msg,tipo=''){const el=document.createElement('div');el.className='toast-el '+tipo;el.textContent=msg;document.body.appendChild(el);setTimeout(()=>el.remove(),3500);}
 function abrirModal(id){document.getElementById(id).classList.add('aberto');}
-function fecharModal(id){document.getElementById(id).classList.remove('aberto');}
+function fecharModal(id){
+  // Fechar o modal de disparo tem que matar a fila de WhatsApp, senão ela continua
+  // abrindo abas com o modal já fechado.
+  if(id==='modal-disparar'&&typeof pararFilaWpp==='function')pararFilaWpp();
+  document.getElementById(id).classList.remove('aberto');
+}
 
 async function init(){
   const params=new URLSearchParams(location.search);
@@ -847,8 +852,9 @@ function copiarLink(token){const url=`${BASE}?t=${token}`;navigator.clipboard.wr
 function abrirWpp(wpp,token,nome,titulo){
   const url=`${BASE}?t=${token}`;
   const msg=encodeURIComponent(`Olá ${nome}! Temos uma cotação aguardando sua resposta.\n\n*Cotação:* ${titulo}\n\n*Link para preenchimento:*\n${url}\n\nPor favor, preencha os preços com vírgula (ex: 12,50) e clique em Enviar. Obrigado! 🙏`);
-  const num=wpp.replace(/\D/g,'');
-  window.open(num?`https://wa.me/55${num}?text=${msg}`:`https://wa.me/?text=${msg}`,'_blank');
+  const num=(wpp||'').replace(/\D/g,'');
+  // Devolve a referência da janela: null = o navegador bloqueou o pop-up (usado pela fila).
+  return window.open(num?`https://wa.me/55${num}?text=${msg}`:`https://wa.me/?text=${msg}`,'_blank');
 }
 let _respEditState={linkId:null,cotacaoId:null,fornId:null,itens:[],resps:[]};
 async function verRespostas(linkId,nomeForn){
@@ -927,6 +933,7 @@ async function salvarEdicaoRespostas(){
 }
 let _dispForn=[];
 async function abrirDisparar(){
+  pararFilaWpp();
   document.getElementById('disp-titulo').textContent='📲 Enviar para Fornecedores';
   document.getElementById('disp-instrucao').textContent='Selecione os fornecedores que receberão o link desta cotação:';
   document.getElementById('disp-selbtns').style.display='flex';
@@ -955,36 +962,91 @@ async function confirmarDisparar(){
   const{data:gerados,error}=await sb.from('cotacao_links').insert(novos).select('*,fornecedores(nome,whatsapp)');
   if(error){toast('Erro ao gerar links: '+error.message,'err');return;}
   toast(`${gerados.length} link(s) gerado(s)!`,'ok');
-  // O WhatsApp Web só mantém UMA conversa ativa por vez no navegador: abrir várias abas
-  // simultâneas derruba as anteriores e só a última fica com a mensagem pronta pra enviar.
-  // Por isso vira uma fila: um botão por fornecedor, clicado um de cada vez.
+  // O WhatsApp Web só mantém UMA conversa ativa por vez no navegador: abrir várias abas no
+  // mesmo instante derruba as anteriores e só a última fica com a mensagem pronta pra enviar.
+  // Por isso a fila abre um de cada vez, com intervalo — dá tempo de dar Enter em cada aba.
   _dispGerados={titulo:cot?.titulo||'',lista:gerados};
   renderDispararFila();
 }
+// ---- Fila de envio: seleciona vários fornecedores e o app abre um WhatsApp de cada vez ----
+let _dispFila={ids:[],idx:0,timer:null,restante:0,intervalo:8};
 function renderDispararFila(){
-  const{titulo,lista}=_dispGerados;
-  document.getElementById('disp-titulo').textContent='📲 Links gerados — envie um de cada vez';
-  document.getElementById('disp-instrucao').textContent='O WhatsApp Web só mantém uma conversa ativa por vez: abra e envie o de cima, espere carregar, depois clique no próximo.';
+  const{lista}=_dispGerados;
+  document.getElementById('disp-titulo').textContent='📲 Links gerados — enviar no WhatsApp';
+  document.getElementById('disp-instrucao').innerHTML='Marque os fornecedores e clique em <b>▶ Enviar em sequência</b>: o app abre um WhatsApp de cada vez, com a mensagem já escrita — você só dá <b>Enter</b> em cada aba. <span style="color:#b45309">Se o navegador avisar que bloqueou pop-ups, escolha "Sempre permitir".</span>';
   document.getElementById('disp-selbtns').style.display='none';
   document.getElementById('disp-lista').innerHTML=(lista||[]).map(l=>{
     const f=l.fornecedores||{};
-    return `<div class="check-item" id="dispf-${l.id}" style="cursor:default">
-      <div style="flex:1"><div style="font-weight:600;font-size:13px">${f.nome||'—'}</div><div style="font-size:11px;color:#64748b">${f.whatsapp?('WhatsApp: '+f.whatsapp):'sem WhatsApp cadastrado — use 🔗 Copiar link'}</div></div>
-      <button class="btn btn-outline btn-sm" ${f.whatsapp?'':'disabled'} onclick="enviarUmWpp('${l.id}')">📲 Abrir WhatsApp</button>
+    const tem=!!f.whatsapp;
+    return `<div class="check-item ${tem?'sel':''}" id="dispf-${l.id}" style="cursor:${tem?'pointer':'default'}" ${tem?`onclick="if(event.target.tagName!=='INPUT'&&event.target.tagName!=='BUTTON')toggleCheck(this)"`:''}>
+      <input type="checkbox" class="disp-wpp" value="${l.id}" ${tem?'checked':'disabled'}/>
+      <div style="flex:1"><div style="font-weight:600;font-size:13px">${f.nome||'—'}</div><div style="font-size:11px;color:#64748b">${tem?('WhatsApp: '+f.whatsapp):'sem WhatsApp cadastrado — use 🔗 Copiar link'}</div></div>
+      <button class="btn btn-outline btn-sm" ${tem?'':'disabled'} onclick="event.stopPropagation();enviarUmWpp('${l.id}')">📲 Abrir</button>
     </div>`;
   }).join('');
-  document.getElementById('disp-btns').innerHTML=`<button class="btn btn-primary" onclick="fecharModal('modal-disparar');carregarDetalhe(cotacaoId)">✅ Concluir</button>`;
+  document.getElementById('disp-btns').innerHTML=
+    `<div id="disp-fila-status" style="flex:1;font-size:12px;color:#15a563;font-weight:600;text-align:left"></div>`+
+    `<button class="btn btn-outline" id="disp-btn-parar" style="display:none" onclick="pararFilaWpp()">⏸ Parar fila</button>`+
+    `<button class="btn btn-primary" id="disp-btn-fila" onclick="iniciarFilaWpp()">▶ Enviar em sequência</button>`+
+    `<button class="btn btn-outline" onclick="pararFilaWpp();fecharModal('modal-disparar');carregarDetalhe(cotacaoId)">✅ Concluir</button>`;
+}
+function iniciarFilaWpp(){
+  const ids=[...document.querySelectorAll('#disp-lista input.disp-wpp:checked:not(:disabled)')].map(cb=>cb.value);
+  if(!ids.length){toast('Marque pelo menos um fornecedor com WhatsApp.','err');return;}
+  _dispFila={ids,idx:0,timer:null,restante:0,intervalo:8};
+  document.getElementById('disp-btn-fila').style.display='none';
+  document.getElementById('disp-btn-parar').style.display='';
+  _dispAbrirProximo();
+}
+function pararFilaWpp(){
+  if(_dispFila.timer){clearInterval(_dispFila.timer);_dispFila.timer=null;}
+  const bf=document.getElementById('disp-btn-fila');if(bf){bf.style.display='';bf.textContent='▶ Continuar fila';}
+  const bp=document.getElementById('disp-btn-parar');if(bp)bp.style.display='none';
+}
+function _dispStatus(txt){const el=document.getElementById('disp-fila-status');if(el)el.innerHTML=txt;}
+function _dispAbrirProximo(){
+  if(_dispFila.timer){clearInterval(_dispFila.timer);_dispFila.timer=null;}
+  if(_dispFila.idx>=_dispFila.ids.length){
+    _dispStatus('✅ Fila concluída — confira se enviou todas as abas.');
+    const bf=document.getElementById('disp-btn-fila');if(bf)bf.style.display='none';
+    const bp=document.getElementById('disp-btn-parar');if(bp)bp.style.display='none';
+    return;
+  }
+  const linkId=_dispFila.ids[_dispFila.idx];
+  const win=enviarUmWpp(linkId);
+  _dispFila.idx++;
+  if(win===null){
+    // Pop-up bloqueado pelo navegador: para a fila e explica, em vez de "abrir" no vazio.
+    _dispFila.idx--;
+    pararFilaWpp();
+    _dispStatus('⚠️ O navegador bloqueou a abertura. Libere os pop-ups deste site e clique em Continuar.');
+    toast('Pop-up bloqueado — permita pop-ups deste site e continue a fila.','err');
+    return;
+  }
+  if(_dispFila.idx>=_dispFila.ids.length){_dispAbrirProximo();return;}
+  _dispFila.restante=_dispFila.intervalo;
+  const tick=()=>{
+    const falta=_dispFila.ids.length-_dispFila.idx;
+    _dispStatus(`Envie a aba aberta… próximo em <b>${_dispFila.restante}s</b> (faltam ${falta})`);
+    if(_dispFila.restante<=0){_dispAbrirProximo();return;}
+    _dispFila.restante--;
+  };
+  tick();
+  _dispFila.timer=setInterval(tick,1000);
 }
 function enviarUmWpp(linkId){
   const l=(_dispGerados.lista||[]).find(x=>x.id===linkId);if(!l)return;
   const f=l.fornecedores||{};
-  abrirWpp(f.whatsapp,l.token,f.nome,_dispGerados.titulo);
+  const win=abrirWpp(f.whatsapp,l.token,f.nome,_dispGerados.titulo);
+  if(win===null)return null;
   const el=document.getElementById('dispf-'+linkId);
   if(el){
     el.style.borderColor='#15a563';el.style.background='#f0fdf4';
     const btn=el.querySelector('button');
     if(btn){btn.textContent='✅ Aberto';btn.disabled=true;}
+    const cb=el.querySelector('input');if(cb)cb.checked=false;
   }
+  return win;
 }
 async function carregarComparacao(id){
   document.getElementById('comp-corpo').innerHTML='<div class="loading-box"><div class="spin"></div></div>';
@@ -1133,6 +1195,10 @@ function renderPedido(){
   const grupos={};
   comResp.forEach(lnk=>{grupos[lnk.fornecedor_id]={nome:lnk.fornecedores?.nome||'—',itens:[]};});
   itensVisiveis.forEach(item=>{if(forcedSem.has(item.id))return;const fId=pedidoState[item.id];if(fId&&grupos[fId])grupos[fId].itens.push(item.id);});
+  // Ordem alfabética dentro de cada distribuidor — o conferente acha o produto na hora,
+  // e a ordem da tela fica igual à do Excel exportado.
+  const _descPorId={};itensVisiveis.forEach(i=>{_descPorId[i.id]=_pedNorm(i.descricao);});
+  Object.values(grupos).forEach(g=>g.itens.sort((a,b)=>(_descPorId[a]||'').localeCompare(_descPorId[b]||'','pt-BR')));
   const html=Object.entries(grupos).filter(([,g])=>g.itens.length>0).map(([fornId,g])=>{
     let totalForn=0;let totalFat=0;let contFat=0;
     const rows=g.itens.map(itemId=>{
@@ -1190,7 +1256,7 @@ function renderPedido(){
     if(forcedSem.has(item.id))return true;
     const temPreco=comResp.some(lnk=>{const r=resps.find(x=>x.item_id===item.id&&x.fornecedor_id===lnk.fornecedor_id);return r?.preco>0;});
     return !temPreco;
-  });
+  }).sort((a,b)=>_pedNorm(a.descricao).localeCompare(_pedNorm(b.descricao),'pt-BR'));
   const nManuais=semCotacaoItens.filter(i=>forcedSem.has(i.id)).length;
   const linhasSem=semCotacaoItens.map(i=>{
     const manual=forcedSem.has(i.id);
@@ -1277,7 +1343,7 @@ function _pedItensSemCotacao(){
     if(forcedSem.has(item.id))return{item,motivo:'Não encaixou no pedido',melhor:precos[0]||null};
     if(precos.length===0)return{item,motivo:'Nenhum fornecedor cotou',melhor:null};
     return null;
-  }).filter(Boolean);
+  }).filter(Boolean).sort((a,b)=>_pedNorm(a.item.descricao).localeCompare(_pedNorm(b.item.descricao),'pt-BR'));
 }
 function exportarExcelSemCotacao(){
   const lista=_pedItensSemCotacao();
@@ -1326,7 +1392,15 @@ function exportarExcelSemCotacao(){
 function exportarExcelForn(fornId,fornNome){
   if(!pedidoData)return;
   const{itens,resps,cotTitulo}=pedidoData;
-  const itensForn=itens.filter(item=>pedidoState[item.id]===fornId);
+  // O Excel tem que refletir EXATAMENTE o que está na tela: produto excluído (🗑) ou mandado
+  // para "sem cotação" não pode ir para o fornecedor. Antes esse filtro não existia e o
+  // arquivo enviado ainda trazia os itens excluídos — o fornecedor faturava produto cancelado.
+  const _est=_pedGetEstado();
+  const _excluidos=new Set(_est.excluidos||[]);
+  const _forcedSem=new Set(_est.semCotacao||[]);
+  const itensForn=itens
+    .filter(item=>!_excluidos.has(item.id)&&!_forcedSem.has(item.id)&&pedidoState[item.id]===fornId)
+    .sort((a,b)=>_pedNorm(a.descricao).localeCompare(_pedNorm(b.descricao),'pt-BR'));
   if(itensForn.length===0){toast('Nenhum item para exportar.','err');return;}
   const wb=XLSX.utils.book_new();
   const ws={};
@@ -1690,7 +1764,38 @@ const _STOP_TOKENS=new Set(['de','do','da','das','dos','e','com','para','sem','t
   'mg','mcg','ml','g','kg','ui','cartela','blister','caixa','frasco','envelope'
 ]);
 function _tokensSignificativos(normStr){
-  return normStr.split(' ').filter(t=>t.length>=3&&!_STOP_TOKENS.has(t)&&!/^\d+$/.test(t));
+  // "100mg", "20ml", "30cpr" vinham colados e entravam no score como se fossem parte do nome
+  // do princípio ativo, sujando o match. Descola só a UNIDADE do número (não quebra "d3",
+  // "b12", "k2", que são parte do nome do produto).
+  return String(normStr)
+    .replace(/(\d)\s*(mcg|mg|ug|kg|ml|ui|cpr|cap|com|comp|un)\b/g,'$1 $2')
+    .split(' ')
+    .filter(t=>(t.length>=3||(t.length===2&&/[a-z]/.test(t)&&/\d/.test(t)))
+      &&!_STOP_TOKENS.has(t)&&!/^\d+$/.test(t));
+}
+// Assinatura de DOSAGEM (só número colado a uma unidade: 100mg, 7.000UI, 12,5mg) — de
+// propósito ignora a quantidade da embalagem ("C/30"), senão dois produtos da mesma
+// substância em dosagens diferentes empatariam só por virem os dois em caixa de 30.
+// Usada só para PENALIZAR (nunca bloquear): o card continua aparecendo, com % menor.
+function _dosagensDe(raw){
+  const s=String(raw||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'')
+    .replace(/(\d)\.(\d{3})(?!\d)/g,'$1$2')  // 7.000UI -> 7000UI (ponto de milhar)
+    .replace(/(\d),(\d)/g,'$1.$2');      // 12,5  -> 12.5 (vírgula decimal)
+  const out=new Set();
+  const re=/(\d+(?:\.\d+)?)\s*(mcg|mg|ug|kg|ml|ui|g|l)\b/g;
+  let m;
+  while((m=re.exec(s))){
+    let v=parseFloat(m[1]);const u=m[2];
+    if(u==='g'||u==='kg'||u==='l')v*=1000;   // normaliza para mg / ml
+    if(u==='mcg'||u==='ug')v/=1000;
+    out.add(String(Math.round(v*1000)/1000));
+  }
+  return out;
+}
+function _penalidadeDosagem(dA,dB){
+  if(!dA.size||!dB.size)return 1;
+  for(const d of dA)if(dB.has(d))return 1;
+  return .7;
 }
 function _levenshtein(a,b){
   const m=a.length,n=b.length;const d=[];
@@ -1712,27 +1817,46 @@ function _buildTokenIndex(olItens){
   const idx=new Map();
   olItens.forEach(o=>{
     o._toks=_tokensSignificativos(o._norm);
-    new Set(o._toks.map(t=>t.slice(0,4))).forEach(p=>{
+    const chaves=new Set();
+    o._toks.forEach(t=>{chaves.add(t.slice(0,4));if(t.length>=3)chaves.add('_3'+t.slice(0,3));});
+    chaves.forEach(p=>{
       if(!idx.has(p))idx.set(p,[]);
       idx.get(p).push(o);
     });
   });
   return idx;
 }
-function _melhorMatchPorTokens(descItem,tokenIdx){
-  const tA=_tokensSignificativos(normDesc(descItem));
+function _melhorMatchPorTokens(descItem,tokenIdx,olItens){
+  const normA=normDesc(descItem);
+  const tA=_tokensSignificativos(normA);
   if(!tA.length)return null;
-  const candidatos=new Set();
-  tA.forEach(t=>{(tokenIdx.get(t.slice(0,4))||[]).forEach(o=>candidatos.add(o));});
+  const dosA=_dosagensDe(descItem);
+  let candidatos=new Set();
+  // O índice usa o prefixo de 4 letras; além dele, tenta 3 letras (pega erro de digitação
+  // já na 4a letra, ex.: "cilostazol" x "cilosttazol").
+  tA.forEach(t=>{
+    (tokenIdx.get(t.slice(0,4))||[]).forEach(o=>candidatos.add(o));
+    if(t.length>=3)(tokenIdx.get('_3'+t.slice(0,3))||[]).forEach(o=>candidatos.add(o));
+  });
+  // Rede de segurança: se o índice não achou NENHUM candidato, varre a OL inteira desse
+  // fornecedor. É o caso que fazia produto existente na OL aparecer como "sem match"
+  // (ex.: CILOSTAZOL 100MG) — só acontece para poucos itens, então o custo é baixo.
+  if(!candidatos.size&&Array.isArray(olItens))candidatos=new Set(olItens);
   let melhor=null,melhorScore=0;
   candidatos.forEach(o=>{
     let somaPeso=0,somaScore=0;
     tA.forEach(ta=>{
       let best=0;
-      (o._toks||[]).forEach(tb=>{const s=_similaridadeToken(ta,tb);if(s>best)best=s;});
+      (o._toks||[]).forEach(tb=>{
+        let s=_similaridadeToken(ta,tb);
+        // Nome abreviado de um lado ("cilostaz") e completo do outro conta como acerto.
+        if(s<1&&ta.length>=5&&tb.length>=5&&(ta.startsWith(tb)||tb.startsWith(ta)))s=Math.max(s,.92);
+        if(s>best)best=s;
+      });
       const peso=ta.length;somaScore+=best*peso;somaPeso+=peso;
     });
-    const score=somaPeso?somaScore/somaPeso:0;
+    let score=somaPeso?somaScore/somaPeso:0;
+    score*=_penalidadeDosagem(dosA,_dosagensDe(o.descricao||''));
     if(score>melhorScore){melhorScore=score;melhor=o;}
   });
   return melhor?{item:melhor,pct:Math.round(melhorScore*100)}:null;
@@ -1774,13 +1898,18 @@ async function abrirAutoCotar(){
     const itensOL=(olItensData||[]).filter(i=>i.fornecedor_id===fId).map(i=>({...i,_norm:normDesc(i.descricao)}));
     olPorForn[fId]={nome:fNome,itens:itensOL,tokenIdx:_buildTokenIndex(itensOL)};
   });
-  autoState={itens:itens||[],fornecedores:olPorForn,matches:{}};
+  const itensOrdenados=[...(itens||[])].sort((a,b)=>normDesc(a.descricao||'').localeCompare(normDesc(b.descricao||''),'pt-BR'));
+  autoState={itens:itensOrdenados,fornecedores:olPorForn,matches:{},buscaAberta:null,soFaltantes:false};
   (itens||[]).forEach(item=>{
     autoState.matches[item.id]={};
     Object.entries(olPorForn).forEach(([fornId,{itens:olItens,tokenIdx}])=>{
       if(!olItens.length)return;
       if(item.ean){
-        const eanMatch=olItens.find(o=>o.ean&&String(o.ean).trim()===String(item.ean).trim());
+        // Compara só os dígitos e sem zeros à esquerda: OL e falteiro escrevem o mesmo
+        // código de jeitos diferentes ("0007896...", "7896... " com espaço, etc.).
+        const _ean=v=>String(v||'').replace(/\D/g,'').replace(/^0+/,'');
+        const alvoEan=_ean(item.ean);
+        const eanMatch=alvoEan?olItens.find(o=>o.ean&&_ean(o.ean)===alvoEan):null;
         if(eanMatch){
           const t=getBestTier(eanMatch,item.quantidade||1);
           const semEstoque=eanMatch.estoque===0;
@@ -1793,7 +1922,7 @@ async function abrirAutoCotar(){
       const fuse=new Fuse(olItens,{keys:['_norm'],threshold:0.42,includeScore:true,minMatchCharLength:3});
       const results=fuse.search(normDesc(item.descricao));
       const fuseBest=results.length?{item:results[0].item,pct:Math.round((1-results[0].score)*100)}:null;
-      const tokenBest=_melhorMatchPorTokens(item.descricao,tokenIdx);
+      const tokenBest=_melhorMatchPorTokens(item.descricao,tokenIdx,olItens);
       let escolhido=null,pct=0,fonte='fuzzy';
       if(fuseBest){escolhido=fuseBest.item;pct=fuseBest.pct;fonte='fuzzy';}
       if(tokenBest&&tokenBest.pct>pct){escolhido=tokenBest.item;pct=tokenBest.pct;fonte='token';}
@@ -1806,17 +1935,97 @@ async function abrirAutoCotar(){
   });
   renderAutoCotar();
 }
+// ---- Busca manual na OL: resolve os produtos que o algoritmo não encontrou ----
+function _macBtnBusca(itemId,fId){
+  return `<button title="Procurar este produto na OL deste fornecedor" onclick="event.stopPropagation();toggleBuscaOL('${itemId}','${fId}')" style="background:none;border:1px solid #cbd5e1;border-radius:5px;cursor:pointer;font-size:10px;padding:1px 5px;color:#475569">🔍 buscar</button>`;
+}
+function _macPainelBusca(itemId,fId){
+  const aberta=autoState.buscaAberta===itemId+'|'+fId;
+  return `<div id="macb-${itemId}-${fId}" style="display:${aberta?'block':'none'};margin-top:6px" onclick="event.stopPropagation()">
+    <input type="text" id="macbi-${itemId}-${fId}" placeholder="digite parte do nome ou o código…" oninput="buscarNaOL('${itemId}','${fId}',this.value)"
+      style="width:100%;padding:4px 6px;border:1.5px solid #15a563;border-radius:6px;font-size:11px;font-family:inherit;box-sizing:border-box"/>
+    <div id="macbr-${itemId}-${fId}" style="max-height:140px;overflow-y:auto;margin-top:4px"></div>
+  </div>`;
+}
+function toggleBuscaOL(itemId,fId){
+  const chave=itemId+'|'+fId;
+  const abrindo=autoState.buscaAberta!==chave;
+  if(autoState.buscaAberta){
+    const[i0,f0]=autoState.buscaAberta.split('|');
+    const ant=document.getElementById(`macb-${i0}-${f0}`);if(ant)ant.style.display='none';
+  }
+  autoState.buscaAberta=abrindo?chave:null;
+  const el=document.getElementById(`macb-${itemId}-${fId}`);
+  if(!el)return;
+  el.style.display=abrindo?'block':'none';
+  if(!abrindo)return;
+  const inp=document.getElementById(`macbi-${itemId}-${fId}`);
+  if(!inp)return;
+  if(!inp.value){
+    // Já entra buscando pelo nome do princípio ativo do falteiro — normalmente 1 clique resolve.
+    const desc=(autoState.itens.find(i=>i.id===itemId)||{}).descricao||'';
+    inp.value=_tokensSignificativos(normDesc(desc)).slice(0,1).join(' ');
+  }
+  buscarNaOL(itemId,fId,inp.value);
+  inp.focus();inp.select();
+}
+function buscarNaOL(itemId,fId,termo){
+  const box=document.getElementById(`macbr-${itemId}-${fId}`);
+  if(!box)return;
+  const olItens=autoState.fornecedores[fId]?.itens||[];
+  const termos=normDesc(termo||'').split(' ').filter(t=>t.length>=2);
+  if(!termos.length){box.innerHTML='<div style="font-size:10px;color:#94a3b8;padding:4px">digite ao menos 2 letras</div>';return;}
+  const achados=[];
+  for(let i=0;i<olItens.length&&achados.length<15;i++){
+    const o=olItens[i];
+    const alvo=(o._norm||'')+' '+String(o.ean||'');
+    if(termos.every(t=>alvo.includes(t)))achados.push(i);
+  }
+  if(!achados.length){box.innerHTML='<div style="font-size:10px;color:#e8112d;padding:4px">nada encontrado nesta OL</div>';return;}
+  box.innerHTML=achados.map(i=>{
+    const o=olItens[i];
+    const est=o.estoque!=null?` · est. ${o.estoque}`:'';
+    return `<div onclick="event.stopPropagation();escolherDaOL('${itemId}','${fId}',${i})" style="font-size:10px;padding:4px 6px;border:1px solid #e2e8f0;border-radius:5px;margin-bottom:3px;cursor:pointer;background:#fff"
+      onmouseover="this.style.background='#f0fdf4'" onmouseout="this.style.background='#fff'">
+      <div style="color:#1a1a2e;line-height:1.3">${o.descricao}</div>
+      <div style="color:#15a563;font-weight:700">${o.preco!=null?fmtR(o.preco):'—'}<span style="color:#94a3b8;font-weight:400">${est}</span></div>
+    </div>`;
+  }).join('');
+}
+function escolherDaOL(itemId,fId,idxOl){
+  const o=(autoState.fornecedores[fId]?.itens||[])[idxOl];
+  if(!o)return;
+  const qtd=(autoState.itens.find(i=>i.id===itemId)||{}).quantidade||1;
+  const t=getBestTier(o,qtd);
+  autoState.matches[itemId]=autoState.matches[itemId]||{};
+  autoState.matches[itemId][fId]={item:o,confidence:100,fonte:'manual',ativo:true,tierIdx:t.idx,precoEfetivo:t.preco??o.preco};
+  autoState.buscaAberta=null;
+  renderAutoCotar();
+  toast('Produto vinculado manualmente.','ok');
+}
+function toggleSoFaltantes(v){autoState.soFaltantes=v;renderAutoCotar();}
 function renderAutoCotar(){
   const{itens,fornecedores,matches}=autoState;
   const fornIds=Object.keys(fornecedores);
   if(!itens.length){document.getElementById('mac-corpo').innerHTML='<div class="empty">Nenhum item no falteiro.</div>';return;}
-  document.getElementById('mac-corpo').innerHTML=itens.map(item=>{
+  const temAlgum=item=>fornIds.some(fId=>matches[item.id]?.[fId]);
+  const nSem=itens.filter(i=>!temAlgum(i)).length;
+  const visiveis=autoState.soFaltantes?itens.filter(i=>!temAlgum(i)):itens;
+  const cabecalho=`<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:8px 12px;margin-bottom:10px">
+    <div style="font-size:12px;color:#475569"><b>${itens.length-nSem}</b> de <b>${itens.length}</b> itens com match${nSem?` · <span style="color:#e8112d;font-weight:700">${nSem} sem nenhum match</span>`:''}</div>
+    <label style="font-size:12px;color:#475569;display:flex;align-items:center;gap:6px;cursor:pointer">
+      <input type="checkbox" ${autoState.soFaltantes?'checked':''} onchange="toggleSoFaltantes(this.checked)" style="cursor:pointer"/> mostrar só os que faltam
+    </label>
+  </div>`;
+  const corpo=visiveis.map(item=>{
     const im=matches[item.id]||{};
     const cards=fornIds.map(fId=>{
       const m=im[fId];
-      if(!m)return `<div class="mac-card mac-sem"><div class="mac-forn">${fornecedores[fId].nome}</div><div class="mac-prod" style="color:#94a3b8;font-style:italic">sem match</div></div>`;
+      if(!m)return `<div class="mac-card mac-sem"><div class="mac-forn">${fornecedores[fId].nome}</div><div class="mac-prod" style="color:#94a3b8;font-style:italic">sem match</div><div style="margin-top:5px">${_macBtnBusca(item.id,fId)}</div>${_macPainelBusca(item.id,fId)}</div>`;
       const cor=m.confidence>=80?'#15a563':m.confidence>=60?'#f59e0b':'#e8112d';
-      const badge=m.fonte==='ean'?`<span style="font-size:10px;font-weight:700;color:#15a563">EAN</span>`:`<span style="font-size:10px;font-weight:700;color:${cor}">${m.fonte==='token'?'🔤 ':''}${m.confidence}%</span>`;
+      const badge=m.fonte==='ean'?`<span style="font-size:10px;font-weight:700;color:#15a563">EAN</span>`
+        :m.fonte==='manual'?`<span style="font-size:10px;font-weight:700;color:#15a563">✋ manual</span>`
+        :`<span style="font-size:10px;font-weight:700;color:${cor}">${m.fonte==='token'?'🔤 ':''}${m.confidence}%</span>`;
       const ativo=m.ativo!==false;
       const precoAtual=m.precoEfetivo??m.item.preco;
       let estoqueHtml='';
@@ -1834,10 +2043,11 @@ function renderAutoCotar(){
           extrasHtml+=`<div style="font-size:10px;color:#64748b;margin-top:4px">${Object.entries(c.estoques).map(([k,v])=>`<span style="margin-right:5px"><b>${k}:</b>${v}</span>`).join('')}</div>`;
         }
       }catch{}}
-      return `<div class="mac-card ${ativo?'mac-ativo':'mac-inativo'}" onclick="toggleMatch('${item.id}','${fId}')"><div class="mac-forn">${fornecedores[fId].nome}</div><div class="mac-prod">${m.item.descricao}</div>${estoqueHtml}${extrasHtml}<div style="display:flex;justify-content:space-between;align-items:center;margin-top:5px">${precoAtual!=null?`<span style="font-weight:700;color:#15a563;font-size:12px">${fmtR(precoAtual)}</span>`:'<span style="color:#94a3b8;font-size:12px">&mdash;</span>'}${badge}</div></div>`;
+      return `<div class="mac-card ${ativo?'mac-ativo':'mac-inativo'}" onclick="toggleMatch('${item.id}','${fId}')"><div class="mac-forn">${fornecedores[fId].nome}</div><div class="mac-prod">${m.item.descricao}</div>${estoqueHtml}${extrasHtml}<div style="display:flex;justify-content:space-between;align-items:center;margin-top:5px">${precoAtual!=null?`<span style="font-weight:700;color:#15a563;font-size:12px">${fmtR(precoAtual)}</span>`:'<span style="color:#94a3b8;font-size:12px">&mdash;</span>'}${badge}</div><div style="margin-top:5px">${_macBtnBusca(item.id,fId)}</div>${_macPainelBusca(item.id,fId)}</div>`;
     }).join('');
     return `<div class="mac-item"><div class="mac-item-desc">${item.descricao} <span style="color:#94a3b8;font-size:11px;font-weight:400">· Qtd ${item.quantidade||1}</span></div><div class="mac-cards">${cards}</div></div>`;
   }).join('');
+  document.getElementById('mac-corpo').innerHTML=cabecalho+(corpo||'<div class="empty">Todos os itens já têm pelo menos um match. 🎉</div>');
 }
 function toggleMatch(itemId,fornId){
   if(!autoState.matches[itemId]?.[fornId])return;
