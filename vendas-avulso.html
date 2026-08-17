@@ -75,6 +75,14 @@ body{font-family:'Inter',sans-serif;background:#f5f7fa;color:#1a1a2e;padding-bot
 .row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
 @media(max-width:600px){.row2,.row3{grid-template-columns:1fr}}
+.row-mk{margin-top:-6px}
+.row-mk .col1{grid-column:1}
+.row-mk .col3{grid-column:3}
+@media(max-width:600px){.row-mk .col1,.row-mk .col3{grid-column:1}}
+input.ro-mk{background:#f1f5f9;border-style:dashed;color:#0f766e;font-weight:800;cursor:default;font-variant-numeric:tabular-nums}
+input.ro-mk:focus{border-color:#e2e8f0}
+input.ro-mk.neg{color:#dc2626}
+input.ro-mk.vazio{color:#94a3b8;font-weight:600}
 
 /* ── SCANNER ── */
 .scan-box{background:linear-gradient(135deg,#15a563,#0f8a52);border-radius:14px;padding:18px;margin-bottom:16px;box-shadow:0 4px 16px rgba(21,165,99,.28)}
@@ -344,13 +352,25 @@ body{font-family:'Inter',sans-serif;background:#f5f7fa;color:#1a1a2e;padding-bot
       <div class="field"><label>Unidade</label>
         <select id="cad-un"><option>UN</option><option>CX</option><option>FR</option><option>PC</option><option>KG</option><option>PAR</option></select>
       </div>
-      <div class="field"><label>Preço de custo (R$)</label><input id="cad-custo" type="number" step="0.01" min="0" placeholder="0,00"/></div>
-      <div class="field"><label>Preço de venda (R$)</label><input id="cad-venda" type="number" step="0.01" min="0" placeholder="0,00"/></div>
+      <div class="field"><label>Preço de custo (R$)</label><input id="cad-custo" type="number" step="0.01" min="0" placeholder="0,00" oninput="calcMarkup()"/></div>
+      <div class="field"><label>Preço de venda (R$)</label><input id="cad-venda" type="number" step="0.01" min="0" placeholder="0,00" oninput="calcMarkup()"/></div>
+    </div>
+    <div class="row3 row-mk">
+      <div class="field col3"><label>Markup sobre o custo</label>
+        <input id="cad-mk" class="ro-mk" readonly tabindex="-1" placeholder="—"/>
+        <div class="hint" id="cad-mk-hint">Preencha custo e preço de venda.</div>
+      </div>
     </div>
     <div class="row3">
-      <div class="field"><label>Preço promocional (R$)</label><input id="cad-promo" type="number" step="0.01" min="0" placeholder="0,00"/><div class="hint">Deixe vazio se não estiver em promoção. Quando preenchido, a venda usa este preço sozinha.</div></div>
+      <div class="field"><label>Preço promocional (R$)</label><input id="cad-promo" type="number" step="0.01" min="0" placeholder="0,00" oninput="calcMarkup()"/><div class="hint">Deixe vazio se não estiver em promoção. Quando preenchido, a venda usa este preço sozinha.</div></div>
       <div class="field"><label>Estoque inicial</label><input id="cad-est" type="number" step="0.001" min="0" placeholder="0"/><div class="hint">Gera uma entrada no histórico.</div></div>
       <div class="field"><label>Estoque mínimo (alerta)</label><input id="cad-min" type="number" step="0.001" min="0" placeholder="0"/></div>
+    </div>
+    <div class="row3 row-mk">
+      <div class="field col1"><label>Markup do promocional</label>
+        <input id="cad-mkp" class="ro-mk" readonly tabindex="-1" placeholder="—"/>
+        <div class="hint" id="cad-mkp-hint">Só aparece quando houver preço promocional.</div>
+      </div>
     </div>
     <div class="field"><label>Observação</label><input id="cad-obs" placeholder="Onde comprou, validade, etc."/></div>
     <button class="btn btn-primary btn-block" onclick="salvarProduto()"><svg class="ic"><use href="#i-check"/></svg> Cadastrar produto</button>
@@ -803,6 +823,32 @@ async function ajustarEstoque(produtoId, delta){
 function limparCadastro(){
   ['cad-desc','cad-cb','cad-fab','cad-custo','cad-venda','cad-promo','cad-est','cad-min','cad-obs'].forEach(i=>$(i).value='');
   $('cad-un').value = 'UN';
+  calcMarkup();
+}
+
+/* ── Markup do cadastro (só leitura) ───────────────────────────────
+   markup % = (preço − custo) ÷ custo × 100  →  quanto foi acrescido em cima do custo.
+   O hint mostra o lucro bruto em R$ por unidade e a margem sobre a venda. */
+const pctTxt = v => v.toLocaleString('pt-BR',{minimumFractionDigits:1, maximumFractionDigits:1}) + ' %';
+function mostrarMarkup(idInput, idHint, custo, preco, vazioMsg){
+  const inp = $(idInput), hint = $(idHint);
+  if(!inp) return;
+  inp.classList.remove('neg'); inp.classList.add('vazio');
+  if(preco <= 0){ inp.value = ''; hint.textContent = vazioMsg; return; }
+  if(custo <= 0){ inp.value = ''; hint.textContent = 'Informe o preço de custo para calcular o markup.'; return; }
+  const lucro  = preco - custo;
+  const markup = (lucro / custo) * 100;
+  const margem = (lucro / preco) * 100;
+  inp.classList.remove('vazio');
+  if(lucro < 0) inp.classList.add('neg');
+  inp.value = pctTxt(markup) + '  (' + (preco/custo).toLocaleString('pt-BR',{minimumFractionDigits:2, maximumFractionDigits:2}) + '×)';
+  hint.textContent = (lucro < 0 ? '⚠ Abaixo do custo — prejuízo de ' + brl(-lucro) : 'Lucro bruto ' + brl(lucro))
+                   + ' por unidade · margem sobre a venda ' + pctTxt(margem);
+}
+function calcMarkup(){
+  const custo = nz($('cad-custo').value);
+  mostrarMarkup('cad-mk',  'cad-mk-hint',  custo, nz($('cad-venda').value), 'Preencha custo e preço de venda.');
+  mostrarMarkup('cad-mkp', 'cad-mkp-hint', custo, nz($('cad-promo').value), 'Só aparece quando houver preço promocional.');
 }
 async function criarProduto(dados, estoqueInicial){
   const existe = dados.codigo_barras && PRODUTOS.find(p => p.codigo_barras === dados.codigo_barras);
