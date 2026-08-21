@@ -96,6 +96,10 @@ body{font-family:'Inter',sans-serif;background:#f5f7fa;color:#1a1a2e;padding-bot
 .filtros input,.filtros select{padding:9px 12px;border:1.5px solid #e2e8f0;border-radius:9px;font-size:13px;font-family:'Inter',sans-serif;outline:none;background:#fff}
 .filtros input:focus,.filtros select:focus{border-color:#15a563}
 .filtros input[type=search]{flex:1;min-width:170px}
+/* ── DISTRIBUIDORA (por linha) ── */
+.dist-sel{padding:6px 8px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:12px;font-family:'Inter',sans-serif;background:#fff;outline:none;min-width:120px;font-weight:600;color:#334155}
+.dist-sel:focus{border-color:#15a563}
+.dist-sel.vazia{color:#94a3b8;font-weight:500}
 
 /* ── TABELA ── */
 .tbl{width:100%;border-collapse:collapse;font-size:13px;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 10px rgba(0,0,0,.06)}
@@ -298,6 +302,10 @@ input[type=checkbox].sel{width:20px;height:20px;accent-color:#15a563;cursor:poin
       <option>Venda perdida</option>
     </select>
     <select id="ff-vend" onchange="renderFaltas()"><option value="">Todos</option></select>
+    <select id="ff-dist" class="so-gestor" onchange="renderFaltas()" title="Filtrar por distribuidora">
+      <option value="">Todas as distribuidoras</option>
+      <option value="__SEM__">Sem distribuidora</option>
+    </select>
     <select id="ff-per" onchange="renderFaltas()">
       <option value="0">Hoje</option>
       <option value="7">7 dias</option>
@@ -336,6 +344,10 @@ input[type=checkbox].sel{width:20px;height:20px;accent-color:#15a563;cursor:poin
       <option value="">Todas</option>
     </select>
     <select id="fe-vend" onchange="renderEncomendas()"><option value="">Todos</option></select>
+    <select id="fe-dist" class="so-gestor" onchange="renderEncomendas()" title="Filtrar por distribuidora">
+      <option value="">Todas as distribuidoras</option>
+      <option value="__SEM__">Sem distribuidora</option>
+    </select>
     <select id="fe-per" onchange="renderEncomendas()">
       <option value="0">Hoje</option>
       <option value="7">7 dias</option>
@@ -633,6 +645,11 @@ function aplicarPermissoes(){
   $('card-usuarios').classList.toggle('hidden', !g);
   $('ro-faltas').classList.toggle('hidden', g);
   $('ro-enc').classList.toggle('hidden', g);
+  // o filtro de distribuidora é só do gestor; os demais apenas enxergam a coluna
+  document.querySelectorAll('.so-gestor').forEach(el => {
+    el.classList.toggle('hidden', !g);
+    if(!g) el.value = '';
+  });
   if(g) renderUsuarios();
 }
 
@@ -813,8 +830,10 @@ function renderUltimos(){
 function filtrarFaltas(){
   const b = $('ff-busca').value.trim().toUpperCase(), st = $('ff-status').value,
         mo = $('ff-motivo').value, vd = $('ff-vend').value, per = +$('ff-per').value;
+  const di = ehGestor() ? $('ff-dist').value : '';
   const lim = diasAtras(per);
   return ordenar(FALTAS.filter(f =>
+    (!di || (di === '__SEM__' ? !f.distribuidora : f.distribuidora === di)) &&
     (!b || (f.produto||'').toUpperCase().includes(b)) &&
     (st === 'aberto' ? ['pendente','pedido'].includes(f.status) : (!st || f.status === st)) &&
     (!mo || f.motivo === mo) &&
@@ -850,6 +869,43 @@ function thOrd(campo, rotulo){
   const seta = on ? (ordemFaltas.dir === 'asc' ? '▲' : '▼') : '▼';
   return `<th class="sortavel" onclick="ordenarPor('${campo}')">${rotulo}<span class="seta${on?' on':''}">${seta}</span></th>`;
 }
+/* ══════════════ DISTRIBUIDORAS ══════════════ */
+const DISTRIBUIDORAS = ['Nazária','Profarma','Santa Cruz'];
+const COR_DIST = { 'Nazária':'b-verde', 'Profarma':'b-azul', 'Santa Cruz':'b-roxo' };
+
+function montarFiltrosDist(){
+  ['ff-dist','fe-dist'].forEach(id => {
+    const s = $(id); if(!s) return;
+    const atual = s.value;
+    s.innerHTML = '<option value="">Todas as distribuidoras</option>' +
+      DISTRIBUIDORAS.map(d=>`<option value="${esc(d)}">${esc(d)}</option>`).join('') +
+      '<option value="__SEM__">Sem distribuidora</option>';
+    s.value = atual;
+  });
+}
+/* célula da coluna Distribuidora: gestor escolhe, os demais só enxergam */
+function celulaDist(tabela, reg, g){
+  const v = reg.distribuidora || '';
+  if(!g){
+    return `<td data-l="Distribuidora">${v
+      ? `<span class="badge ${COR_DIST[v]||'b-cinza'}">${esc(v)}</span>`
+      : '<span class="mono">—</span>'}</td>`;
+  }
+  return `<td data-l="Distribuidora"><select class="dist-sel${v?'':' vazia'}" onchange="setDist('${tabela}','${reg.id}',this.value)">
+      <option value=""${v?'':' selected'}>— definir —</option>
+      ${DISTRIBUIDORAS.map(d=>`<option${d===v?' selected':''}>${esc(d)}</option>`).join('')}
+    </select></td>`;
+}
+async function setDist(tabela, id, valor){
+  if(!soGestor()){ renderTudo(); return; }
+  const { error } = await sb.from(tabela).update({ distribuidora: valor || null }).eq('id', id);
+  if(error){ toast('Erro: ' + error.message, true); renderTudo(); return; }
+  const lista = tabela === 'fe_faltas' ? FALTAS : ENCOMENDAS;
+  const r = lista.find(x=>x.id===id); if(r) r.distribuidora = valor || null;
+  renderTudo();
+  toast(valor ? 'Distribuidora: ' + valor : 'Distribuidora removida');
+}
+
 const ST_FALTA = {
   pendente:{txt:'A pedir', cls:'b-cinza'},
   pedido:{txt:'Pedida', cls:'b-azul'},
@@ -871,7 +927,8 @@ function renderFaltas(){
   $('faltas-tabela').innerHTML = '<table class="tbl"><thead><tr>' +
     (g?`<th class="chk"><input type="checkbox" class="sel" ${todos?'checked':''} onchange="selTodasFaltas(this.checked)"/></th>`:'') +
     thOrd('created_at','Data') + thOrd('produto','Produto') + thOrd('motivo','Motivo') +
-    thOrd('vendedor','Vendedor') + '<th class="chk">Pedida</th>' + thOrd('status','Status') + (g?'<th></th>':'') +
+    thOrd('vendedor','Vendedor') + '<th class="chk">Pedida</th>' + thOrd('status','Status') +
+    thOrd('distribuidora','Distribuidora') + (g?'<th></th>':'') +
     '</tr></thead><tbody>' + lista.map(f => `
     <tr>
       ${g?`<td class="chk"><input type="checkbox" class="sel" ${selFaltas.has(f.id)?'checked':''} onchange="selFalta('${f.id}',this.checked)"/></td>`:''}
@@ -885,6 +942,7 @@ function renderFaltas(){
             : (f.status==='pedido' ? '<span class="badge b-azul">sim</span>' : '<span class="mono">não</span>')
       }</td>
       <td data-l="Status"><span class="badge ${ST_FALTA[f.status].cls}">${ST_FALTA[f.status].txt}</span></td>
+      ${celulaDist('fe_faltas', f, g)}
       ${g?`<td data-l="Ações" class="full"><div class="acoes">
         ${f.status==='comprado'
           ? `<button class="btn btn-outline btn-sm" onclick="marcarFalta('${f.id}','pendente')">Reabrir</button>`
@@ -908,6 +966,11 @@ function renderBulkFaltas(){
   if(!n || !ehGestor()) return;
   box.innerHTML = `<div class="barra-sel">
     <span class="cresce">${n} falta(s) selecionada(s)</span>
+    <select class="dist-sel" onchange="massaDist(this.value); this.value='';" title="Definir a distribuidora das faltas selecionadas">
+      <option value="">Distribuidora…</option>
+      ${DISTRIBUIDORAS.map(d=>`<option>${esc(d)}</option>`).join('')}
+      <option value="__LIMPAR__">Limpar distribuidora</option>
+    </select>
     <button class="btn btn-blue btn-sm" onclick="massaFaltas('pedido')"><svg class="ic"><use href="#i-carrinho"/></svg> Marcar como pedida</button>
     <button class="btn btn-primary btn-sm" onclick="massaFaltas('comprado')"><svg class="ic"><use href="#i-check"/></svg> Marcar como comprada</button>
     <button class="btn btn-outline btn-sm" onclick="massaFaltas('pendente')">Voltar para a pedir</button>
@@ -926,6 +989,17 @@ function patchFalta(status){
 async function marcarPedida(id, on){
   if(!soGestor()) return;
   await marcarFalta(id, on ? 'pedido' : 'pendente');
+}
+async function massaDist(valor){
+  if(!valor) return;
+  if(!soGestor()) return;
+  const ids = [...selFaltas]; if(!ids.length) return;
+  const novo = valor === '__LIMPAR__' ? null : valor;
+  const { error } = await sb.from('fe_faltas').update({ distribuidora: novo }).in('id', ids);
+  if(error){ toast('Erro: ' + error.message, true); return; }
+  FALTAS = FALTAS.map(f => ids.includes(f.id) ? {...f, distribuidora: novo} : f);
+  renderTudo();
+  toast(`${ids.length} falta(s) → ${novo || 'sem distribuidora'}`);
 }
 async function massaFaltas(status){
   if(!soGestor()) return;
@@ -976,8 +1050,10 @@ const ST_ENC = {
 function filtrarEncomendas(){
   const b = $('fe-busca').value.trim().toUpperCase(), st = $('fe-status').value,
         vd = $('fe-vend').value, per = +$('fe-per').value;
+  const di = ehGestor() ? $('fe-dist').value : '';
   const lim = diasAtras(per);
   return ENCOMENDAS.filter(e =>
+    (!di || (di === '__SEM__' ? !e.distribuidora : e.distribuidora === di)) &&
     (!b || ((e.produto||'')+' '+(e.cliente||'')).toUpperCase().includes(b)) &&
     (st==='abertas' ? ['pendente','pedido','chegou'].includes(e.status) : (!st || e.status===st)) &&
     (!vd || e.vendedor === vd) &&
@@ -992,7 +1068,7 @@ function renderEncomendas(){
   contadores();
   if(!lista.length){ $('enc-tabela').innerHTML = '<div class="vazio">Nenhuma encomenda encontrada com esses filtros.</div>'; return; }
   $('enc-tabela').innerHTML = '<table class="tbl"><thead><tr>' +
-    '<th>Data</th><th>Cliente</th><th>Produto</th><th>Qtd</th><th>Vendedor</th><th>Pagamento</th><th>Status</th><th></th>' +
+    '<th>Data</th><th>Cliente</th><th>Produto</th><th>Qtd</th><th>Vendedor</th><th>Pagamento</th><th>Status</th><th>Distribuidora</th><th></th>' +
     '</tr></thead><tbody>' + lista.map(e => {
     const w = fone(e.telefone);
     const risc = ['entregue','cancelado'].includes(e.status) ? 'risc' : '';
@@ -1005,6 +1081,7 @@ function renderEncomendas(){
       <td data-l="Vendedor">${esc(e.vendedor)}</td>
       <td data-l="Pagamento">${esc(e.pagamento||'')}</td>
       <td data-l="Status"><span class="badge ${ST_ENC[e.status].cls}">${ST_ENC[e.status].txt}</span></td>
+      ${celulaDist('fe_encomendas', e, g)}
       <td data-l="Ações" class="full"><div class="acoes">
         ${g && e.status==='pendente' ? `<button class="btn btn-blue btn-sm" onclick="statusEnc('${e.id}','pedido')"><svg class="ic"><use href="#i-carrinho"/></svg> Pedido feito</button>` : ''}
         ${g && e.status==='pedido' ? `<button class="btn btn-blue btn-sm" onclick="statusEnc('${e.id}','chegou')"><svg class="ic"><use href="#i-caixa"/></svg> Chegou</button>` : ''}
@@ -1115,6 +1192,7 @@ function exportarFaltas(){
   const l = filtrarFaltas().map(f=>({
     Data: dataBR(f.created_at), Produto: f.produto, Motivo: f.motivo,
     Vendedor: f.vendedor, Status: ST_FALTA[f.status] ? ST_FALTA[f.status].txt : f.status,
+    Distribuidora: f.distribuidora||'',
     'Pedida em': f.pedido_em ? dataBR(f.pedido_em) : '', Observação: f.observacao||''
   }));
   if(!l.length){ toast('Nada para exportar', true); return; }
@@ -1124,7 +1202,7 @@ function exportarEncomendas(){
   const l = filtrarEncomendas().map(e=>({
     Data: dataBR(e.created_at), Cliente: e.cliente, Produto: e.produto, Quantidade: e.quantidade||'',
     Telefone: e.telefone||'', Vendedor: e.vendedor, Pagamento: e.pagamento||'',
-    Fornecedor: e.fornecedor||'', Previsão: e.previsao||'', Status: ST_ENC[e.status].txt, Observação: e.observacao||''
+    Distribuidora: e.distribuidora||'', Fornecedor: e.fornecedor||'', Previsão: e.previsao||'', Status: ST_ENC[e.status].txt, Observação: e.observacao||''
   }));
   if(!l.length){ toast('Nada para exportar', true); return; }
   baixar(l, 'Encomendas', 'Encomendas');
@@ -1132,6 +1210,7 @@ function exportarEncomendas(){
 
 /* ══════════════ INÍCIO ══════════════ */
 (async function init(){
+  montarFiltrosDist();
   await carregarUsuarios();
   await carregar();
   assinar();
