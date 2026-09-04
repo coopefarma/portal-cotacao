@@ -744,6 +744,7 @@ async function carregar(){
   renderTudo();
 }
 function renderTudo(){
+  montarFiltrosDist();
   renderFaltas(); renderEncomendas(); renderUltimos(); renderResumo(); contadores();
 }
 function contadores(){
@@ -873,14 +874,29 @@ function thOrd(campo, rotulo){
 const DISTRIBUIDORAS = ['Nazária','Profarma','Santa Cruz'];
 const COR_DIST = { 'Nazária':'b-verde', 'Profarma':'b-azul', 'Santa Cruz':'b-roxo' };
 
+/* lista completa: as fixas + qualquer distribuidora digitada e já gravada nos registros */
+function distsTodas(){
+  const set = new Set(DISTRIBUIDORAS);
+  [...(typeof FALTAS !== 'undefined' ? FALTAS : []), ...(typeof ENCOMENDAS !== 'undefined' ? ENCOMENDAS : [])]
+    .forEach(r => { if(r && r.distribuidora) set.add(r.distribuidora); });
+  return [...set].sort((a,b)=>a.localeCompare(b,'pt-BR'));
+}
+/* pede o nome de uma distribuidora nova; devolve '' se cancelar */
+function pedirDistNova(atual){
+  const nome = (window.prompt('Digite o nome da distribuidora:', atual || '') || '').trim();
+  if(!nome) return '';
+  return nome.length > 60 ? nome.slice(0,60) : nome;
+}
+
 function montarFiltrosDist(){
+  const lista = distsTodas();
   ['ff-dist','fe-dist'].forEach(id => {
     const s = $(id); if(!s) return;
     const atual = s.value;
     s.innerHTML = '<option value="">Todas as distribuidoras</option>' +
-      DISTRIBUIDORAS.map(d=>`<option value="${esc(d)}">${esc(d)}</option>`).join('') +
+      lista.map(d=>`<option value="${esc(d)}">${esc(d)}</option>`).join('') +
       '<option value="__SEM__">Sem distribuidora</option>';
-    s.value = atual;
+    s.value = [...s.options].some(o=>o.value===atual) ? atual : '';
   });
 }
 /* célula da coluna Distribuidora: gestor escolhe, os demais só enxergam */
@@ -893,11 +909,18 @@ function celulaDist(tabela, reg, g){
   }
   return `<td data-l="Distribuidora"><select class="dist-sel${v?'':' vazia'}" onchange="setDist('${tabela}','${reg.id}',this.value)">
       <option value=""${v?'':' selected'}>— definir —</option>
-      ${DISTRIBUIDORAS.map(d=>`<option${d===v?' selected':''}>${esc(d)}</option>`).join('')}
+      ${distsTodas().map(d=>`<option${d===v?' selected':''}>${esc(d)}</option>`).join('')}
+      <option value="__OUTRA__">✏️ Outra… (digitar)</option>
     </select></td>`;
 }
 async function setDist(tabela, id, valor){
   if(!soGestor()){ renderTudo(); return; }
+  if(valor === '__OUTRA__'){
+    const lista = tabela === 'fe_faltas' ? FALTAS : ENCOMENDAS;
+    const reg = lista.find(x=>x.id===id);
+    valor = pedirDistNova(reg && reg.distribuidora);
+    if(!valor){ renderTudo(); return; }
+  }
   const { error } = await sb.from(tabela).update({ distribuidora: valor || null }).eq('id', id);
   if(error){ toast('Erro: ' + error.message, true); renderTudo(); return; }
   const lista = tabela === 'fe_faltas' ? FALTAS : ENCOMENDAS;
@@ -968,7 +991,8 @@ function renderBulkFaltas(){
     <span class="cresce">${n} falta(s) selecionada(s)</span>
     <select class="dist-sel" onchange="massaDist(this.value); this.value='';" title="Definir a distribuidora das faltas selecionadas">
       <option value="">Distribuidora…</option>
-      ${DISTRIBUIDORAS.map(d=>`<option>${esc(d)}</option>`).join('')}
+      ${distsTodas().map(d=>`<option>${esc(d)}</option>`).join('')}
+      <option value="__OUTRA__">✏️ Outra… (digitar)</option>
       <option value="__LIMPAR__">Limpar distribuidora</option>
     </select>
     <button class="btn btn-blue btn-sm" onclick="massaFaltas('pedido')"><svg class="ic"><use href="#i-carrinho"/></svg> Marcar como pedida</button>
@@ -994,6 +1018,10 @@ async function massaDist(valor){
   if(!valor) return;
   if(!soGestor()) return;
   const ids = [...selFaltas]; if(!ids.length) return;
+  if(valor === '__OUTRA__'){
+    valor = pedirDistNova('');
+    if(!valor) return;
+  }
   const novo = valor === '__LIMPAR__' ? null : valor;
   const { error } = await sb.from('fe_faltas').update({ distribuidora: novo }).in('id', ids);
   if(error){ toast('Erro: ' + error.message, true); return; }
