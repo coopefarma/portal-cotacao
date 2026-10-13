@@ -229,7 +229,7 @@ body{font-family:'Inter',sans-serif;background:#f5f7fa;color:#1a1a2e}
 </div>
 <!-- LOGIN -->
 <div id="tela-login">
-  <div class="login-box">
+  <div class="login-box" id="box-login">
     <div class="login-logo">
       <img src="https://raw.githubusercontent.com/coopefarma/portal-cotacao/main/Coopefarma_Marca_1.jpg" alt="Coopefarma"/>
       <h2>CotaCoop</h2>
@@ -241,6 +241,35 @@ body{font-family:'Inter',sans-serif;background:#f5f7fa;color:#1a1a2e}
     <input type="password" id="l-senha" placeholder="••••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter')fazerLogin()"/>
     <div class="login-erro" id="l-erro"></div>
     <button class="btn btn-primary" style="width:100%;padding:13px;font-size:14px" onclick="fazerLogin()">Entrar</button>
+    <div style="text-align:center;margin-top:14px"><a href="#" onclick="mostrarPedirReset();return false" style="color:#15a563;font-size:12.5px;text-decoration:none;font-weight:600">Esqueci minha senha</a></div>
+  </div>
+  <!-- PEDIR O LINK DE RECUPERACAO -->
+  <div class="login-box" id="box-reset" style="display:none">
+    <div class="login-logo">
+      <img src="https://raw.githubusercontent.com/coopefarma/portal-cotacao/main/Coopefarma_Marca_1.jpg" alt="Coopefarma"/>
+      <h2>Recuperar senha</h2>
+      <p>Enviamos um link para você criar uma nova senha</p>
+    </div>
+    <label>E-mail cadastrado</label>
+    <input type="email" id="r-email" placeholder="seu@email.com" autocomplete="email" onkeydown="if(event.key==='Enter')enviarReset()"/>
+    <div class="login-erro" id="r-msg" style="color:#64748b;text-align:left;line-height:1.45"></div>
+    <button class="btn btn-primary" id="r-btn" style="width:100%;padding:13px;font-size:14px" onclick="enviarReset()">Enviar link de recuperação</button>
+    <div style="text-align:center;margin-top:14px"><a href="#" onclick="voltarLogin();return false" style="color:#64748b;font-size:12.5px;text-decoration:none">← Voltar para o login</a></div>
+  </div>
+  <!-- DEFINIR A NOVA SENHA (volta do link do e-mail) -->
+  <div class="login-box" id="box-nova" style="display:none">
+    <div class="login-logo">
+      <img src="https://raw.githubusercontent.com/coopefarma/portal-cotacao/main/Coopefarma_Marca_1.jpg" alt="Coopefarma"/>
+      <h2>Criar nova senha</h2>
+      <p>Escolha a senha que você vai usar de agora em diante</p>
+    </div>
+    <label>Nova senha</label>
+    <input type="password" id="n-senha" placeholder="mínimo 6 caracteres" autocomplete="new-password"/>
+    <label>Repita a nova senha</label>
+    <input type="password" id="n-senha2" placeholder="••••••••" autocomplete="new-password" onkeydown="if(event.key==='Enter')salvarNovaSenha()"/>
+    <div class="login-erro" id="n-msg" style="text-align:left;line-height:1.45"></div>
+    <button class="btn btn-primary" id="n-btn" style="width:100%;padding:13px;font-size:14px" onclick="salvarNovaSenha()">Salvar nova senha</button>
+    <div style="text-align:center;margin-top:14px"><a href="#" onclick="voltarLogin();return false" style="color:#64748b;font-size:12.5px;text-decoration:none">← Voltar para o login</a></div>
   </div>
 </div>
 <!-- APP -->
@@ -468,6 +497,17 @@ const SB_KEY='sb_publishable_SQ0x7RDU9B0u5lqvn2pr1Q_4NwoJMY9';
 const {createClient}=supabase;
 const sb=createClient(SB_URL,SB_KEY);
 const BASE=location.origin+location.pathname;
+// Retorno do link de "Esqueci minha senha". O supabase-js limpa o hash assim que monta a
+// sessao, entao o hash precisa ser lido AGORA, antes de qualquer await.
+const HASH_INICIAL=location.hash||'';
+const BUSCA_INICIAL=location.search||'';
+const MODO_RECUPERACAO=/type=recovery/.test(HASH_INICIAL)||/type=recovery/.test(BUSCA_INICIAL);
+const ERRO_LINK=(function(){
+  var m=/error_description=([^&]*)/.exec(HASH_INICIAL+'&'+BUSCA_INICIAL);
+  if(!m)return '';
+  var t=decodeURIComponent(m[1].replace(/\+/g,' '));
+  return /expired|invalid/i.test(t)?'O link expirou ou ja foi usado. Peca um novo abaixo.':t;
+})();
 let cotacaoId=null,cotacaoStatus=null,fornState={},pedidoState={},pedidoData=null;
 
 const fmtR=v=>(v!=null&&v!==''&&!isNaN(v))?'R$ '+Number(v).toFixed(2).replace('.',','):'—';
@@ -483,6 +523,9 @@ function fecharModal(id){
 }
 
 async function init(){
+  // Link de recuperacao: nao entra no app nem no modo fornecedor.
+  if(ERRO_LINK){history.replaceState(null,'',BASE);mostrarPedirReset();const m=document.getElementById('r-msg');m.style.color='#e8112d';m.textContent=ERRO_LINK;return;}
+  if(MODO_RECUPERACAO){mostrarNovaSenha();return;}
   const params=new URLSearchParams(location.search);
   const token=params.get('t')||params.get('token');
   if(token){document.getElementById('tela-fornecedor').style.display='block';await initFornecedor(token);return;}
@@ -525,6 +568,84 @@ async function fazerLogin(){
 }
 async function fazerLogout(){await sb.auth.signOut();location.reload();}
 
+// ═══ ESQUECI MINHA SENHA ═══════════════════════════════════════
+function _telaLoginVisivel(){document.getElementById('tela-login').style.display='flex';}
+function mostrarPedirReset(){
+  _telaLoginVisivel();
+  document.getElementById('box-login').style.display='none';
+  document.getElementById('box-nova').style.display='none';
+  document.getElementById('box-reset').style.display='block';
+  const e=(document.getElementById('l-email')||{}).value;
+  if(e&&e.trim())document.getElementById('r-email').value=e.trim();
+  const m=document.getElementById('r-msg');m.style.color='#64748b';m.textContent='';
+}
+function voltarLogin(){
+  _telaLoginVisivel();
+  document.getElementById('box-reset').style.display='none';
+  document.getElementById('box-nova').style.display='none';
+  document.getElementById('box-login').style.display='block';
+}
+function mostrarNovaSenha(){
+  _telaLoginVisivel();
+  document.getElementById('box-login').style.display='none';
+  document.getElementById('box-reset').style.display='none';
+  document.getElementById('box-nova').style.display='block';
+}
+async function enviarReset(){
+  const email=(document.getElementById('r-email').value||'').trim();
+  const msg=document.getElementById('r-msg');
+  if(!email){msg.style.color='#e8112d';msg.textContent='Digite o e-mail cadastrado.';return;}
+  const btn=document.getElementById('r-btn');
+  btn.disabled=true;btn.textContent='Enviando...';
+  msg.style.color='#64748b';msg.textContent='';
+  // redirectTo tem que estar na lista de Redirect URLs do Supabase, senao o link volta pro Site URL.
+  const{error}=await sb.auth.resetPasswordForEmail(email,{redirectTo:BASE});
+  btn.disabled=false;btn.textContent='Enviar link de recuperação';
+  if(error){
+    msg.style.color='#e8112d';
+    msg.textContent=/rate|limit|seconds/i.test(error.message||'')
+      ? 'Muitas tentativas seguidas. Espere alguns minutos e tente de novo.'
+      : (error.message||'Não foi possível enviar agora.');
+    return;
+  }
+  msg.style.color='#15a563';
+  msg.textContent='Se este e-mail tiver acesso ao CotaCoop, o link já está a caminho. Confira também o spam. O link vale por 1 hora.';
+}
+async function salvarNovaSenha(){
+  const s1=document.getElementById('n-senha').value;
+  const s2=document.getElementById('n-senha2').value;
+  const msg=document.getElementById('n-msg');
+  const btn=document.getElementById('n-btn');
+  msg.style.color='#e8112d';
+  if((s1||'').length<6){msg.textContent='Use pelo menos 6 caracteres.';return;}
+  if(s1!==s2){msg.textContent='As duas senhas não são iguais.';return;}
+  btn.disabled=true;btn.textContent='Salvando...';
+  msg.style.color='#64748b';msg.textContent='Salvando...';
+  // A sessão de recuperação vem do link e o supabase-js pode levar um instante pra montá-la.
+  let sessao=null;
+  for(let i=0;i<12;i++){
+    const{data}=await sb.auth.getSession();
+    if(data&&data.session){sessao=data.session;break;}
+    await new Promise(r=>setTimeout(r,400));
+  }
+  if(!sessao){
+    msg.style.color='#e8112d';
+    msg.textContent='O link expirou ou já foi usado. Peça um novo e-mail na tela anterior.';
+    btn.disabled=false;btn.textContent='Salvar nova senha';return;
+  }
+  const{error}=await sb.auth.updateUser({password:s1});
+  if(error){
+    msg.style.color='#e8112d';
+    msg.textContent=/should be different|same/i.test(error.message||'')
+      ? 'A nova senha precisa ser diferente da anterior.'
+      : (error.message||'Não foi possível salvar a senha.');
+    btn.disabled=false;btn.textContent='Salvar nova senha';return;
+  }
+  msg.style.color='#15a563';msg.textContent='Senha alterada! Entrando...';
+  history.replaceState(null,'',BASE);
+  setTimeout(function(){location.replace(BASE);},1200);
+}
+
 async function carregarCotacoes(){
   const el=document.getElementById('lista-cotacoes');
   el.innerHTML='<div class="loading-box" style="grid-column:1/-1"><div class="spin"></div></div>';
@@ -537,11 +658,11 @@ async function carregarCotacoes(){
   const ids=data.map(c=>c.id);
   const[{data:todosItens},{data:todosLinks}]=await Promise.all([
     sb.from('cotacao_itens').select('cotacao_id').in('cotacao_id',ids),
-    sb.from('cotacao_links').select('cotacao_id,status').in('cotacao_id',ids)
+    sb.from('cotacao_links').select('id,cotacao_id,fornecedor_id,status').in('cotacao_id',ids)
   ]);
   document.getElementById('sub-cotacoes').textContent=`${data.length} cotação(ões)`;
   el.innerHTML=data.map(c=>{
-    const links=(todosLinks||[]).filter(l=>l.cotacao_id===c.id);
+    const links=_dedupLinks((todosLinks||[]).filter(l=>l.cotacao_id===c.id));
     const resp=links.filter(l=>l.status==='respondido').length;
     const total=links.length;
     const itens=(todosItens||[]).filter(i=>i.cotacao_id===c.id).length;
@@ -658,11 +779,12 @@ async function salvarCotacao(){
 async function carregarDetalhe(id){
   const el=document.getElementById('det-cards');
   el.innerHTML='<div class="loading-box" style="grid-column:1/-1"><div class="spin"></div></div>';
-  const[{data:cot},{data:itens},{data:links}]=await Promise.all([
+  const[{data:cot},{data:itens},{data:_linksRaw}]=await Promise.all([
     sb.from('cotacoes').select('*').eq('id',id).single(),
     sb.from('cotacao_itens').select('*').eq('cotacao_id',id),
     sb.from('cotacao_links').select('*,fornecedores(*)').eq('cotacao_id',id)
   ]);
+  const links=_dedupLinks(_linksRaw);
   // Busca respostas por fornecedor para evitar o limite de 1000 linhas do Supabase
   const _linksComResp=(links||[]).filter(l=>['respondido','rascunho','aberto'].includes(l.status));
   const _respsArrays=await Promise.all(_linksComResp.map(l=>sb.from('cotacao_respostas').select('*').eq('cotacao_id',id).eq('fornecedor_id',l.fornecedor_id)));
@@ -732,6 +854,26 @@ async function carregarDetalhe(id){
     </div>`;
   }).join('');
 }
+// ---- Links duplicados: o mesmo fornecedor pode ter 2+ linhas em cotacao_links na mesma cotação
+// (clique duplo em "Gerar links e disparar", modal aberto duas vezes). As respostas são por
+// fornecedor_id, então os dois tokens gravam no mesmo lugar e continuam válidos — por isso NÃO
+// apagamos nenhum link (o fornecedor pode ter recebido qualquer um deles). Na tela mostramos um
+// card só por fornecedor, e toda mudança de status/parceiro vale para todos os links do grupo.
+const _LINK_RANK={respondido:4,rascunho:3,aberto:2,aguardando:1};
+let _linkGrupo={};
+function _dedupLinks(links){
+  const grupos={};
+  (links||[]).forEach(l=>{const k=(l.cotacao_id||'')+'|'+l.fornecedor_id;(grupos[k]=grupos[k]||[]).push(l);});
+  return Object.values(grupos).map(g=>{
+    g.sort((a,b)=>(_LINK_RANK[b.status]||0)-(_LINK_RANK[a.status]||0)||String(b.respondido_em||b.aberto_em||'').localeCompare(String(a.respondido_em||a.aberto_em||'')));
+    const rep={...g[0]};
+    rep._ids=g.map(x=>x.id);
+    if(rep.parceiro==null){const p=g.find(x=>x.parceiro!=null);if(p)rep.parceiro=p.parceiro;}
+    if(rep.id)_linkGrupo[rep.id]=rep._ids;
+    return rep;
+  });
+}
+function _idsDoLink(linkId){return _linkGrupo[linkId]||[linkId];}
 let _manualState={linkId:null,fornId:null,itens:[],resps:[]};
 async function abrirManual(linkId,fornId,nomeForn){
   _manualState={linkId,fornId,itens:[],resps:[]};
@@ -795,7 +937,7 @@ async function salvarManual(){
     if(insErr){toast('Erro ao salvar: '+insErr.message,'err');return;}
   }
   const novoStatus=algumPreco?'respondido':'aguardando';
-  await sb.from('cotacao_links').update({status:novoStatus,respondido_em:algumPreco?new Date().toISOString():null}).eq('id',linkId);
+  await sb.from('cotacao_links').update({status:novoStatus,respondido_em:algumPreco?new Date().toISOString():null}).in('id',_idsDoLink(linkId));
   fecharModal('modal-manual');
   toast(`Preços salvos! ${toInsert.length} ite${toInsert.length===1?'m':'ns'} preenchido${toInsert.length===1?'':'s'}.`,'ok');
   carregarDetalhe(cotacaoId);
@@ -827,23 +969,23 @@ async function recontarRespostas(linkId,fornecedorId){
       if(itensEl)itensEl.textContent='🗂 '+count+'/'+itensEl.textContent.split('/')[1];
     }
     // Garante que status no banco está correto
-    await sb.from('cotacao_links').update({status:'respondido'}).eq('id',linkId);
+    await sb.from('cotacao_links').update({status:'respondido'}).in('id',_idsDoLink(linkId));
   }
 }
 async function marcarRespondido(linkId){
   if(!confirm('Marcar este fornecedor como Respondido?'))return;
-  await sb.from('cotacao_links').update({status:'respondido',respondido_em:new Date().toISOString()}).eq('id',linkId);
+  await sb.from('cotacao_links').update({status:'respondido',respondido_em:new Date().toISOString()}).in('id',_idsDoLink(linkId));
   toast('Marcado como Respondido!','ok');carregarDetalhe(cotacaoId);
 }
 async function reabrirLink(linkId){
   if(!confirm('Reabrir este link? O fornecedor poderá editar e reenviar as respostas.'))return;
   // Apenas reseta o status — NÃO apaga respostas (ficam como rascunho para edição)
-  await sb.from('cotacao_links').update({status:'rascunho',respondido_em:null}).eq('id',linkId);
+  await sb.from('cotacao_links').update({status:'rascunho',respondido_em:null}).in('id',_idsDoLink(linkId));
   toast('Link reaberto! As respostas anteriores foram mantidas.','ok');
   carregarDetalhe(cotacaoId);
 }
 async function toggleParceiro(linkId,valor,btn){
-  await sb.from('cotacao_links').update({parceiro:valor}).eq('id',linkId);
+  await sb.from('cotacao_links').update({parceiro:valor}).in('id',_idsDoLink(linkId));
   const card=btn.closest('.forn-card');
   card.querySelectorAll('.parc-btn').forEach(b=>b.classList.remove('sim','nao'));
   btn.classList.add(valor?'sim':'nao');
@@ -926,7 +1068,7 @@ async function salvarEdicaoRespostas(){
     if(insErr){toast('Erro ao salvar: '+insErr.message,'err');return;}
   }
   const novoStatus=toInsert.length>0?'respondido':'aguardando';
-  await sb.from('cotacao_links').update({status:novoStatus,respondido_em:toInsert.length>0?new Date().toISOString():null}).eq('id',linkId);
+  await sb.from('cotacao_links').update({status:novoStatus,respondido_em:toInsert.length>0?new Date().toISOString():null}).in('id',_idsDoLink(linkId));
   fecharModal('modal-resp');
   toast(`Respostas atualizadas! ${toInsert.length} ite${toInsert.length===1?'m':'ns'} com preço.`,'ok');
   carregarDetalhe(cId);
@@ -954,9 +1096,21 @@ async function abrirDisparar(){
 function toggleCheck(el){const cb=el.querySelector('input');cb.checked=!cb.checked;el.classList.toggle('sel',cb.checked);}
 function selTodos(v){document.querySelectorAll('#disp-lista input:not(:disabled)').forEach(cb=>{cb.checked=v;cb.closest('.check-item').classList.toggle('sel',v)});}
 let _dispGerados={titulo:'',lista:[]};
+let _disparando=false;
 async function confirmarDisparar(){
-  const selecionados=[...document.querySelectorAll('#disp-lista input:checked:not(:disabled)')].map(cb=>cb.value);
+  if(_disparando)return; // clique duplo gerava 2 links pro mesmo fornecedor
+  let selecionados=[...document.querySelectorAll('#disp-lista input:checked:not(:disabled)')].map(cb=>cb.value);
   if(selecionados.length===0){toast('Selecione pelo menos um fornecedor.','err');return;}
+  _disparando=true;
+  try{
+  // Reconfere no banco na hora de gravar: o modal pode ter ficado aberto (ou aberto em outra aba)
+  // enquanto outro disparo/auto-cotar já criou o link desse fornecedor.
+  const{data:jaExist}=await sb.from('cotacao_links').select('fornecedor_id').eq('cotacao_id',cotacaoId).in('fornecedor_id',selecionados);
+  const jaTem=new Set((jaExist||[]).map(e=>e.fornecedor_id));
+  const pulados=selecionados.filter(f=>jaTem.has(f)).length;
+  selecionados=[...new Set(selecionados)].filter(f=>!jaTem.has(f));
+  if(selecionados.length===0){toast('Esses fornecedores já têm link nesta cotação.','err');return;}
+  if(pulados)toast(pulados+' fornecedor(es) já tinham link e foram ignorados.','ok');
   const{data:cot}=await sb.from('cotacoes').select('titulo').eq('id',cotacaoId).single();
   const novos=selecionados.map(fId=>({cotacao_id:cotacaoId,fornecedor_id:fId,token:crypto.randomUUID(),status:'aguardando',parceiro:null}));
   const{data:gerados,error}=await sb.from('cotacao_links').insert(novos).select('*,fornecedores(nome,whatsapp)');
@@ -967,6 +1121,7 @@ async function confirmarDisparar(){
   // Por isso a fila abre um de cada vez, com intervalo — dá tempo de dar Enter em cada aba.
   _dispGerados={titulo:cot?.titulo||'',lista:gerados};
   renderDispararFila();
+  }finally{_disparando=false;}
 }
 // ---- Fila de envio: seleciona vários fornecedores e o app abre um WhatsApp de cada vez ----
 let _dispFila={ids:[],idx:0,timer:null,restante:0,intervalo:8};
@@ -1050,11 +1205,12 @@ function enviarUmWpp(linkId){
 }
 async function carregarComparacao(id){
   document.getElementById('comp-corpo').innerHTML='<div class="loading-box"><div class="spin"></div></div>';
-  const[{data:cot},{data:itens},{data:links}]=await Promise.all([
+  const[{data:cot},{data:itens},{data:_linksRaw}]=await Promise.all([
     sb.from('cotacoes').select('titulo').eq('id',id).single(),
     sb.from('cotacao_itens').select('*').eq('cotacao_id',id),
     sb.from('cotacao_links').select('*,fornecedores(nome)').eq('cotacao_id',id)
   ]);
+  const links=_dedupLinks(_linksRaw);
   document.getElementById('comp-sub').textContent=cot?.titulo||'';
   const todosLinks=(links||[]).filter(l=>['respondido','rascunho','aberto'].includes(l.status));
   // Busca respostas por fornecedor (evita limite de 1000 linhas do Supabase)
@@ -1096,11 +1252,12 @@ function toggleSoSemCotacao(btn){
 }
 async function carregarPedido(id){
   document.getElementById('ped-corpo').innerHTML='<div class="loading-box"><div class="spin"></div></div>';
-  const[{data:cot},{data:itens},{data:links}]=await Promise.all([
+  const[{data:cot},{data:itens},{data:_linksRaw}]=await Promise.all([
     sb.from('cotacoes').select('titulo').eq('id',id).single(),
     sb.from('cotacao_itens').select('*').eq('cotacao_id',id),
     sb.from('cotacao_links').select('*,fornecedores(nome)').eq('cotacao_id',id)
   ]);
+  const links=_dedupLinks(_linksRaw);
   document.getElementById('ped-sub').textContent=cot?.titulo||'';
   const todosLinks=(links||[]).filter(l=>['respondido','rascunho','aberto'].includes(l.status));
   const respsArrays=await Promise.all(todosLinks.map(l=>sb.from('cotacao_respostas').select('*').eq('cotacao_id',id).eq('fornecedor_id',l.fornecedor_id)));
