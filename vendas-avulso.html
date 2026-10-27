@@ -125,7 +125,26 @@ input.ro-mk.vazio{color:#94a3b8;font-weight:600}
 .tbl th.num{text-align:right}
 .tbl th.acao,.tbl td.acao{text-align:right;width:1%}
 .tbl td.acao .acoes{justify-content:flex-end;flex-wrap:nowrap}
-.tbl col.c-num{width:98px}.tbl col.c-venda{width:172px}.tbl col.c-fab{width:16%}.tbl col.c-acao{width:118px}
+.tbl col.c-num{width:98px}.tbl col.c-venda{width:172px}.tbl col.c-fab{width:16%}.tbl col.c-acao{width:160px}
+.aviso-dup{background:#fffbeb;border:1px solid #fde68a;border-radius:10px;padding:10px 12px;margin-bottom:12px;font-size:13px;color:#78350f}
+.aviso-dup .ad-item{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:6px 0;border-top:1px dashed #fde68a;flex-wrap:wrap}
+.aviso-dup .ad-item:first-of-type{border-top:none}
+.mescla-par{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:6px 0 12px}
+.mescla-par>div{border:2px solid #e2e8f0;border-radius:12px;padding:11px 12px;font-size:13px}
+.mescla-par .fica{border-color:#15a563;background:#f0faf5}.mescla-par .sai{border-color:#fca5a5;background:#fff5f5}
+.mescla-par .rot{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px}
+.mescla-par .fica .rot{color:#15803d}.mescla-par .sai .rot{color:#b3161f}
+.mescla-res{background:#f8fafc;border-radius:10px;padding:10px 12px;font-size:13px;color:#334155;line-height:1.55}
+@media(max-width:600px){.mescla-par{grid-template-columns:1fr}}
+#modal-hist .modal-box{max-width:920px}
+.hist-filtro{display:flex;gap:6px;flex-wrap:wrap;margin:4px 0 10px}
+.hist-filtro button{border:1.5px solid #e2e8f0;background:#fff;border-radius:20px;padding:5px 12px;font-size:12px;font-weight:600;cursor:pointer;color:#475569}
+.hist-filtro button.on{background:#15a563;border-color:#15a563;color:#fff}
+.hist-conf{font-size:12px;border-radius:9px;padding:8px 11px;margin-bottom:10px}
+.hist-conf.ok{background:#f0faf5;color:#166534}.hist-conf.dif{background:#fef2f2;color:#991b1b}
+.tag-cad{display:inline-block;font-size:10px;font-weight:700;background:#eef2ff;color:#4338ca;border-radius:5px;padding:1px 6px;margin-left:4px}
+.rec-ult{margin:2px 0 14px;font-size:12px;color:#475569;background:#fff;border:1px solid #d1fae5;border-radius:10px;padding:9px 11px}
+.rec-ult div{display:flex;justify-content:space-between;gap:10px;padding:3px 0}
 .tbl td .sub-mono{display:block;font-family:'Courier New',monospace;font-size:11px;color:#94a3b8;font-weight:400;margin-top:2px}
 .prod{font-weight:600;color:#1a1a2e}
 .mono{font-family:'Courier New',monospace;font-size:12px;color:#64748b;white-space:nowrap}
@@ -222,6 +241,8 @@ input.ro-mk.vazio{color:#94a3b8;font-weight:600}
   <symbol id="i-sair" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/></symbol>
   <symbol id="i-user" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></symbol>
   <symbol id="i-ajuste" viewBox="0 0 24 24"><path d="M4 21v-7"/><path d="M4 10V3"/><path d="M12 21v-9"/><path d="M12 8V3"/><path d="M20 21v-5"/><path d="M20 12V3"/><path d="M1 14h6"/><path d="M9 8h6"/><path d="M17 16h6"/></symbol>
+  <symbol id="i-hist" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l3 3"/></symbol>
+  <symbol id="i-juntar" viewBox="0 0 24 24"><path d="M8 3v5a4 4 0 0 0 4 4h0a4 4 0 0 1 4 4v5"/><path d="M16 3v5a4 4 0 0 1-4 4"/><path d="m5 6 3-3 3 3"/><path d="m13 6 3-3 3 3"/></symbol>
   <symbol id="i-mais" viewBox="0 0 24 24"><path d="M12 5v14"/><path d="M5 12h14"/></symbol>
   <symbol id="i-cupom" viewBox="0 0 24 24"><path d="M4 2v20l2-1.5L8 22l2-1.5L12 22l2-1.5L16 22l2-1.5L20 22V2l-2 1.5L16 2l-2 1.5L12 2l-2 1.5L8 2 6 3.5 4 2z"/><path d="M8 8h8"/><path d="M8 12h8"/><path d="M8 16h5"/></symbol>
   <symbol id="i-cadeado" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></symbol>
@@ -286,6 +307,7 @@ input.ro-mk.vazio{color:#94a3b8;font-weight:600}
       <option value="baixo">Abaixo do mínimo</option>
       <option value="zero">Zerados</option>
       <option value="neg">Saldo negativo</option>
+      <option value="dup">Nomes repetidos</option>
     </select>
     <select id="f-fab" onchange="renderEstoque()"><option value="">Todos os fabricantes</option></select>
     <button class="btn btn-outline btn-sm" onclick="exportarEstoque()"><svg class="ic"><use href="#i-xls"/></svg> Excel</button>
@@ -297,7 +319,7 @@ input.ro-mk.vazio{color:#94a3b8;font-weight:600}
 <!-- ══════════════ RECEBIMENTO ══════════════ -->
 <div class="page" id="p-receb">
   <div class="page-title"><svg class="ic ic-22"><use href="#i-receb"/></svg> Recebimento</div>
-  <div class="page-sub">Bipe o código de barras ou digite o nome. Se o produto não existir, o cadastro abre na hora.</div>
+  <div class="page-sub">Toda entrada de mercadoria é lançada aqui — fica no histórico do produto com quantidade, custo e fornecedor. Bipe o código ou digite o nome; se o produto não existir, o cadastro abre na hora.</div>
 
   <div class="scan-box">
     <label>Código de barras / nome do produto</label>
@@ -350,7 +372,7 @@ input.ro-mk.vazio{color:#94a3b8;font-weight:600}
 <!-- ══════════════ CADASTRO ══════════════ -->
 <div class="page" id="p-cadastro">
   <div class="page-title"><svg class="ic ic-22"><use href="#i-cadastro"/></svg> Cadastro de produtos</div>
-  <div class="page-sub">Cadastre os produtos e os preços praticados.</div>
+  <div class="page-sub">Aqui só se cadastra o produto e os preços. A <b>entrada de mercadoria</b> (quantidade comprada) é feita no <b>Recebimento</b>.</div>
 
   <div class="card">
     <h3><svg class="ic ic-18"><use href="#i-mais"/></svg> Novo produto</h3>
@@ -374,7 +396,6 @@ input.ro-mk.vazio{color:#94a3b8;font-weight:600}
     </div>
     <div class="row3">
       <div class="field"><label>Preço promocional (R$)</label><input id="cad-promo" type="number" step="0.01" min="0" placeholder="0,00" oninput="calcMarkup()"/><div class="hint">Deixe vazio se não estiver em promoção. Quando preenchido, a venda usa este preço sozinha.</div></div>
-      <div class="field"><label>Estoque inicial</label><input id="cad-est" type="number" step="0.001" min="0" placeholder="0"/><div class="hint">Gera uma entrada no histórico.</div></div>
       <div class="field"><label>Estoque mínimo (alerta)</label><input id="cad-min" type="number" step="0.001" min="0" placeholder="0"/></div>
     </div>
     <div class="row3 row-mk">
@@ -384,7 +405,10 @@ input.ro-mk.vazio{color:#94a3b8;font-weight:600}
       </div>
     </div>
     <div class="field"><label>Observação</label><input id="cad-obs" placeholder="Onde comprou, validade, etc."/></div>
-    <button class="btn btn-primary btn-block" onclick="salvarProduto()"><svg class="ic"><use href="#i-check"/></svg> Cadastrar produto</button>
+    <div class="row2">
+      <button class="btn btn-outline btn-block" onclick="salvarProduto(false)"><svg class="ic"><use href="#i-check"/></svg> Só cadastrar</button>
+      <button class="btn btn-primary btn-block" onclick="salvarProduto(true)"><svg class="ic"><use href="#i-receb"/></svg> Cadastrar e lançar entrada</button>
+    </div>
   </div>
 </div>
 
@@ -420,6 +444,7 @@ input.ro-mk.vazio{color:#94a3b8;font-weight:600}
   <div class="modal-box">
     <h3><svg class="ic ic-20"><use href="#i-cadastro"/></svg> <span id="mp-titulo">Novo produto</span></h3>
     <div class="msub" id="mp-sub">Preencha os dados do produto.</div>
+    <div id="mp-dup"></div>
     <div class="field"><label>Descrição *</label><input id="mp-desc" placeholder="Nome do produto"/></div>
     <div class="row2">
       <div class="field"><label>Código de barras</label><input id="mp-cb" autocomplete="off"/></div>
@@ -434,13 +459,50 @@ input.ro-mk.vazio{color:#94a3b8;font-weight:600}
     </div>
     <div class="row3">
       <div class="field"><label>Promocional (R$)</label><input id="mp-promo" type="number" step="0.01" min="0"/></div>
-      <div class="field" id="mp-est-wrap"><label>Estoque inicial</label><input id="mp-est" type="number" step="0.001" min="0"/></div>
       <div class="field"><label>Estoque mínimo</label><input id="mp-min" type="number" step="0.001" min="0"/></div>
     </div>
     <div class="field"><label>Observação</label><input id="mp-obs"/></div>
     <div class="modal-acoes">
       <button class="btn btn-outline" onclick="fecharProd()">Cancelar</button>
       <button class="btn btn-primary" onclick="salvarProdModal()"><svg class="ic"><use href="#i-check"/></svg> Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ MODAL JUNTAR CADASTROS ══════════════ -->
+<div class="modal" id="modal-mesclar">
+  <div class="modal-box">
+    <h3><svg class="ic ic-20"><use href="#i-juntar"/></svg> Juntar cadastros repetidos</h3>
+    <div class="msub" id="mm-sub"></div>
+    <div class="mescla-par" id="mm-par"></div>
+    <div class="mescla-res" id="mm-res"></div>
+    <div class="modal-acoes">
+      <button class="btn btn-outline" onclick="fechar('modal-mesclar')">Cancelar</button>
+      <button class="btn btn-primary" id="mm-ok" onclick="confirmarMesclar()"><svg class="ic"><use href="#i-juntar"/></svg> Juntar cadastros</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ MODAL HISTÓRICO DO PRODUTO ══════════════ -->
+<div class="modal" id="modal-hist">
+  <div class="modal-box">
+    <h3><svg class="ic ic-20"><use href="#i-hist"/></svg> Histórico do produto</h3>
+    <div class="msub" id="mh-sub"></div>
+    <div class="kpis" id="mh-kpis"></div>
+    <div id="mh-conf"></div>
+    <div class="hist-filtro" id="mh-filtro">
+      <button data-t="" class="on" onclick="filtroHist('')">Tudo</button>
+      <button data-t="entrada" onclick="filtroHist('entrada')">Entradas</button>
+      <button data-t="venda" onclick="filtroHist('venda')">Vendas</button>
+      <button data-t="ajuste" onclick="filtroHist('ajuste')">Ajustes</button>
+    </div>
+    <div id="mh-tbl"></div>
+    <div class="modal-acoes" style="justify-content:space-between">
+      <button class="btn btn-outline btn-sm" onclick="exportarHist()"><svg class="ic"><use href="#i-xls"/></svg> Excel</button>
+      <div style="display:flex;gap:9px;flex-wrap:wrap">
+        <button class="btn btn-outline" id="mh-receb" onclick="histParaReceb()"><svg class="ic"><use href="#i-receb"/></svg> Lançar entrada</button>
+        <button class="btn btn-primary" onclick="fechar('modal-hist')">Fechar</button>
+      </div>
     </div>
   </div>
 </div>
@@ -749,7 +811,9 @@ function temPromo(p){ return nz(p.preco_promo) > 0 && nz(p.preco_promo) < nz(p.p
 function precoDeVenda(p){ return temPromo(p) ? nz(p.preco_promo) : nz(p.preco_venda); }
 function filtrarEstoque(){
   const q = norm($('f-busca').value), sit = $('f-situacao').value, fab = $('f-fab').value;
+  const repetidos = sit === 'dup' ? nomesRepetidos() : null;
   let lista = PRODUTOS.filter(p => {
+    if(repetidos && !repetidos.has(chaveNome(p.descricao))) return false;
     if(fab && p.fabricante !== fab) return false;
     const s = situacao(p);
     if(sit === 'com'   && nz(p.estoque) <= 0) return false;
@@ -825,6 +889,7 @@ function renderEstoque(){
             : brl(p.preco_venda)}</td>
         <td class="num" data-l="Total custo">${brl(nz(p.estoque)*nz(p.preco_custo))}</td>
         <td class="acao" data-l="Ações"><div class="acoes">
+          <button class="btn btn-outline btn-sm" onclick="abrirHist('${p.id}')" title="Histórico de entradas, vendas e ajustes"><svg class="ic"><use href="#i-hist"/></svg></button>
           <button class="btn btn-outline btn-sm" onclick="abrirAjuste('${p.id}')" title="Ajustar estoque"><svg class="ic"><use href="#i-ajuste"/></svg></button>
           <button class="btn btn-outline btn-sm" onclick="editarProduto('${p.id}')" title="Editar"><svg class="ic"><use href="#i-editar"/></svg></button>
           ${ehGestor()?`<button class="btn btn-danger btn-sm" onclick="excluirProduto('${p.id}')" title="Excluir"><svg class="ic"><use href="#i-lixo"/></svg></button>`:''}
@@ -850,7 +915,7 @@ async function ajustarEstoque(produtoId, delta){
   }
 }
 function limparCadastro(){
-  ['cad-desc','cad-cb','cad-fab','cad-custo','cad-venda','cad-promo','cad-est','cad-min','cad-obs'].forEach(i=>$(i).value='');
+  ['cad-desc','cad-cb','cad-fab','cad-custo','cad-venda','cad-promo','cad-min','cad-obs'].forEach(i=>$(i).value='');
   $('cad-un').value = 'UN';
   calcMarkup();
 }
@@ -882,6 +947,10 @@ function calcMarkup(){
 async function criarProduto(dados, estoqueInicial){
   const existe = dados.codigo_barras && PRODUTOS.find(p => p.codigo_barras === dados.codigo_barras);
   if(existe){ toast('Já existe produto com esse código: ' + existe.descricao, true); return null; }
+  const mesmoNome = PRODUTOS.filter(p => chaveNome(p.descricao) === chaveNome(dados.descricao));
+  if(mesmoNome.length && !confirm('Já existe produto com esse nome:\n\n' +
+       mesmoNome.map(p => '· ' + p.descricao + ' — ' + (p.codigo_barras || 'sem código') + ' — estoque ' + qtdTxt(p.estoque)).join('\n') +
+       '\n\nSe for o mesmo produto, NÃO cadastre de novo: lance a compra no Recebimento.\n\nCadastrar outro mesmo assim?')) return null;
   const reg = Object.assign({criado_por: meuNome(), estoque: 0}, dados);
   const { data, error } = await sb.from('ea_produtos').insert(reg).select().single();
   if(error){ toast('Erro ao cadastrar: ' + error.message, true); return null; }
@@ -894,7 +963,7 @@ async function criarProduto(dados, estoqueInicial){
   await carregarProdutos(); await carregarMovimentos(); renderEstoque();
   return data;
 }
-async function salvarProduto(){
+async function salvarProduto(lancarEntrada){
   const desc = ($('cad-desc').value||'').trim();
   if(!desc){ toast('Informe a descrição do produto', true); $('cad-desc').focus(); return; }
   const novo = await criarProduto({
@@ -907,8 +976,11 @@ async function salvarProduto(){
     preco_promo: nz($('cad-promo').value),
     estoque_min: nz($('cad-min').value),
     observacao: ($('cad-obs').value||'').trim() || null
-  }, $('cad-est').value);
-  if(novo){ limparCadastro(); toast('Produto cadastrado'); $('cad-desc').focus(); }
+  }, 0);
+  if(!novo) return;
+  limparCadastro(); toast('Produto cadastrado');
+  if(lancarEntrada){ irPara('receb'); selecionarReceb(novo.id); }
+  else $('cad-desc').focus();
 }
 
 function novoProdutoModal(codigo, descricao){
@@ -917,9 +989,9 @@ function novoProdutoModal(codigo, descricao){
   $('mp-sub').textContent = 'Cadastro rápido — depois é só lançar a entrada.';
   $('mp-desc').value = descricao || '';
   $('mp-cb').value = codigo || '';
-  ['mp-fab','mp-custo','mp-venda','mp-promo','mp-est','mp-min','mp-obs'].forEach(i=>$(i).value='');
+  ['mp-fab','mp-custo','mp-venda','mp-promo','mp-min','mp-obs'].forEach(i=>$(i).value='');
   $('mp-un').value = 'UN';
-  $('mp-est-wrap').classList.remove('hidden');
+  $('mp-dup').innerHTML = '';
   $('modal-prod').classList.add('show');
   setTimeout(()=>$('mp-desc').focus(), 120);
 }
@@ -937,7 +1009,7 @@ function editarProduto(id){
   $('mp-promo').value = nz(p.preco_promo) || '';
   $('mp-min').value = p.estoque_min || '';
   $('mp-obs').value = p.observacao || '';
-  $('mp-est-wrap').classList.add('hidden');
+  $('mp-dup').innerHTML = avisoDuplicados(p);
   $('modal-prod').classList.add('show');
 }
 function fecharProd(){ fechar('modal-prod'); prodEditando = null; }
@@ -956,11 +1028,22 @@ async function salvarProdModal(){
     observacao: ($('mp-obs').value||'').trim() || null
   };
   if(prodEditando){
+    /* código de barras que já pertence a outro cadastro → oferecer juntar, em vez do erro do banco */
+    const dono = dados.codigo_barras && PRODUTOS.find(p => p.codigo_barras === dados.codigo_barras && p.id !== prodEditando);
+    if(dono){ abrirMesclar(prodEditando, dono.id, dados, 'codigo'); return; }
     const { error } = await sb.from('ea_produtos').update(Object.assign({updated_at:new Date().toISOString()}, dados)).eq('id', prodEditando);
-    if(error){ toast('Erro: ' + error.message, true); return; }
+    if(error){
+      if(error.code === '23505' || /duplicate key/i.test(error.message)){
+        await carregarProdutos();
+        const d2 = PRODUTOS.find(p => p.codigo_barras === dados.codigo_barras && p.id !== prodEditando);
+        if(d2){ abrirMesclar(prodEditando, d2.id, dados, 'codigo'); return; }
+        toast('Esse código de barras já está em outro cadastro.', true); return;
+      }
+      toast('Erro: ' + error.message, true); return;
+    }
     fecharProd(); await carregarProdutos(); renderEstoque(); toast('Produto atualizado');
   } else {
-    const novo = await criarProduto(dados, $('mp-est').value);
+    const novo = await criarProduto(dados, 0);
     if(!novo) return;
     fecharProd(); toast('Produto cadastrado');
     /* se veio do recebimento, já seleciona pra lançar a entrada */
@@ -1051,6 +1134,7 @@ function selecionarReceb(id){
       <span>${esc(p.fabricante||'sem fabricante')}</span>
       <span>Estoque atual: <b>${qtdTxt(p.estoque)} ${esc(p.unidade||'UN')}</b></span>
     </div>
+    ${ultimasEntradasHTML(p)}
     <div class="row3">
       <div class="field"><label>Quantidade que entrou *</label><input id="rec-qtd" type="number" step="0.001" min="0" placeholder="0" onkeydown="if(event.key==='Enter'){event.preventDefault();confirmarReceb()}"/></div>
       <div class="field"><label>Custo unitário (R$)</label><input id="rec-custo" type="number" step="0.01" min="0" value="${nz(p.preco_custo)||''}" placeholder="0,00"/></div>
@@ -1067,6 +1151,7 @@ function selecionarReceb(id){
       <button class="btn btn-primary" onclick="confirmarReceb()"><svg class="ic"><use href="#i-check"/></svg> Lançar entrada</button>
       <button class="btn btn-outline" onclick="cancelarReceb()">Cancelar</button>
       <button class="btn btn-outline" onclick="editarProduto('${p.id}')"><svg class="ic"><use href="#i-editar"/></svg> Editar cadastro</button>
+      <button class="btn btn-outline" onclick="abrirHist('${p.id}')"><svg class="ic"><use href="#i-hist"/></svg> Histórico</button>
     </div>
   </div>`;
   setTimeout(()=>{ const q = $('rec-qtd'); if(q){ q.focus(); } }, 120);
@@ -1111,6 +1196,187 @@ function renderLoteReceb(){
       <span class="mono">${brl(i.total)}</span>
     </div>`).join('') +
     `<div class="cart-total"><span class="lab">Total comprado</span><span class="val" style="font-size:20px">${brl(tot)}</span></div>`;
+}
+
+/* ══════════════ CADASTROS REPETIDOS ══════════════ */
+const chaveNome = d => norm(d).replace(/\s+/g,' ').trim();
+function nomesRepetidos(){
+  const cont = new Map();
+  PRODUTOS.forEach(p => { const k = chaveNome(p.descricao); cont.set(k, (cont.get(k)||0) + 1); });
+  return new Set([...cont].filter(([,n]) => n > 1).map(([k]) => k));
+}
+function avisoDuplicados(p){
+  const outros = PRODUTOS.filter(x => x.id !== p.id && chaveNome(x.descricao) === chaveNome(p.descricao));
+  if(!outros.length || !ehGestor()) return '';
+  return `<div class="aviso-dup"><b>⚠ Existe${outros.length>1?'m':''} ${outros.length} outro${outros.length>1?'s':''} cadastro${outros.length>1?'s':''} com este mesmo nome.</b>
+    Se for o mesmo produto, junte os cadastros — o estoque é somado e o histórico fica num lugar só.
+    ${outros.map(o => `<div class="ad-item"><span><b>${esc(o.codigo_barras||'sem código')}</b> · estoque ${qtdTxt(o.estoque)} ${esc(o.unidade||'UN')} · venda ${brl(precoDeVenda(o))}</span>
+      <button class="btn btn-outline btn-sm" onclick="juntarDoModal('${o.id}')"><svg class="ic"><use href="#i-juntar"/></svg> Juntar com este</button></div>`).join('')}
+  </div>`;
+}
+function dadosDoModalProd(){
+  return {
+    descricao: ($('mp-desc').value||'').trim(),
+    codigo_barras: ($('mp-cb').value||'').trim() || null,
+    fabricante: ($('mp-fab').value||'').trim() || null,
+    unidade: $('mp-un').value,
+    preco_custo: nz($('mp-custo').value),
+    preco_venda: nz($('mp-venda').value),
+    preco_promo: nz($('mp-promo').value),
+    estoque_min: nz($('mp-min').value),
+    observacao: ($('mp-obs').value||'').trim() || null
+  };
+}
+function juntarDoModal(outroId){
+  if(!prodEditando) return;
+  const dados = dadosDoModalProd();
+  if(!dados.descricao){ toast('Informe a descrição', true); return; }
+  abrirMesclar(prodEditando, outroId, dados, 'nome');
+}
+
+let mescla = null;  /* {origem, destino, dados} */
+async function contarMov(id){
+  const { count } = await sb.from('ea_movimentos').select('id', {count:'exact', head:true}).eq('produto_id', id);
+  return count || 0;
+}
+async function abrirMesclar(origemId, destinoId, dados, motivo){
+  if(!soGestor()) return;
+  const o = PRODUTOS.find(x=>x.id===origemId), d = PRODUTOS.find(x=>x.id===destinoId);
+  if(!o || !d) return;
+  mescla = {origem:origemId, destino:destinoId, dados};
+  const [mo, md] = await Promise.all([contarMov(o.id), contarMov(d.id)]);
+  const cb = dados.codigo_barras || d.codigo_barras || o.codigo_barras || null;
+  const fim = nz(o.estoque) + nz(d.estoque);
+  $('mm-sub').innerHTML = motivo === 'codigo'
+    ? `O código <b>${esc(dados.codigo_barras)}</b> já pertence a outro cadastro. Como é o mesmo produto, o certo é juntar os dois num cadastro só.`
+    : 'Os dois cadastros abaixo serão juntados num só.';
+  const card = (p, n, cls, rot) => `<div class="${cls}"><div class="rot">${rot}</div>
+      <b>${esc(p.descricao)}</b><div class="mono">${esc(p.codigo_barras||'sem código')}</div>
+      <div>Estoque: <b>${qtdTxt(p.estoque)} ${esc(p.unidade||'UN')}</b></div>
+      <div>Movimentos: <b>${n}</b></div></div>`;
+  $('mm-par').innerHTML = card(d, md, 'fica', 'Fica') + card(o, mo, 'sai', 'Será apagado');
+  $('mm-res').innerHTML = `<b>Resultado:</b><br/>
+    · Estoque final: <b>${qtdTxt(nz(d.estoque))} + ${qtdTxt(nz(o.estoque))} = ${qtdTxt(fim)} ${esc(dados.unidade||d.unidade||'UN')}</b><br/>
+    · Os ${mo} movimento(s) do cadastro apagado passam para o que fica — nada some do histórico.<br/>
+    · Código de barras: <b>${esc(cb||'sem código')}</b><br/>
+    · Preços que ficam: custo ${brl(dados.preco_custo)} · venda ${brl(dados.preco_venda)}${nz(dados.preco_promo)>0?` · <b>promocional ${brl(dados.preco_promo)}</b>`:''}`;
+  $('mm-ok').disabled = false;
+  $('modal-mesclar').classList.add('show');
+}
+async function confirmarMesclar(){
+  if(!soGestor() || !mescla) return;
+  const o = PRODUTOS.find(x=>x.id===mescla.origem), d = PRODUTOS.find(x=>x.id===mescla.destino);
+  if(!o || !d){ toast('Cadastro não encontrado — recarregue a página', true); return; }
+  $('mm-ok').disabled = true;
+  const dados = Object.assign({}, mescla.dados);
+  dados.codigo_barras = dados.codigo_barras || d.codigo_barras || o.codigo_barras || null;
+  const estOrigem = nz(o.estoque);
+
+  /* 1. guarda os ids dos movimentos do cadastro que sai e passa todos para o que fica */
+  const { data: movs, error: e0 } = await sb.from('ea_movimentos').select('id').eq('produto_id', o.id);
+  if(e0){ toast('Erro ao ler histórico: ' + e0.message, true); $('mm-ok').disabled = false; return; }
+  const ids = (movs||[]).map(m=>m.id);
+  if(ids.length){
+    const { error: e1 } = await sb.from('ea_movimentos').update({produto_id: d.id}).in('id', ids);
+    if(e1){ toast('Erro ao transferir histórico: ' + e1.message, true); $('mm-ok').disabled = false; return; }
+  }
+  /* 2. apaga o cadastro repetido (já sem movimentos — nada é apagado em cascata) */
+  const { error: e2 } = await sb.from('ea_produtos').delete().eq('id', o.id);
+  if(e2){
+    if(ids.length) await sb.from('ea_movimentos').update({produto_id: o.id}).in('id', ids);  /* desfaz */
+    toast('Erro ao apagar o cadastro repetido: ' + e2.message, true); $('mm-ok').disabled = false; return;
+  }
+  /* 3. soma o estoque e grava os dados */
+  if(Math.abs(estOrigem) > 0.0005) await ajustarEstoque(d.id, estOrigem);
+  const { error: e3 } = await sb.from('ea_produtos').update(Object.assign({updated_at:new Date().toISOString()}, dados)).eq('id', d.id);
+  if(e3) toast('Cadastros juntados, mas houve erro ao gravar os preços: ' + e3.message, true);
+  await inserirMovimento({produto_id:d.id, descricao:dados.descricao || d.descricao, tipo:'ajuste', quantidade:0,
+    preco_unit:nz(dados.preco_custo), total:0,
+    observacao:'Cadastro repetido juntado: ' + qtdTxt(estOrigem) + ' un. vieram do cadastro ' + (o.codigo_barras||'sem código') + ' (' + ids.length + ' movimentos transferidos)'});
+
+  fechar('modal-mesclar'); fecharProd(); mescla = null;
+  await carregarProdutos(); await carregarMovimentos(); renderEstoque(); renderMov();
+  const fim = PRODUTOS.find(x=>x.id===d.id);
+  toast('Cadastros juntados — estoque ' + qtdTxt(fim ? fim.estoque : nz(d.estoque)+estOrigem));
+}
+
+/* ══════════════ HISTÓRICO DO PRODUTO ══════════════ */
+let hist = {prod:null, movs:[], tipo:''};
+const sinalMov = m => m.tipo === 'entrada' ? 1 : m.tipo === 'venda' ? -1
+                    : (String(m.observacao||'').startsWith('Baixa de ajuste') ? -1 : (nz(m.quantidade) ? 1 : 0));
+function ultimasEntradasHTML(p){
+  const ent = MOVIMENTOS.filter(m => m.produto_id === p.id && m.tipo === 'entrada').slice(0,3);
+  if(!ent.length) return '<div class="rec-ult">Nenhuma entrada registrada ainda para este produto.</div>';
+  return `<div class="rec-ult"><b>Últimas entradas</b>${ent.map(m => `<div><span>${dataBR(m.created_at)} · <b>+${qtdTxt(m.quantidade)}</b> a ${brl(m.preco_unit)}${m.fornecedor?' · '+esc(m.fornecedor):''}</span><span>${esc(m.usuario||'')}</span></div>`).join('')}</div>`;
+}
+async function abrirHist(id){
+  const p = PRODUTOS.find(x=>x.id===id); if(!p) return;
+  hist = {prod:p, movs:[], tipo:''};
+  $('mh-sub').innerHTML = `<b>${esc(p.descricao)}</b> · <span class="mono">${esc(p.codigo_barras||'sem código')}</span>${p.fabricante?' · '+esc(p.fabricante):''}`;
+  $('mh-kpis').innerHTML = ''; $('mh-conf').innerHTML = '';
+  $('mh-tbl').innerHTML = '<div class="vazio">Carregando…</div>';
+  document.querySelectorAll('#mh-filtro button').forEach(b => b.classList.toggle('on', b.dataset.t === ''));
+  $('mh-receb').classList.toggle('hidden', !ehGestor());
+  $('modal-hist').classList.add('show');
+  const { data, error } = await sb.from('ea_movimentos').select('*').eq('produto_id', id).order('created_at', {ascending:true});
+  if(error){ $('mh-tbl').innerHTML = '<div class="vazio">Erro: ' + esc(error.message) + '</div>'; return; }
+  let saldo = 0;
+  hist.movs = (data||[]).map(m => { saldo += sinalMov(m) * nz(m.quantidade); return Object.assign({}, m, {_saldo: saldo}); });
+  renderHist();
+}
+function filtroHist(t){
+  hist.tipo = t;
+  document.querySelectorAll('#mh-filtro button').forEach(b => b.classList.toggle('on', b.dataset.t === t));
+  renderHist();
+}
+function renderHist(){
+  const p = PRODUTOS.find(x=>x.id===(hist.prod&&hist.prod.id)) || hist.prod; if(!p) return;
+  const all = hist.movs;
+  const ent = all.filter(m=>m.tipo==='entrada'), ven = all.filter(m=>m.tipo==='venda'), aju = all.filter(m=>m.tipo==='ajuste');
+  const qEnt = ent.reduce((s,m)=>s+nz(m.quantidade),0), vEnt = ent.reduce((s,m)=>s+nz(m.total),0);
+  const qVen = ven.reduce((s,m)=>s+nz(m.quantidade),0), vVen = ven.reduce((s,m)=>s+nz(m.total),0);
+  const qAju = aju.reduce((s,m)=>s+sinalMov(m)*nz(m.quantidade),0);
+  const ult = ent[ent.length-1];
+  $('mh-kpis').innerHTML = `
+    <div class="kpi azul"><div class="lab">Entradas</div><div class="val">${qtdTxt(qEnt)}</div><div class="sub">${ent.length} lançamento(s) · ${brl(vEnt)}</div></div>
+    <div class="kpi"><div class="lab">Custo médio</div><div class="val">${brl(qEnt?vEnt/qEnt:0)}</div><div class="sub">${ult?'último '+brl(ult.preco_unit)+(ult.fornecedor?' · '+esc(ult.fornecedor):''):'—'}</div></div>
+    <div class="kpi roxo"><div class="lab">Vendido</div><div class="val">${qtdTxt(qVen)}</div><div class="sub">${brl(vVen)}</div></div>
+    <div class="kpi ouro"><div class="lab">Ajustes</div><div class="val">${qAju>0?'+':''}${qtdTxt(qAju)}</div><div class="sub">saldo atual ${qtdTxt(p.estoque)} ${esc(p.unidade||'UN')}</div></div>`;
+  const calc = all.length ? all[all.length-1]._saldo : 0;
+  $('mh-conf').innerHTML = Math.abs(calc - nz(p.estoque)) < 0.0005
+    ? `<div class="hist-conf ok">✔ O histórico confere com o saldo: entradas ${qtdTxt(qEnt)} − vendas ${qtdTxt(qVen)} ${qAju>=0?'+':'−'} ajustes ${qtdTxt(Math.abs(qAju))} = <b>${qtdTxt(calc)}</b></div>`
+    : `<div class="hist-conf dif">⚠ O histórico soma <b>${qtdTxt(calc)}</b>, mas o saldo do cadastro é <b>${qtdTxt(p.estoque)}</b> (diferença ${qtdTxt(nz(p.estoque)-calc)}). Pode ser movimento estornado/apagado ou saldo mexido fora do app — confira e use o Ajustar.</div>`;
+  const lista = (hist.tipo ? all.filter(m=>m.tipo===hist.tipo) : all).slice().reverse();
+  if(!lista.length){ $('mh-tbl').innerHTML = '<div class="vazio">Nenhum movimento' + (hist.tipo?' deste tipo':'') + '.</div>'; return; }
+  const badge = t => t==='entrada' ? '<span class="badge b-azul">entrada</span>' : t==='venda' ? '<span class="badge b-verde">venda</span>' : '<span class="badge b-ouro">ajuste</span>';
+  $('mh-tbl').innerHTML = `<table class="tbl">
+    <thead><tr><th>Data</th><th>Tipo</th><th class="num">Qtd</th><th class="num">Unit.</th><th class="num">Total</th><th class="num">Saldo</th><th>Quem / detalhes</th></tr></thead>
+    <tbody>${lista.map(m => {
+      const sg = sinalMov(m);
+      const viaCad = m.tipo==='entrada' && /Estoque inicial do cadastro/i.test(m.observacao||'');
+      return `<tr>
+        <td data-l="Data" class="mono">${dataBR(m.created_at)}</td>
+        <td data-l="Tipo">${badge(m.tipo)}${viaCad?'<span class="tag-cad">via Cadastro</span>':''}</td>
+        <td class="num" data-l="Qtd">${sg<0?'−':sg>0?'+':''}${qtdTxt(m.quantidade)}</td>
+        <td class="num" data-l="Unit.">${brl(m.preco_unit)}</td>
+        <td class="num" data-l="Total">${brl(m.total)}</td>
+        <td class="num" data-l="Saldo"><b>${qtdTxt(m._saldo)}</b></td>
+        <td data-l="Detalhes" style="font-size:12px;color:#64748b">${esc(m.usuario||'')}${m.fornecedor?' · '+esc(m.fornecedor):''}${m.cliente?' · '+esc(m.cliente):''}${m.pagamento?' · '+esc(m.pagamento):''}${m.observacao?' · '+esc(m.observacao):''}</td>
+      </tr>`; }).join('')}</tbody></table>`;
+}
+function exportarHist(){
+  const p = hist.prod; if(!p) return;
+  const lista = hist.tipo ? hist.movs.filter(m=>m.tipo===hist.tipo) : hist.movs;
+  baixarXLSX(lista.map(m => ({
+    'Data': dataBR(m.created_at), 'Tipo': m.tipo, 'Quantidade': sinalMov(m)*nz(m.quantidade),
+    'Preço unit.': nz(m.preco_unit), 'Total': nz(m.total), 'Saldo após': nz(m._saldo),
+    'Fornecedor': m.fornecedor || '', 'Cliente': m.cliente || '', 'Pagamento': m.pagamento || '',
+    'Usuário': m.usuario || '', 'Observação': m.observacao || ''
+  })), 'Histórico', 'historico-' + (p.codigo_barras || p.descricao).replace(/[^\w]+/g,'-').slice(0,40) + '.xlsx');
+}
+function histParaReceb(){
+  const p = hist.prod; if(!p) return;
+  fechar('modal-hist'); irPara('receb'); selecionarReceb(p.id);
 }
 
 /* ══════════════ BLOQUEIO POR FALTA DE SALDO ══════════════ */
